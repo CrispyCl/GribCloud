@@ -13,6 +13,8 @@ export default defineConfig({
       '@pages': '/src/pages',
       '@store': '/src/store',
       '@utils': '/utils',
+      '@constants': 'src/constants',
+      '@public': 'public',
     },
   },
 })
