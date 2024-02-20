@@ -1,3 +1,4 @@
+import '@mantine/dropzone/styles.css'
 import Albums from '@pages/Albums'
 import Archive from '@pages/Archive'
 import Favorites from '@pages/Favorites'

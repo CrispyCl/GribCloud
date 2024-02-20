@@ -7,7 +7,7 @@ export const UserModalButton = () => {
       <Menu.Target>
         <UnstyledButton>
           <Group>
-            <Avatar radius='xl' />
+            <Avatar variant='transparent' />
             <div style={{ flex: 1 }}>
               <Text size='sm' fw={500}>
                 Max Bakurin
