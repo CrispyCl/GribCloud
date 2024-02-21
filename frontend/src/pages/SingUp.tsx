@@ -7,30 +7,62 @@ import {
   TextInput,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
+import { register } from '@store/slices/auth'
+import { clearMessage } from '@store/slices/message'
+import { useAppDispatch, useAppSelector } from '@store/store'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const SingIn = () => {
+interface iFormSingUp {
+  email: string
+  username: string
+  password: string
+  passwordConfirm: string
+  terms: boolean
+}
+
+const SingUp = () => {
   const navigate = useNavigate()
-  const form = useForm({
+  const form = useForm<iFormSingUp>({
     initialValues: {
       email: '',
-      name: '',
+      username: '',
       password: '',
       passwordConfirm: '',
       terms: true,
     },
 
     validate: {
-      email: val => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
-      password: val =>
+      email: (val: string) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
+      password: (val: string) =>
         val.length <= 6
           ? 'Password should include at least 6 characters'
           : null,
     },
   })
 
-  const differentPasswords =
-    form.values.password !== form.values.passwordConfirm
+  const [successful, setSuccessful] = useState<boolean>(false)
+
+  const { message } = useAppSelector(state => state.message)
+  const dispatch = useAppDispatch()
+
+  useEffect(() => {
+    dispatch(clearMessage())
+  }, [dispatch])
+
+  const handleRegister = (formValue: any) => {
+    const { username, email, password } = formValue
+    setSuccessful(false)
+
+    dispatch(register({ username, email, password }))
+      .unwrap()
+      .then(() => {
+        setSuccessful(true)
+      })
+      .catch(() => {
+        setSuccessful(false)
+      })
+  }
 
   return (
     <div className='flex min-h-full flex-1 flex-col justify-center bg-slate-50 sm:items-center sm:px-6 sm:py-12 lg:px-8'>
@@ -44,17 +76,17 @@ const SingIn = () => {
         <div className='overflow-hidden rounded-lg bg-white shadow-lg'>
           <div className='my-8 max-sm:mx-5 sm:mx-auto sm:w-full sm:max-w-sm'>
             <div className='space-y-6'>
-              <form onSubmit={form.onSubmit(() => {})}>
+              <form onSubmit={form.onSubmit(handleRegister)}>
                 <Stack>
                   <TextInput
                     required
                     label='Имя'
                     placeholder='Ваше имя'
-                    value={form.values.name}
+                    value={form.values.username}
                     onChange={event =>
-                      form.setFieldValue('name', event.currentTarget.value)
+                      form.setFieldValue('username', event.currentTarget.value)
                     }
-                    error={form.errors.name && 'Такое имя уже занято'}
+                    error={form.errors.username && 'Такое имя уже занято'}
                     radius='md'
                   />
                   <TextInput
@@ -78,8 +110,10 @@ const SingIn = () => {
                       form.setFieldValue('password', event.currentTarget.value)
                     }
                     error={
-                      form.errors.password &&
-                      'Пароль должен содержать не менее 6 символов'
+                      (form.errors.password &&
+                        'Пароль должен содержать не менее 6 символов') ||
+                      (form.values.password !== form.values.passwordConfirm &&
+                        'Пароли не совпадают')
                     }
                     radius='md'
                   />
@@ -95,8 +129,10 @@ const SingIn = () => {
                       )
                     }
                     error={
-                      form.errors.passwordConfirm &&
-                      'Пароль должен содержать не менее 6 символов'
+                      (form.errors.passwordConfirm &&
+                        'Пароль должен содержать не менее 6 символов') ||
+                      (form.values.password !== form.values.passwordConfirm &&
+                        'Пароли не совпадают')
                     }
                     radius='md'
                   />
@@ -107,14 +143,6 @@ const SingIn = () => {
                     type='submit'
                     className='flex w-full items-center justify-center rounded-md bg-blue-500 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500'
                     radius='xl'
-                    onClick={() => {
-                      if (differentPasswords) {
-                        form.setFieldError(
-                          'passwordConfirm',
-                          'Пароли не совпадают',
-                        )
-                      }
-                    }}
                   >
                     Зарегистрироваться
                   </Button>
@@ -142,4 +170,4 @@ const SingIn = () => {
   )
 }
 
-export default SingIn
+export default SingUp

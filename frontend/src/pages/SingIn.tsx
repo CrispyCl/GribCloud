@@ -2,17 +2,26 @@ import {
   Anchor,
   Button,
   Group,
-  PaperProps,
   PasswordInput,
   Stack,
   TextInput,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { useNavigate } from 'react-router-dom'
+import { login } from '@store/slices/auth'
+import { clearMessage } from '@store/slices/message'
+import { useAppDispatch, useAppSelector } from '@store/store'
+import { useEffect, useState } from 'react'
+import { Navigate, useNavigate } from 'react-router-dom'
 
-const SingIn = (props: PaperProps) => {
-  const navigate = useNavigate()
-  const form = useForm({
+interface IFormSingIn {
+  email: string
+  password: string
+  name: string
+  terms: boolean
+}
+
+const SingIn = () => {
+  const form = useForm<IFormSingIn>({
     initialValues: {
       email: '',
       name: '',
@@ -21,13 +30,44 @@ const SingIn = (props: PaperProps) => {
     },
 
     validate: {
-      email: val => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
-      password: val =>
+      email: (val: string) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
+      password: (val: string) =>
         val.length <= 6
           ? 'Password should include at least 6 characters'
           : null,
     },
   })
+
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const { isLoggedIn } = useAppSelector(state => state.auth)
+  const { message } = useAppSelector(state => state.message)
+
+  const dispatch = useAppDispatch()
+
+  useEffect(() => {
+    dispatch(clearMessage())
+  }, [dispatch])
+
+  const handleLogin = (formValue: any) => {
+    const { username, password } = formValue
+    setLoading(true)
+
+    dispatch(login({ username, password }))
+      .unwrap()
+      .then(() => {
+        navigate('/settings')
+        window.location.reload()
+      })
+      .catch(() => {
+        setLoading(false)
+      })
+  }
+
+  if (isLoggedIn) {
+    return <Navigate to='/settings' />
+  }
 
   return (
     <div className='flex min-h-full flex-1 flex-col justify-center bg-slate-50 sm:items-center sm:px-6 sm:py-12 lg:px-8'>
@@ -41,7 +81,7 @@ const SingIn = (props: PaperProps) => {
         <div className='overflow-hidden rounded-lg bg-white shadow-lg'>
           <div className='my-8 max-sm:mx-5 sm:mx-auto sm:w-full sm:max-w-sm'>
             <div className='space-y-6'>
-              <form onSubmit={form.onSubmit(() => {})}>
+              <form onSubmit={form.onSubmit(handleLogin)}>
                 <Stack>
                   <TextInput
                     required
