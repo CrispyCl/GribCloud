@@ -5,7 +5,7 @@
       "@components/*": ["src/components/*"],
       "@hooks/*": ["hooks/*"],
       "@pages/*": ["src/pages/*"],
-      "@store/*": ["src/store/*"],
+      "@store/*": ["src/redux/*"],
       "@assets/*": ["src/assets/*"],
       "@constants/*": ["src/constants/*"],
       "@public/*": ["public/*"]

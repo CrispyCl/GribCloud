@@ -11,7 +11,7 @@ export default defineConfig({
       '@components': '/src/components',
       '@hooks': '/src/hooks',
       '@pages': '/src/pages',
-      '@store': '/src/store',
+      '@store': '/src/redux',
       '@utils': '/utils',
       '@constants': 'src/constants',
       '@public': 'public',
