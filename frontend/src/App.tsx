@@ -6,6 +6,8 @@ import GroupAlbums from '@pages/GroupAlbums'
 import Home from '@pages/Home'
 import NotFound from '@pages/NotFound'
 import Settings from '@pages/Settings'
+import SingIn from '@pages/SingIn'
+import SingUp from '@pages/SingUp'
 import Trash from '@pages/Trash'
 import { Route, Routes } from 'react-router-dom'
 
@@ -13,6 +15,8 @@ function App() {
   return (
     <Routes>
       <Route path='/' element={<Home />} />
+      <Route path='/singin' element={<SingIn />} />
+      <Route path='/singup' element={<SingUp />} />
       <Route path='/groupalbums' element={<GroupAlbums />} />
       <Route path='/favorites' element={<Favorites />} />
       <Route path='/albums' element={<Albums />} />
