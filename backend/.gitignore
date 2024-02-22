@@ -60,13 +60,12 @@ test.py
 *.log
 local_settings.py
 db.sqlite3
+GriBD.sqlite3
 db.sqlite3-journal
 
 # Flask stuff:
 instance/
 .webassets-cache
-db/GriBD.db
-db/test.db
 
 # Scrapy stuff:
 .scrapy
