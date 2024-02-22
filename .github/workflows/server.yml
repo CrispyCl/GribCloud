@@ -1,0 +1,77 @@
+name: Server
+
+on:
+  push:
+    branches:
+      - "main"
+      - "develop"
+  pull_request:
+    branches:
+      - "main"
+      - "develop"
+
+jobs:
+  build:
+      runs-on: ubuntu-latest
+      strategy:
+        fail-fast: false
+        matrix:
+          python-version: ["3.10", "3.11"]
+
+      steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements/prod.txt
+          pip install -r requirements/test.txt
+          pip install -r requirements/dev.txt
+
+  lint:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+           python-version: 3.11
+      - name: Install requirements
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements/test.txt
+      - name: flake8
+        run: |
+          cd backend
+          flake8 --verbose
+      - name: black
+        run: |
+          cd backend
+          black --check --config pyproject.toml .
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+           python-version: 3.11
+      - name: Install requirements
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements/prod.txt
+          pip install -r requirements/test.txt
+      - name: django-test
+        run: |
+          cd backend/GribCloud
+          python manage.py migrate
+          python manage.py test
