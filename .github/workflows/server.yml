@@ -48,9 +48,11 @@ jobs:
           pip install -r requirements/test.txt
       - name: flake8
         run: |
+          cd backend
           flake8 --verbose
       - name: black
         run: |
+          cd backend
           black --check --config pyproject.toml .
 
   test:
@@ -70,6 +72,6 @@ jobs:
           pip install -r requirements/test.txt
       - name: django-test
         run: |
-          cd GribCloud
+          cd backend/GribCloud
           python manage.py migrate
           python manage.py test
