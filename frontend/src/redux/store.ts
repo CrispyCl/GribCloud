@@ -1,43 +1,45 @@
-// import { configureStore } from '@reduxjs/toolkit'
-// import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
-// import { authApi } from './api/authApi'
-// import { userApi } from './api/userApi'
-// import userReducer from './slices/userSlice'
-
-// export const store = configureStore({
-//   reducer: {
-//     [authApi.reducerPath]: authApi.reducer,
-//     [userApi.reducerPath]: userApi.reducer,
-//     userState: userReducer,
-//   },
-//   devTools: true,
-//   middleware: getDefaultMiddleware =>
-//     getDefaultMiddleware({}).concat([authApi.middleware, userApi.middleware]),
-// })
-
-// export type RootState = ReturnType<typeof store.getState>
-// export type AppDispatch = typeof store.dispatch
-// export const useAppDispatch = () => useDispatch<AppDispatch>()
-// export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
-
 import { configureStore } from '@reduxjs/toolkit'
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
-import authReducer from './slices/auth'
-import messageReducer from './slices/message'
+import { useDispatch } from 'react-redux'
+import { combineReducers } from 'redux'
+import {
+  FLUSH,
+  PAUSE,
+  PERSIST,
+  PURGE,
+  REGISTER,
+  REHYDRATE,
+  persistReducer,
+  persistStore,
+} from 'redux-persist'
+import storage from 'redux-persist/lib/storage'
+import authSlice from './slices/auth'
 
-const reducer = {
-  auth: authReducer,
-  message: messageReducer,
-}
-
-const store = configureStore({
-  reducer: reducer,
-  devTools: true,
+const rootReducer = combineReducers({
+  auth: authSlice.reducer,
 })
 
-export default store
+const persistedReducer = persistReducer(
+  {
+    key: 'root',
+    version: 1,
+    storage: storage,
+  },
+  rootReducer,
+)
 
+const store = configureStore({
+  reducer: persistedReducer,
+  middleware: getDefaultMiddleware =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+      },
+    }),
+})
+
+export const persistor = persistStore(store)
+export type RootState = ReturnType<typeof rootReducer>
 export type AppDispatch = typeof store.dispatch
-export type RootState = ReturnType<typeof store.getState>
-export const useAppDispatch = () => useDispatch<AppDispatch>()
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
+export const useAppDispatch: () => AppDispatch = useDispatch
+
+export default store

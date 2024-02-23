@@ -7,10 +7,6 @@ import {
   TextInput,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { register } from '@store/slices/auth'
-import { clearMessage } from '@store/slices/message'
-import { useAppDispatch, useAppSelector } from '@store/store'
-import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 interface iFormSingUp {
@@ -18,7 +14,6 @@ interface iFormSingUp {
   username: string
   password: string
   passwordConfirm: string
-  terms: boolean
 }
 
 const SingUp = () => {
@@ -29,7 +24,6 @@ const SingUp = () => {
       username: '',
       password: '',
       passwordConfirm: '',
-      terms: true,
     },
 
     validate: {
@@ -40,29 +34,6 @@ const SingUp = () => {
           : null,
     },
   })
-
-  const [successful, setSuccessful] = useState<boolean>(false)
-
-  const { message } = useAppSelector(state => state.message)
-  const dispatch = useAppDispatch()
-
-  useEffect(() => {
-    dispatch(clearMessage())
-  }, [dispatch])
-
-  const handleRegister = (formValue: any) => {
-    const { username, email, password } = formValue
-    setSuccessful(false)
-
-    dispatch(register({ username, email, password }))
-      .unwrap()
-      .then(() => {
-        setSuccessful(true)
-      })
-      .catch(() => {
-        setSuccessful(false)
-      })
-  }
 
   return (
     <div className='flex min-h-full flex-1 flex-col justify-center bg-slate-50 sm:items-center sm:px-6 sm:py-12 lg:px-8'>
