@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from user.models import User
+from user.serializers import UserSerializer
 
 
 class UserAPIUrlsTestCase(APITestCase):
@@ -40,6 +41,20 @@ class UserAPIPermissionsTestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(User.objects.count(), 3)
+
+    def test_valid_retrieve_current_user(self):
+        self.client.force_login(self.user1)
+        url = reverse("users:my")
+
+        response = self.client.get(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(UserSerializer(self.user1).data, response.data)
+
+    def test_invalid_retrieve_current_user(self):
+        url = reverse("users:my")
+
+        response = self.client.get(url, format="json")
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @parameterized.parameterized.expand(
         [
