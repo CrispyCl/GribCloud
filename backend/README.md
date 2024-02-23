@@ -60,6 +60,12 @@ copy .env.template .env
 cd GribCloud
 ```
 
+## Выполните компиляцию файлов перевода
+
+```bash
+django-admin compilemessages
+```
+
 ## Создание Базы данных
 
 ### Применить миграции
