@@ -1,26 +1,36 @@
 from datetime import timedelta
+import os
 from pathlib import Path
+
+from django.utils.translation import gettext_lazy as _
+from dotenv import load_dotenv
+
+load_dotenv(override=False)
+
+# Common settings
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-cm71m)t&u4a4wp+^jfm#6-d4j)t)+#+w2ag!==$1w600!w!&ia"
-
-DEBUG = True
-
-ALLOWED_HOSTS = []
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "secret_key")
+DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() in ("true", "1", "yes", "y")
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(" ")
+INTERNAL_IPS = os.getenv("DJANGO_INTERNAL_IPS", "127.0.0.1").split(" ")
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    # Django apps
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Other
     "rest_framework",
     "rest_framework_simplejwt",
+    # Project's apps
     "core.apps.CoreConfig",
     "user.apps.UserConfig",
 ]
@@ -35,8 +45,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
 ]
-
-ROOT_URLCONF = "GribCloud.urls"
 
 TEMPLATES = [
     {
@@ -55,10 +63,10 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "GribCloud.wsgi.application"
-
+ROOT_URLCONF = "GribCloud.urls"
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Database
-# https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
     "default": {
@@ -67,10 +75,10 @@ DATABASES = {
     },
 }
 
+# Auth settings
 
 AUTH_USER_MODEL = "user.User"
-# Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -88,14 +96,17 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/5.0/topics/i18n/
 
 LANGUAGE_CODE = "en-us"
-
+LANGUAGES = (
+    ("en", _("English")),
+    ("ru", _("Russian")),
+)
+LOCALE_PATHS = [
+    BASE_DIR / "locale",
+]
 TIME_ZONE = "UTC"
-
 USE_I18N = True
-
 USE_TZ = True
 
 
@@ -104,10 +115,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+# RestFramework settings
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
