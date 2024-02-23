@@ -4,7 +4,18 @@ export interface AccountResponse {
   username: string
   created: Date
   img?: string
-
   access: string
   refresh: string
+}
+
+export interface iFormSingUp {
+  email: string
+  username: string
+  password: string
+  passwordConfirm: string
+}
+
+export interface EditAccountResponse extends iFormSingUp {
+  img?: string
+  oldPassword: string
 }

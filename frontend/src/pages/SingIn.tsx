@@ -35,7 +35,6 @@ const SingIn = () => {
         val.length < 6 ? 'Password should include at least 6 characters' : null,
     },
   })
-
   const handleLogin = (username: string, password: string) => {
     axios
       .post('api/v1/token/', { username, password })
@@ -56,6 +55,9 @@ const SingIn = () => {
             dispatch(authSlice.actions.setAccount(res.data))
             setLoading(false)
             navigate('/')
+          })
+          .catch(err => {
+            setMessage(err.response.data.detail.toString())
           })
       })
       .catch(err => {

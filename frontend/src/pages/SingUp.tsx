@@ -9,16 +9,10 @@ import {
 import { useForm } from '@mantine/form'
 import authSlice from '@store/slices/auth'
 import { useAppDispatch } from '@store/store'
+import { iFormSingUp } from '@store/types'
 import axios from 'axios'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
-interface iFormSingUp {
-  email: string
-  username: string
-  password: string
-  passwordConfirm: string
-}
 
 const SingUp = () => {
   const navigate = useNavigate()
@@ -84,8 +78,8 @@ const SingUp = () => {
                 <Stack>
                   <TextInput
                     required
-                    label='Имя'
-                    placeholder='Ваше имя'
+                    label='Ваше имя'
+                    placeholder='gribCloud'
                     value={form.values.username}
                     onChange={event =>
                       form.setFieldValue('username', event.currentTarget.value)
@@ -96,7 +90,7 @@ const SingUp = () => {
                   <TextInput
                     required
                     label='Почта'
-                    placeholder='hello@gribcloud.dev'
+                    placeholder='gribCloud@gribCloud.dev'
                     value={form.values.email}
                     onChange={event =>
                       form.setFieldValue('email', event.currentTarget.value)
