@@ -104,3 +104,35 @@ class UserAPIPermissionsTestCase(APITestCase):
 
         response = self.client.delete(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class ChangePasswordAPITestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create(username="testuser", email="test@example.com")
+        self.user.set_password("password123")
+        self.user.save()
+
+    def test_valid(self):
+        self.client.force_login(self.user)
+        url = reverse("users:change_password")
+        data = {"old_password": "password123", "password1": "new_password123", "password2": "new_password123"}
+
+        response = self.client.post(url, data, format="json")
+        self.user.refresh_from_db()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(self.user.check_password("new_password123"))
+
+    @parameterized.parameterized.expand(
+        [
+            ({},),
+            ({"old_password": "new_password123", "password1": "password123", "password2": "password123"},),
+            ({"old_password": "password123", "password1": "new_password321", "password2": "new_password123"},),
+        ],
+    )
+    def test_invalid(self, data):
+        self.client.force_login(self.user)
+        url = reverse("users:change_password")
+        response = self.client.post(url, data, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
