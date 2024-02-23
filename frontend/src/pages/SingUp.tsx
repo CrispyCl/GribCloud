@@ -7,6 +7,10 @@ import {
   TextInput,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
+import authSlice from '@store/slices/auth'
+import { useAppDispatch } from '@store/store'
+import axios from 'axios'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 interface iFormSingUp {
@@ -18,6 +22,10 @@ interface iFormSingUp {
 
 const SingUp = () => {
   const navigate = useNavigate()
+  const dispatch = useAppDispatch()
+  const [loading, setLoading] = useState<boolean>(false)
+  const [message, setMessage] = useState<string>('')
+
   const form = useForm<iFormSingUp>({
     initialValues: {
       email: '',
@@ -35,6 +43,23 @@ const SingUp = () => {
     },
   })
 
+  const handleRegister = (
+    username: string,
+    email: string,
+    password: string,
+  ) => {
+    axios
+      .post('api/v1/user/', { username, email, password })
+      .then(res => {
+        dispatch(authSlice.actions.setAccount(res.data))
+        setLoading(false)
+        navigate('/')
+      })
+      .catch(err => {
+        setMessage(err.response.data.detail.toString())
+      })
+  }
+
   return (
     <div className='flex min-h-full flex-1 flex-col justify-center bg-slate-50 sm:items-center sm:px-6 sm:py-12 lg:px-8'>
       <div className='sm:mx-auto sm:w-full sm:max-w-sm'>
@@ -47,7 +72,15 @@ const SingUp = () => {
         <div className='overflow-hidden rounded-lg bg-white shadow-lg'>
           <div className='my-8 max-sm:mx-5 sm:mx-auto sm:w-full sm:max-w-sm'>
             <div className='space-y-6'>
-              <form onSubmit={form.onSubmit(handleRegister)}>
+              <form
+                onSubmit={form.onSubmit(() =>
+                  handleRegister(
+                    form.values.username,
+                    form.values.email,
+                    form.values.password,
+                  ),
+                )}
+              >
                 <Stack>
                   <TextInput
                     required
@@ -108,7 +141,9 @@ const SingUp = () => {
                     radius='md'
                   />
                 </Stack>
-
+                <div className='text-danger my-2 text-center' hidden={false}>
+                  {message}
+                </div>
                 <Group justify='space-between' mt='xl'>
                   <Button
                     type='submit'

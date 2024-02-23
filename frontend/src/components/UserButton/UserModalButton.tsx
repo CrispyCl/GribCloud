@@ -1,20 +1,30 @@
 import { Avatar, Group, Menu, Text, UnstyledButton } from '@mantine/core'
-import { Link } from 'react-router-dom'
+import authSlice from '@store/slices/auth'
+import { RootState, useAppDispatch } from '@store/store'
+import { useSelector } from 'react-redux'
+import { Link, useNavigate } from 'react-router-dom'
 
 export const UserModalButton = () => {
+  const user = useSelector((state: RootState) => state.auth.account)
+  const dispatch = useAppDispatch()
+  const navigate = useNavigate()
+  const handleLogout = () => {
+    dispatch(authSlice.actions.setLogout())
+    navigate('/singin')
+  }
   return (
     <Menu shadow='sm' width={200}>
       <Menu.Target>
         <UnstyledButton>
           <Group>
-            <Avatar variant='transparent' />
+            <Avatar src={user?.img} variant='transparent' />
             <div style={{ flex: 1 }}>
               <Text size='sm' fw={500}>
-                Max Bakurin
+                {user?.username}
               </Text>
 
               <Text c='dimmed' size='xs'>
-                max.bakurin@gmail.com
+                {user?.email}
               </Text>
             </div>
           </Group>
@@ -29,9 +39,9 @@ export const UserModalButton = () => {
         <Menu.Divider />
 
         <Menu.Label>Danger zone</Menu.Label>
-        <Link to='/logout'>
-          <Menu.Item color='red'>Выйти</Menu.Item>
-        </Link>
+        <Menu.Item color='red' onClick={handleLogout}>
+          Выйти
+        </Menu.Item>
       </Menu.Dropdown>
     </Menu>
   )

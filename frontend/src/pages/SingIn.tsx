@@ -31,8 +31,6 @@ const SingIn = () => {
     },
 
     validate: {
-      username: (val: string) =>
-        /^\S+@\S+$/.test(val) ? null : 'Invalid username',
       password: (val: string) =>
         val.length < 6 ? 'Password should include at least 6 characters' : null,
     },
@@ -48,8 +46,17 @@ const SingIn = () => {
             refreshToken: res.data.refresh,
           }),
         )
-        setLoading(false)
-        navigate('/')
+        axios
+          .get('/api/v1/user/my/', {
+            headers: {
+              Authorization: `Bearer ${res.data.access}`,
+            },
+          })
+          .then(res => {
+            dispatch(authSlice.actions.setAccount(res.data))
+            setLoading(false)
+            navigate('/')
+          })
       })
       .catch(err => {
         setMessage(err.response.data.detail.toString())
@@ -68,7 +75,11 @@ const SingIn = () => {
         <div className='overflow-hidden rounded-lg bg-white shadow-lg'>
           <div className='my-8 max-sm:mx-5 sm:mx-auto sm:w-full sm:max-w-sm'>
             <div className='space-y-6'>
-              <div>
+              <form
+                onSubmit={form.onSubmit(() =>
+                  handleLogin(form.values.username, form.values.password),
+                )}
+              >
                 <Stack>
                   <TextInput
                     required
@@ -101,9 +112,6 @@ const SingIn = () => {
                 <Group justify='space-between' mt='xl'>
                   <Button
                     disabled={loading}
-                    onClick={() =>
-                      handleLogin(form.values.username, form.values.password)
-                    }
                     type='submit'
                     className='flex w-full items-center justify-center rounded-md bg-blue-500 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500'
                     radius='xl'
@@ -120,7 +128,7 @@ const SingIn = () => {
                     Ещё нет аккаунта? Зарегистрируйтесь
                   </Anchor>
                 </Group>
-              </div>
+              </form>
               <div>
                 <p className='mt-10 text-center text-sm leading-5 text-gray-500'>
                   © 2024. GribCloud.
