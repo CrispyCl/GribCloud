@@ -1,3 +1,4 @@
+from django.utils.translation import pgettext_lazy
 from rest_framework import serializers
 
 from user.models import User
@@ -22,3 +23,30 @@ class UserSerializer(serializers.ModelSerializer):
         instance.email = validated_data.get("email", instance.email)
         instance.save()
         return instance
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(
+        required=True,
+        style={"input_type": "password", "placeholder": "Old password"},
+    )
+    password1 = serializers.CharField(
+        required=True,
+        style={"input_type": "password", "placeholder": "Password"},
+    )
+    password2 = serializers.CharField(
+        required=True,
+        style={"input_type": "password", "placeholder": "Сonfirm password"},
+    )
+
+    def validate(self, attrs):
+        if attrs["password1"] != attrs["password2"]:
+            raise serializers.ValidationError(
+                {
+                    "password": pgettext_lazy(
+                        "Change password serializer validation error",
+                        "Password fields didn't match",
+                    ),
+                },
+            )
+        return attrs
