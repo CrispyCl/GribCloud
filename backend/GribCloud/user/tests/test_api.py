@@ -119,7 +119,6 @@ class ChangePasswordAPITestCase(APITestCase):
 
         response = self.client.post(url, data, format="json")
         self.user.refresh_from_db()
-        print(response.data)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(self.user.check_password("new_password123"))
@@ -128,7 +127,13 @@ class ChangePasswordAPITestCase(APITestCase):
         [
             ({},),
             ({"password": "new_password123", "new_password": "password123", "new_password_confirm": "password123"},),
-            ({"password": "password123", "new_password": "new_password321", "new_password_confirm": "new_password123"},),
+            (
+                {
+                    "password": "password123",
+                    "new_password": "new_password321",
+                    "new_password_confirm": "new_password123",
+                },
+            ),
         ],
     )
     def test_invalid(self, data):

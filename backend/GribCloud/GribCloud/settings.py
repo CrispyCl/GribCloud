@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     # Project's apps
     "core.apps.CoreConfig",
     "user.apps.UserConfig",
+    "files.apps.FilesConfig",
 ]
 
 MIDDLEWARE = [
