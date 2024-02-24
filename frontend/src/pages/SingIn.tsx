@@ -85,8 +85,8 @@ const SingIn = () => {
                 <Stack>
                   <TextInput
                     required
-                    label='Почта'
-                    placeholder='hello@gribcloud.dev'
+                    label='Логин'
+                    placeholder='gribСloud'
                     value={form.values.username}
                     onChange={event =>
                       form.setFieldValue('username', event.currentTarget.value)

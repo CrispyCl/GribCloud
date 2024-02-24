@@ -15,7 +15,11 @@ export interface iFormSingUp {
   passwordConfirm: string
 }
 
-export interface EditAccountResponse extends iFormSingUp {
-  img?: string
+export interface EditAccountResponse {
+  email: string
+  username: string
   oldPassword: string
+  newPassword: string
+  newPasswordConfirm: string
+  img?: string
 }

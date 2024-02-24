@@ -78,7 +78,7 @@ const SingUp = () => {
                 <Stack>
                   <TextInput
                     required
-                    label='Ваше имя'
+                    label='Логин'
                     placeholder='gribCloud'
                     value={form.values.username}
                     onChange={event =>

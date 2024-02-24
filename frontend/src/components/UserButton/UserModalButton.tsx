@@ -31,14 +31,14 @@ export const UserModalButton = () => {
     initialValues: {
       username: user?.username || '',
       email: user?.email || '',
-      password: '',
-      passwordConfirm: '',
+      newPassword: '',
+      newPasswordConfirm: '',
       oldPassword: '',
     },
 
     validate: {
       email: (val: string) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
-      password: (val: string) =>
+      newPassword: (val: string) =>
         val.length < 6 ? 'Password should include at least 6 characters' : null,
     },
   })
@@ -47,8 +47,8 @@ export const UserModalButton = () => {
     setTimeout(() => {
       form.values.username = user?.username || ''
       form.values.email = user?.email || ''
-      form.values.password = ''
-      form.values.passwordConfirm = ''
+      form.values.newPassword = ''
+      form.values.newPasswordConfirm = ''
       form.values.oldPassword = ''
     }, 100)
     close()
@@ -58,28 +58,107 @@ export const UserModalButton = () => {
     dispatch(authSlice.actions.setLogout())
     navigate('/singin')
   }
-  const handleUpdate = (username: string, email: string, password: string) => {
-    axios
-      .put(
-        `/api/v1/user/${user?.id}/`,
-        {
-          username,
-          email,
-          password,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
+  const handleUpdate = (
+    username: string,
+    email: string,
+    password: string,
+    password1: string,
+    password2: string,
+  ) => {
+    if ((password1 && password2) === '') {
+      axios
+        .put(
+          `/api/v1/user/${user?.id}/`,
+          {
+            username,
+            email,
+            password,
           },
-        },
-      )
-      .then(res => {
-        dispatch(authSlice.actions.setAccount(res.data))
-        closeModal()
-      })
-      .catch(err => {
-        console.log(err)
-      })
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
+        .then(res => {
+          dispatch(authSlice.actions.setAccount(res.data))
+          closeModal()
+        })
+        .catch(err => {
+          console.log(err)
+        })
+    } else if (
+      (password1 && password2) !== '' &&
+      password1 === password2 &&
+      email === user?.email &&
+      username === user?.username
+    ) {
+      const old_password = password
+      axios
+        .post(
+          '/api/v1/user/change_password/',
+          {
+            old_password,
+            password1,
+            password2,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
+        .then(() => {
+          closeModal()
+        })
+        .catch(err => {
+          console.log(err)
+        })
+    } else {
+      const old_password = password
+      axios
+        .put(
+          `/api/v1/user/${user?.id}/`,
+          {
+            username,
+            email,
+            password,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
+        .then(res => {
+          dispatch(authSlice.actions.setAccount(res.data))
+        })
+        .then(() => {
+          axios
+            .post(
+              'api/v1/user/change_password/',
+              {
+                old_password,
+                password1,
+                password2,
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              },
+            )
+            .then(() => {
+              closeModal()
+            })
+            .catch(err => {
+              console.log(err)
+            })
+        })
+        .catch(err => {
+          console.log(err)
+        })
+    }
   }
 
   return (
@@ -128,7 +207,7 @@ export const UserModalButton = () => {
                 form.setFieldValue('username', event.currentTarget.value)
               }
               error={form.errors.username && 'Такое имя уже занято'}
-              label='Ваше имя'
+              label='Ваш логин'
               placeholder={user?.username}
             />
             <TextInput
@@ -142,37 +221,40 @@ export const UserModalButton = () => {
             />
           </SimpleGrid>
 
-          {/* <SimpleGrid cols={{ base: 1, sm: 2 }}>
+          <SimpleGrid cols={{ base: 1, sm: 2 }}>
             <PasswordInput
               type='password'
-              value={form.values.password}
+              value={form.values.newPassword}
               onChange={event =>
-                form.setFieldValue('password', event.currentTarget.value)
+                form.setFieldValue('newPassword', event.currentTarget.value)
               }
               error={
-                (form.errors.password &&
+                (form.errors.newPassword &&
                   'Пароль должен содержать не менее 6 символов') ||
-                (form.values.password !== form.values.passwordConfirm &&
+                (form.values.newPassword !== form.values.newPasswordConfirm &&
                   'Пароли не совпадают')
               }
               label='Новый пароль'
               placeholder='Новый пароль'
             />
             <PasswordInput
-              value={form.values.passwordConfirm}
+              value={form.values.newPasswordConfirm}
               onChange={event =>
-                form.setFieldValue('passwordConfirm', event.currentTarget.value)
+                form.setFieldValue(
+                  'newPasswordConfirm',
+                  event.currentTarget.value,
+                )
               }
               error={
-                (form.errors.password &&
+                (form.errors.newPassword &&
                   'Пароль должен содержать не менее 6 символов') ||
-                (form.values.password !== form.values.passwordConfirm &&
+                (form.values.newPassword !== form.values.newPasswordConfirm &&
                   'Пароли не совпадают')
               }
               label='Повторите новый пароль'
               placeholder='Новый пароль'
             />
-          </SimpleGrid> */}
+          </SimpleGrid>
           <PasswordInput
             value={form.values.oldPassword}
             onChange={event =>
@@ -192,6 +274,8 @@ export const UserModalButton = () => {
                   form.values.username,
                   form.values.email,
                   form.values.oldPassword,
+                  form.values.newPassword,
+                  form.values.newPasswordConfirm,
                 )
               }
               className='border-blue-500 text-blue-500'
