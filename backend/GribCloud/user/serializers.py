@@ -27,21 +27,21 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ChangePasswordSerializer(serializers.Serializer):
-    old_password = serializers.CharField(
+    password = serializers.CharField(
         required=True,
         style={"input_type": "password", "placeholder": "Old password"},
     )
-    password1 = serializers.CharField(
+    new_password = serializers.CharField(
         required=True,
-        style={"input_type": "password", "placeholder": "Password"},
+        style={"input_type": "password", "placeholder": "New password"},
     )
-    password2 = serializers.CharField(
+    new_password_confirm = serializers.CharField(
         required=True,
         style={"input_type": "password", "placeholder": "Сonfirm password"},
     )
 
     def validate(self, attrs):
-        if attrs["password1"] != attrs["password2"]:
+        if attrs["new_password"] != attrs["new_password_confirm"]:
             raise serializers.ValidationError(
                 {
                     "password": pgettext_lazy(

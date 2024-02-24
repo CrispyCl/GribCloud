@@ -115,10 +115,11 @@ class ChangePasswordAPITestCase(APITestCase):
     def test_valid(self):
         self.client.force_login(self.user)
         url = reverse("users:change_password")
-        data = {"old_password": "password123", "password1": "new_password123", "password2": "new_password123"}
+        data = {"password": "password123", "new_password": "new_password123", "new_password_confirm": "new_password123"}
 
         response = self.client.post(url, data, format="json")
         self.user.refresh_from_db()
+        print(response.data)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(self.user.check_password("new_password123"))
@@ -126,8 +127,8 @@ class ChangePasswordAPITestCase(APITestCase):
     @parameterized.parameterized.expand(
         [
             ({},),
-            ({"old_password": "new_password123", "password1": "password123", "password2": "password123"},),
-            ({"old_password": "password123", "password1": "new_password321", "password2": "new_password123"},),
+            ({"password": "new_password123", "new_password": "password123", "new_password_confirm": "password123"},),
+            ({"password": "password123", "new_password": "new_password321", "new_password_confirm": "new_password123"},),
         ],
     )
     def test_invalid(self, data):
