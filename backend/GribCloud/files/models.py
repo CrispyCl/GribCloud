@@ -34,3 +34,6 @@ class File(models.Model):
     class Meta:
         verbose_name = pgettext_lazy("File model verbose name", "file")
         verbose_name_plural = pgettext_lazy("File model verbose name plural", "files")
+
+    def __str__(self) -> str:
+        return f"{self.author.username}'s file №{self.id}"
