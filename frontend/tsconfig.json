@@ -2,6 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      "@/*": ["src/*"],
       "@components/*": ["src/components/*"],
       "@hooks/*": ["hooks/*"],
       "@pages/*": ["src/pages/*"],
@@ -9,7 +10,8 @@
       "@store/*": ["src/redux/*"],
       "@assets/*": ["src/assets/*"],
       "@constants/*": ["src/constants/*"],
-      "@public/*": ["public/*"]
+      "@public/*": ["public/*"],
+      "@img/*": ["src/firebase/*"]
     },
     "target": "ES2020",
     "useDefineForClassFields": true,

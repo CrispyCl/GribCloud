@@ -20,21 +20,24 @@ import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
 export const UserModalButton = () => {
-  const user = useSelector((state: RootState) => state.auth.account)
+  let user = useSelector((state: RootState) => state.auth.account)
   const token = useSelector((state: RootState) => state.auth.token)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const [opened, { open, close }] = useDisclosure(false)
+
   const isMobile = useMediaQuery('(max-width: 50em)')
 
+  const initialValues = {
+    username: user?.username || '',
+    email: user?.email || '',
+    newPassword: '',
+    newPasswordConfirm: '',
+    oldPassword: '',
+  }
+
   const form = useForm<EditAccountResponse>({
-    initialValues: {
-      username: user?.username || '',
-      email: user?.email || '',
-      newPassword: '',
-      newPasswordConfirm: '',
-      oldPassword: '',
-    },
+    initialValues: initialValues,
 
     validate: {
       email: (val: string) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
@@ -44,14 +47,13 @@ export const UserModalButton = () => {
   })
 
   const closeModal = () => {
-    setTimeout(() => {
-      form.values.username = user?.username || ''
-      form.values.email = user?.email || ''
-      form.values.newPassword = ''
-      form.values.newPasswordConfirm = ''
-      form.values.oldPassword = ''
-    }, 100)
     close()
+    setTimeout(() => {
+      form.reset()
+      console.log('1', form.values, user)
+    }, 1000)
+    form.reset()
+    console.log('2', form.values, user)
   }
 
   const handleLogout = () => {
@@ -199,7 +201,7 @@ export const UserModalButton = () => {
         centered
         fullScreen={isMobile}
       >
-        <div className='flex flex-col gap-2'>
+        <form className='flex flex-col gap-2'>
           <SimpleGrid cols={{ base: 1, sm: 2 }}>
             <TextInput
               value={form.values.username}
@@ -283,7 +285,7 @@ export const UserModalButton = () => {
               Изменить данные
             </Button>
           </Group>
-        </div>
+        </form>
       </Modal>
     </>
   )

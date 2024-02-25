@@ -15,6 +15,7 @@ export default defineConfig({
       '@utils': '/src/utils',
       '@constants': 'src/constants',
       '@public': 'public',
+      '@img': '/src/firebase',
     },
   },
   server: {

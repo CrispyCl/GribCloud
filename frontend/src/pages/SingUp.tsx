@@ -46,6 +46,22 @@ const SingUp = () => {
       .post('api/v1/user/', { username, email, password })
       .then(res => {
         dispatch(authSlice.actions.setAccount(res.data))
+      })
+      .then(() => {
+        axios
+          .post('api/v1/token/', { username, password })
+          .then(res => {
+            dispatch(
+              authSlice.actions.setAuthTokens({
+                token: res.data.access,
+                refreshToken: res.data.refresh,
+              }),
+            )
+            console.log(res.data)
+          })
+          .catch(err => {
+            console.log(err)
+          })
         setLoading(false)
         navigate('/')
       })
