@@ -1,14 +1,13 @@
-import { useFiles } from '@/hooks/useFiles'
 import { UserModalButton } from '@components/UserButton/UserModalButton'
 import { Button, FileButton } from '@mantine/core'
-import { FunctionComponent } from 'react'
+import React, { FunctionComponent } from 'react'
 import { Link } from 'react-router-dom'
 
-interface HeaderProps {}
+interface HeaderProps {
+  setFiles: React.Dispatch<React.SetStateAction<File[]>>
+}
 
-const Header: FunctionComponent<HeaderProps> = () => {
-  const { files, setFiles } = useFiles()
-
+const Header: FunctionComponent<HeaderProps> = ({ setFiles }) => {
   return (
     <header className='flex justify-between border-b border-gray-100 px-7 py-4'>
       <Link to='/' className=' flex justify-center'>

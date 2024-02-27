@@ -21,6 +21,8 @@
     "@mantine/notifications": "^7.5.3",
     "@mantine/nprogress": "^7.5.3",
     "@reduxjs/toolkit": "^2.2.1",
+    "add": "^2.0.6",
+    "antd": "^5.14.2",
     "axios": "^1.6.7",
     "axios-auth-refresh": "^3.3.6",
     "dayjs": "^1.11.10",
@@ -36,6 +38,7 @@
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0",
     "swr": "^2.2.5",
+    "yarn": "^1.22.21",
     "zod": "^3.22.4"
   },
   "devDependencies": {
