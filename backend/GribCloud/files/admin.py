@@ -6,8 +6,8 @@ from files.models import File
 class FileAdmin(admin.ModelAdmin):
     model = File
 
-    list_display = ("title", "author", "is_video", "created_at")
-    list_filter = ("is_video", "author")
+    list_display = ("title", "author", "created_at")
+    list_filter = ("author",)
     search_fields = ("author__username",)
     readonly_fields = ("created_at",)
 

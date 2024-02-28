@@ -18,14 +18,7 @@ class File(models.Model):
         related_name="files",
         related_query_name="file",
     )
-    file = models.URLField(
-        verbose_name=pgettext_lazy("file field name", "file"),
-        max_length=250,
-    )
-    is_video = models.BooleanField(
-        verbose_name=pgettext_lazy("is_video field name", "is video"),
-        default=False,
-    )
+    file = models.CharField(verbose_name=pgettext_lazy("file field name", "file"), max_length=1024)
     created_at = models.DateTimeField(
         pgettext_lazy("created_at field name", "created at"),
         auto_now_add=True,
