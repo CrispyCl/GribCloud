@@ -1,0 +1,21 @@
+[
+    {
+        "model": "user.user",
+        "pk": 1,
+        "fields": {
+            "username": "admin",
+            "email": "admin@example.com",
+            "password": "111",
+            "is_superuser": true
+        }
+    },
+    {
+        "model": "user.user",
+        "pk": 2,
+        "fields": {
+            "username": "testuser",
+            "email": "teseuser@mail.ru",
+            "password": "111"
+        }
+    }
+]
