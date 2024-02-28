@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _, pgettext_lazy
+from django.utils.translation import gettext_lazy as _
 
 
 class UserManager(BaseUserManager):
@@ -28,11 +28,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(
         _("email address"),
         unique=True,
-    )
-    avatar = models.URLField(
-        verbose_name=pgettext_lazy("avatar field name", "avatar"),
-        max_length=250,
-        null=True,
     )
     is_staff = models.BooleanField(
         _("staff status"),
