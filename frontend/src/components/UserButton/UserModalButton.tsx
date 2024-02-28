@@ -1,6 +1,8 @@
+import { useAvatar } from '@/hooks/useAvatar'
 import {
   Avatar,
   Button,
+  FileButton,
   Group,
   Menu,
   Modal,
@@ -25,6 +27,9 @@ export const UserModalButton = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const [opened, { open, close }] = useDisclosure(false)
+  const { avatar, setFile } = useAvatar()
+  console.log(avatar)
+  console.log(user?.avatar)
 
   const isMobile = useMediaQuery('(max-width: 50em)')
 
@@ -169,7 +174,7 @@ export const UserModalButton = () => {
         <Menu.Target>
           <UnstyledButton>
             <Group>
-              <Avatar src={user?.img} variant='transparent' />
+              <Avatar src={avatar} variant='transparent' />
               <div style={{ flex: 1 }}>
                 <Text size='sm' fw={500}>
                   {user?.username}
@@ -200,91 +205,104 @@ export const UserModalButton = () => {
         title='Настройки'
         centered
         fullScreen={isMobile}
+        size={'xl'}
       >
-        <form className='flex flex-col gap-2'>
-          <SimpleGrid cols={{ base: 1, sm: 2 }}>
-            <TextInput
-              value={form.values.username}
-              onChange={event =>
-                form.setFieldValue('username', event.currentTarget.value)
-              }
-              error={form.errors.username && 'Такое имя уже занято'}
-              label='Ваш логин'
-              placeholder={user?.username}
-            />
-            <TextInput
-              value={form.values.email}
-              onChange={event =>
-                form.setFieldValue('email', event.currentTarget.value)
-              }
-              error={form.errors.email && 'Такая почта уже занята'}
-              label='Ваша почта'
-              placeholder={user?.email}
-            />
-          </SimpleGrid>
+        <form className='flex flex-row items-start justify-between gap-5'>
+          <FileButton onChange={setFile} accept='image/png,image/jpeg'>
+            {props => (
+              <Avatar
+                {...props}
+                src={avatar}
+                variant='transparent'
+                className='h-64 w-64 cursor-pointer'
+              />
+            )}
+          </FileButton>
+          <div className='flex h-2/3 w-2/3 flex-col gap-2'>
+            <SimpleGrid cols={{ base: 1, sm: 2 }}>
+              <TextInput
+                value={form.values.username}
+                onChange={event =>
+                  form.setFieldValue('username', event.currentTarget.value)
+                }
+                error={form.errors.username && 'Такое имя уже занято'}
+                label='Ваш логин'
+                placeholder={user?.username}
+              />
+              <TextInput
+                value={form.values.email}
+                onChange={event =>
+                  form.setFieldValue('email', event.currentTarget.value)
+                }
+                error={form.errors.email && 'Такая почта уже занята'}
+                label='Ваша почта'
+                placeholder={user?.email}
+              />
+            </SimpleGrid>
 
-          <SimpleGrid cols={{ base: 1, sm: 2 }}>
+            <SimpleGrid cols={{ base: 1, sm: 2 }}>
+              <PasswordInput
+                type='password'
+                value={form.values.newPassword}
+                onChange={event =>
+                  form.setFieldValue('newPassword', event.currentTarget.value)
+                }
+                error={
+                  (form.errors.newPassword &&
+                    'Пароль должен содержать не менее 6 символов') ||
+                  (form.values.newPassword !== form.values.newPasswordConfirm &&
+                    'Пароли не совпадают')
+                }
+                label='Новый пароль'
+                placeholder='Новый пароль'
+              />
+              <PasswordInput
+                value={form.values.newPasswordConfirm}
+                onChange={event =>
+                  form.setFieldValue(
+                    'newPasswordConfirm',
+                    event.currentTarget.value,
+                  )
+                }
+                error={
+                  (form.errors.newPassword &&
+                    'Пароль должен содержать не менее 6 символов') ||
+                  (form.values.newPassword !== form.values.newPasswordConfirm &&
+                    'Пароли не совпадают')
+                }
+                label='Повторите новый пароль'
+                placeholder='Новый пароль'
+              />
+            </SimpleGrid>
             <PasswordInput
-              type='password'
-              value={form.values.newPassword}
+              value={form.values.oldPassword}
               onChange={event =>
-                form.setFieldValue('newPassword', event.currentTarget.value)
+                form.setFieldValue('oldPassword', event.currentTarget.value)
               }
               error={
-                (form.errors.newPassword &&
-                  'Пароль должен содержать не менее 6 символов') ||
-                (form.values.newPassword !== form.values.newPasswordConfirm &&
-                  'Пароли не совпадают')
+                form.errors.oldPassword &&
+                'Пароль должен содержать не менее 6 символов'
               }
-              label='Новый пароль'
-              placeholder='Новый пароль'
+              label='Старый пароль'
+              placeholder='Старый пароль'
             />
-            <PasswordInput
-              value={form.values.newPasswordConfirm}
-              onChange={event =>
-                form.setFieldValue(
-                  'newPasswordConfirm',
-                  event.currentTarget.value,
-                )
-              }
-              error={
-                (form.errors.newPassword &&
-                  'Пароль должен содержать не менее 6 символов') ||
-                (form.values.newPassword !== form.values.newPasswordConfirm &&
-                  'Пароли не совпадают')
-              }
-              label='Повторите новый пароль'
-              placeholder='Новый пароль'
-            />
-          </SimpleGrid>
-          <PasswordInput
-            value={form.values.oldPassword}
-            onChange={event =>
-              form.setFieldValue('oldPassword', event.currentTarget.value)
-            }
-            error={
-              form.errors.oldPassword &&
-              'Пароль должен содержать не менее 6 символов'
-            }
-            label='Старый пароль'
-            placeholder='Старый пароль'
-          />
-          <Group justify='flex-end' mt='md'>
-            <Button
-              onClick={() =>
-                handleUpdate(
-                  form.values.username,
-                  form.values.email,
-                  form.values.oldPassword,
-                  form.values.newPassword,
-                  form.values.newPasswordConfirm,
-                )
-              }
-              className='border-blue-500 text-blue-500'
-            >
-              Изменить данные
-            </Button>
-          </Group>
+            <Group justify='flex-end' mt='md'>
+              <Button
+                onClick={() =>
+                  handleUpdate(
+                    form.values.username,
+                    form.values.email,
+                    form.values.oldPassword,
+                    form.values.newPassword,
+                    form.values.newPasswordConfirm,
+                  )
+                }
+                className='border-blue-500 text-blue-500'
+              >
+                Изменить данные
+              </Button>
+            </Group>
+          </div>
         </form>
       </Modal>
     </>

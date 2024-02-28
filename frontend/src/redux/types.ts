@@ -3,7 +3,7 @@ export interface AccountResponse {
   email: string
   username: string
   created: Date
-  img?: string
+  avatar?: string
   access: string
   refresh: string
 }
@@ -21,5 +21,5 @@ export interface EditAccountResponse {
   oldPassword: string
   newPassword: string
   newPasswordConfirm: string
-  img?: string
+  avatar?: string
 }
