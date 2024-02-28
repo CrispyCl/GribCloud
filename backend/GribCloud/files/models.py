@@ -4,8 +4,8 @@ from django.utils.translation import pgettext_lazy
 
 
 class FileManager(models.Manager):
-    def get_queryset(self):
-        return super().get_queryset()
+    def by_author(self, author):
+        return self.get_queryset().filter(author=author)
 
 
 class File(models.Model):
