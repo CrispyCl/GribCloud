@@ -37,10 +37,10 @@ class ChangePasswordAPIView(generics.CreateAPIView):
         if serializer.is_valid():
             user = request.user
 
-            old_password = serializer.data.get("old_password")
-            password1 = serializer.data.get("password1")
+            password = serializer.data.get("password")
+            new_password = serializer.data.get("new_password")
 
-            if not user.check_password(old_password):
+            if not user.check_password(password):
                 return Response(
                     {
                         "error": pgettext_lazy(
@@ -51,7 +51,7 @@ class ChangePasswordAPIView(generics.CreateAPIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            user.set_password(password1)
+            user.set_password(new_password)
             user.save()
             update_session_auth_hash(
                 request,
