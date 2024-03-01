@@ -17,3 +17,11 @@ class UserTestCase(TestCase):
         superuser = User.objects.create_superuser(username="admin", email="admin@example.com", password="admin123")
         self.assertTrue(superuser.is_superuser)
         self.assertTrue(superuser.is_staff)
+
+    def test_email_normalization(self):
+        user = User.objects.create_user(username="testuser", email="test@EXAMPLE.COM", password="password123")
+        self.assertEqual(user.email, "test@example.com")
+
+    def test_required_fields(self):
+        with self.assertRaises(ValueError):
+            User.objects.create_user(username="testuser", email=None, password="password123")
