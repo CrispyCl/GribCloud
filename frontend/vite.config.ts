@@ -12,9 +12,19 @@ export default defineConfig({
       '@hooks': '/src/hooks',
       '@pages': '/src/pages',
       '@store': '/src/redux',
-      '@utils': '/utils',
+      '@utils': '/src/utils',
       '@constants': 'src/constants',
       '@public': 'public',
+      '@img': '/src/firebase',
+    },
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8000/',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/api/, ''),
+      },
     },
   },
 })

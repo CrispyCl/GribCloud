@@ -1,12 +1,11 @@
+import { BottomLinks, TopLinks } from '@/constants'
 import { Button, Text } from '@mantine/core'
-import { FunctionComponent, useState } from 'react'
+import { FunctionComponent } from 'react'
 import { NavLink } from 'react-router-dom'
-import { BottomLinks, TopLinks } from '../../constants/index'
 
 interface SideNavigationProps {}
 
 const SideNavigation: FunctionComponent<SideNavigationProps> = () => {
-  const [active, setActive] = useState(false)
   return (
     <aside className='flex h-auto flex-col border-r border-gray-100 pt-2'>
       <div className='px-4 pb-3 pt-1'>

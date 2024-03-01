@@ -1,21 +1,20 @@
 import { UserModalButton } from '@components/UserButton/UserModalButton'
 import { Button, FileButton } from '@mantine/core'
-import { FunctionComponent, useState } from 'react'
+import React, { FunctionComponent } from 'react'
 import { Link } from 'react-router-dom'
 
-interface HeaderProps {}
+interface HeaderProps {
+  setFiles: React.Dispatch<React.SetStateAction<File[]>>
+}
 
-const Header: FunctionComponent<HeaderProps> = () => {
-  const [file, setFile] = useState<File | null>(null)
-  // console.log(file)
-
+const Header: FunctionComponent<HeaderProps> = ({ setFiles }) => {
   return (
     <header className='flex justify-between border-b border-gray-100 px-7 py-4'>
       <Link to='/' className=' flex justify-center'>
         <img src='/svg/GribCloud.svg' alt='logo' />
       </Link>
       <div className='flex items-center gap-4'>
-        <FileButton onChange={setFile} accept='image/png,image/jpeg'>
+        <FileButton onChange={setFiles} accept='image/png,image/jpeg' multiple>
           {props => (
             <Button {...props} className='hover:bg-gray-100'>
               <span className='flex items-center gap-2 text-black'>
@@ -36,14 +35,3 @@ const Header: FunctionComponent<HeaderProps> = () => {
 }
 
 export default Header
-
-{
-  /* <div className='flex gap-4'>
-          <Button className='border-blue-500 text-blue-500 hover:border-blue-600 hover:bg-blue-600 hover:text-white'>
-            Sing In
-          </Button>
-          <Button className='bg-blue-500 text-white hover:bg-blue-600'>
-            Sing Up
-          </Button>
-        </div> */
-}

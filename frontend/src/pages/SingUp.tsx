@@ -1,3 +1,4 @@
+import api from '@/utils/axios'
 import {
   Anchor,
   Button,
@@ -7,29 +8,24 @@ import {
   TextInput,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { register } from '@store/slices/auth'
-import { clearMessage } from '@store/slices/message'
-import { useAppDispatch, useAppSelector } from '@store/store'
-import { useEffect, useState } from 'react'
+import authSlice from '@store/slices/auth'
+import { useAppDispatch } from '@store/store'
+import { iFormSingUp } from '@store/types'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
-interface iFormSingUp {
-  email: string
-  username: string
-  password: string
-  passwordConfirm: string
-  terms: boolean
-}
 
 const SingUp = () => {
   const navigate = useNavigate()
+  const dispatch = useAppDispatch()
+  const [loading, setLoading] = useState<boolean>(false)
+  const [message, setMessage] = useState<string>('')
+
   const form = useForm<iFormSingUp>({
     initialValues: {
       email: '',
       username: '',
       password: '',
       passwordConfirm: '',
-      terms: true,
     },
 
     validate: {
@@ -41,27 +37,34 @@ const SingUp = () => {
     },
   })
 
-  const [successful, setSuccessful] = useState<boolean>(false)
-
-  const { message } = useAppSelector(state => state.message)
-  const dispatch = useAppDispatch()
-
-  useEffect(() => {
-    dispatch(clearMessage())
-  }, [dispatch])
-
-  const handleRegister = (formValue: any) => {
-    const { username, email, password } = formValue
-    setSuccessful(false)
-
-    dispatch(register({ username, email, password }))
-      .unwrap()
-      .then(() => {
-        setSuccessful(true)
-      })
-      .catch(() => {
-        setSuccessful(false)
-      })
+  const handleRegister = async (
+    username: string,
+    email: string,
+    password: string,
+  ) => {
+    try {
+      api
+        .post('/api/v1/user/', { username, email, password })
+        .then(res => {
+          dispatch(authSlice.actions.setAccount(res.data))
+        })
+        .then(() => {
+          api.post('/api/v1/token/', { username, password }).then(res => {
+            localStorage.setItem('token', res.data.access)
+            localStorage.setItem('refreshToken', res.data.refresh)
+            dispatch(
+              authSlice.actions.setAuthTokens({
+                token: res.data.access,
+                refreshToken: res.data.refresh,
+              }),
+            )
+            setLoading(false)
+            navigate('/')
+          })
+        })
+    } catch (err) {
+      setMessage((err as Error).message)
+    }
   }
 
   return (
@@ -76,12 +79,20 @@ const SingUp = () => {
         <div className='overflow-hidden rounded-lg bg-white shadow-lg'>
           <div className='my-8 max-sm:mx-5 sm:mx-auto sm:w-full sm:max-w-sm'>
             <div className='space-y-6'>
-              <form onSubmit={form.onSubmit(handleRegister)}>
+              <form
+                onSubmit={form.onSubmit(() =>
+                  handleRegister(
+                    form.values.username,
+                    form.values.email,
+                    form.values.password,
+                  ),
+                )}
+              >
                 <Stack>
                   <TextInput
                     required
-                    label='Имя'
-                    placeholder='Ваше имя'
+                    label='Логин'
+                    placeholder='gribCloud'
                     value={form.values.username}
                     onChange={event =>
                       form.setFieldValue('username', event.currentTarget.value)
@@ -92,7 +103,7 @@ const SingUp = () => {
                   <TextInput
                     required
                     label='Почта'
-                    placeholder='hello@gribcloud.dev'
+                    placeholder='gribCloud@gribCloud.dev'
                     value={form.values.email}
                     onChange={event =>
                       form.setFieldValue('email', event.currentTarget.value)
@@ -137,7 +148,9 @@ const SingUp = () => {
                     radius='md'
                   />
                 </Stack>
-
+                <div className='text-danger my-2 text-center' hidden={false}>
+                  {message}
+                </div>
                 <Group justify='space-between' mt='xl'>
                   <Button
                     type='submit'

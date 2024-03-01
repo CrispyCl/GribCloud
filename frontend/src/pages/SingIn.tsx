@@ -1,3 +1,4 @@
+import api from '@/utils/axios'
 import {
   Anchor,
   Button,
@@ -7,66 +8,57 @@ import {
   TextInput,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import { login } from '@store/slices/auth'
-import { clearMessage } from '@store/slices/message'
-import { useAppDispatch, useAppSelector } from '@store/store'
-import { useEffect, useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import authSlice from '@store/slices/auth'
+import { useAppDispatch } from '@store/store'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 interface IFormSingIn {
-  email: string
+  username: string
   password: string
-  name: string
-  terms: boolean
 }
 
 const SingIn = () => {
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState<boolean>(false)
+  const [message, setMessage] = useState<string>('')
+  const dispatch = useAppDispatch()
+
   const form = useForm<IFormSingIn>({
     initialValues: {
-      email: '',
-      name: '',
+      username: '',
       password: '',
-      terms: true,
     },
 
     validate: {
-      email: (val: string) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
       password: (val: string) =>
-        val.length <= 6
-          ? 'Password should include at least 6 characters'
-          : null,
+        val.length < 6 ? 'Password should include at least 6 characters' : null,
     },
   })
-
-  const navigate = useNavigate()
-  const [loading, setLoading] = useState<boolean>(false)
-
-  const { isLoggedIn } = useAppSelector(state => state.auth)
-  const { message } = useAppSelector(state => state.message)
-
-  const dispatch = useAppDispatch()
-
-  useEffect(() => {
-    dispatch(clearMessage())
-  }, [dispatch])
-
-  const handleLogin = (formValue: any) => {
-    const { username, password } = formValue
-    setLoading(true)
-
-    dispatch(login({ username, password }))
-      .unwrap()
-      .then(() => {
-        navigate('/settings')
-        window.location.reload()
-      })
-      .catch(() => {
-        setLoading(false)
-      })
-  }
-
-  if (isLoggedIn) {
-    return <Navigate to='/settings' />
+  const handleLogin = async (username: string, password: string) => {
+    try {
+      api
+        .post('/api/v1/token/', { username, password })
+        .then(res => {
+          localStorage.setItem('token', res.data.access)
+          localStorage.setItem('refreshToken', res.data.refresh)
+          dispatch(
+            authSlice.actions.setAuthTokens({
+              token: res.data.access,
+              refreshToken: res.data.ref,
+            }),
+          )
+        })
+        .then(() => {
+          api.get('/api/v1/user/my/').then(res => {
+            dispatch(authSlice.actions.setAccount(res.data))
+            setLoading(false)
+            navigate('/')
+          })
+        })
+    } catch (err) {
+      setMessage((err as Error).message)
+    }
   }
 
   return (
@@ -81,17 +73,21 @@ const SingIn = () => {
         <div className='overflow-hidden rounded-lg bg-white shadow-lg'>
           <div className='my-8 max-sm:mx-5 sm:mx-auto sm:w-full sm:max-w-sm'>
             <div className='space-y-6'>
-              <form onSubmit={form.onSubmit(handleLogin)}>
+              <form
+                onSubmit={form.onSubmit(() =>
+                  handleLogin(form.values.username, form.values.password),
+                )}
+              >
                 <Stack>
                   <TextInput
                     required
-                    label='Почта'
-                    placeholder='hello@gribcloud.dev'
-                    value={form.values.email}
+                    label='Логин'
+                    placeholder='gribСloud'
+                    value={form.values.username}
                     onChange={event =>
-                      form.setFieldValue('email', event.currentTarget.value)
+                      form.setFieldValue('username', event.currentTarget.value)
                     }
-                    error={form.errors.email && 'Неправильная почта'}
+                    error={form.errors.username && 'Неправильная почта'}
                     radius='md'
                   />
 
@@ -107,9 +103,13 @@ const SingIn = () => {
                     radius='md'
                   />
                 </Stack>
+                <div className='text-danger my-2 text-center' hidden={false}>
+                  {message}
+                </div>
 
                 <Group justify='space-between' mt='xl'>
                   <Button
+                    disabled={loading}
                     type='submit'
                     className='flex w-full items-center justify-center rounded-md bg-blue-500 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500'
                     radius='xl'
