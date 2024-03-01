@@ -3,7 +3,6 @@ export interface AccountResponse {
   email: string
   username: string
   created: Date
-  avatar?: string
   access: string
   refresh: string
 }

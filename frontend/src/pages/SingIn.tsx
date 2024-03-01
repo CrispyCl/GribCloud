@@ -1,3 +1,4 @@
+import api from '@/utils/axios'
 import {
   Anchor,
   Button,
@@ -9,7 +10,6 @@ import {
 import { useForm } from '@mantine/form'
 import authSlice from '@store/slices/auth'
 import { useAppDispatch } from '@store/store'
-import axios from 'axios'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -35,34 +35,30 @@ const SingIn = () => {
         val.length < 6 ? 'Password should include at least 6 characters' : null,
     },
   })
-  const handleLogin = (username: string, password: string) => {
-    axios
-      .post('api/v1/token/', { username, password })
-      .then(res => {
-        dispatch(
-          authSlice.actions.setAuthTokens({
-            token: res.data.access,
-            refreshToken: res.data.refresh,
-          }),
-        )
-        axios
-          .get('/api/v1/user/my/', {
-            headers: {
-              Authorization: `Bearer ${res.data.access}`,
-            },
-          })
-          .then(res => {
+  const handleLogin = async (username: string, password: string) => {
+    try {
+      api
+        .post('/api/v1/token/', { username, password })
+        .then(res => {
+          localStorage.setItem('token', res.data.access)
+          localStorage.setItem('refreshToken', res.data.refresh)
+          dispatch(
+            authSlice.actions.setAuthTokens({
+              token: res.data.access,
+              refreshToken: res.data.ref,
+            }),
+          )
+        })
+        .then(() => {
+          api.get('/api/v1/user/my/').then(res => {
             dispatch(authSlice.actions.setAccount(res.data))
             setLoading(false)
             navigate('/')
           })
-          .catch(err => {
-            setMessage(err.response.data.detail.toString())
-          })
-      })
-      .catch(err => {
-        setMessage(err.response.data.detail.toString())
-      })
+        })
+    } catch (err) {
+      setMessage((err as Error).message)
+    }
   }
 
   return (

@@ -1,3 +1,4 @@
+import api from '@/utils/axios'
 import {
   Anchor,
   Button,
@@ -10,7 +11,6 @@ import { useForm } from '@mantine/form'
 import authSlice from '@store/slices/auth'
 import { useAppDispatch } from '@store/store'
 import { iFormSingUp } from '@store/types'
-import axios from 'axios'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -37,37 +37,34 @@ const SingUp = () => {
     },
   })
 
-  const handleRegister = (
+  const handleRegister = async (
     username: string,
     email: string,
     password: string,
   ) => {
-    axios
-      .post('api/v1/user/', { username, email, password })
-      .then(res => {
-        dispatch(authSlice.actions.setAccount(res.data))
-      })
-      .then(() => {
-        axios
-          .post('api/v1/token/', { username, password })
-          .then(res => {
+    try {
+      api
+        .post('/api/v1/user/', { username, email, password })
+        .then(res => {
+          dispatch(authSlice.actions.setAccount(res.data))
+        })
+        .then(() => {
+          api.post('/api/v1/token/', { username, password }).then(res => {
+            localStorage.setItem('token', res.data.access)
+            localStorage.setItem('refreshToken', res.data.refresh)
             dispatch(
               authSlice.actions.setAuthTokens({
                 token: res.data.access,
                 refreshToken: res.data.refresh,
               }),
             )
-            console.log(res.data)
+            setLoading(false)
+            navigate('/')
           })
-          .catch(err => {
-            console.log(err)
-          })
-        setLoading(false)
-        navigate('/')
-      })
-      .catch(err => {
-        setMessage(err.response.data.detail.toString())
-      })
+        })
+    } catch (err) {
+      setMessage((err as Error).message)
+    }
   }
 
   return (

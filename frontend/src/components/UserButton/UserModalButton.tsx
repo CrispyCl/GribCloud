@@ -28,8 +28,6 @@ export const UserModalButton = () => {
   const navigate = useNavigate()
   const [opened, { open, close }] = useDisclosure(false)
   const { avatar, setFile } = useAvatar()
-  console.log(avatar)
-  console.log(user?.avatar)
 
   const isMobile = useMediaQuery('(max-width: 50em)')
 
@@ -55,10 +53,8 @@ export const UserModalButton = () => {
     close()
     setTimeout(() => {
       form.reset()
-      console.log('1', form.values, user)
     }, 1000)
     form.reset()
-    console.log('2', form.values, user)
   }
 
   const handleLogout = () => {
@@ -208,7 +204,7 @@ export const UserModalButton = () => {
         size={'xl'}
       >
         <form className='flex flex-row items-start justify-between gap-5'>
-          <FileButton onChange={setFile} accept='image/png,image/jpeg'>
+          <FileButton onChange={setFile}>
             {props => (
               <Avatar
                 {...props}
