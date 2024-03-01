@@ -7,7 +7,7 @@ from user.models import User
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "username", "email", "avatar", "password", "date_joined"]
+        fields = ["id", "username", "email", "password", "date_joined"]
         read_only_fields = ["date_joined"]
         extra_kwargs = {"password": {"write_only": True}}
 
@@ -21,27 +21,26 @@ class UserSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.username = validated_data.get("username", instance.username)
         instance.email = validated_data.get("email", instance.email)
-        instance.avatar = validated_data.get("avatar", instance.avatar)
         instance.save()
         return instance
 
 
 class ChangePasswordSerializer(serializers.Serializer):
-    old_password = serializers.CharField(
+    password = serializers.CharField(
         required=True,
         style={"input_type": "password", "placeholder": "Old password"},
     )
-    password1 = serializers.CharField(
+    new_password = serializers.CharField(
         required=True,
-        style={"input_type": "password", "placeholder": "Password"},
+        style={"input_type": "password", "placeholder": "New password"},
     )
-    password2 = serializers.CharField(
+    new_password_confirm = serializers.CharField(
         required=True,
         style={"input_type": "password", "placeholder": "Сonfirm password"},
     )
 
     def validate(self, attrs):
-        if attrs["password1"] != attrs["password2"]:
+        if attrs["new_password"] != attrs["new_password_confirm"]:
             raise serializers.ValidationError(
                 {
                     "password": pgettext_lazy(

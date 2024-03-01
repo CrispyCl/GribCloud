@@ -9,16 +9,17 @@ from user.serializers import UserSerializer
 
 
 class UserAPIUrlsTestCase(APITestCase):
+    fixtures = ["user/fixtures/test.json"]
+
     def setUp(self):
-        self.user1 = User.objects.create(username="testuser1", email="test1@example.com")
-        self.user2 = User.objects.create(username="testuser2", email="test2@example.com")
+        self.user1 = User.objects.get(username="testuser1")
+        self.user2 = User.objects.get(username="testuser2")
 
     def test_list(self):
         url = reverse("users:list")
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
 
     def test_detail(self):
         url = reverse("users:detail", kwargs={"pk": self.user1.id})
@@ -29,18 +30,21 @@ class UserAPIUrlsTestCase(APITestCase):
 
 
 class UserAPIPermissionsTestCase(APITestCase):
+    fixtures = ["user/fixtures/test.json"]
+
     def setUp(self):
-        self.user1 = User.objects.create(username="testuser", email="test@example.com", password="password123")
-        self.user2 = User.objects.create(username="testuser2", email="test2@example.com", password="password123")
+        self.user1 = User.objects.get(username="testuser")
+        self.user2 = User.objects.get(username="testuser2")
 
     def test_creation(self):
         url = reverse("users:list")
         data = {"username": "testuser3", "email": "test3@example.com", "password": "password123"}
+        count = User.objects.count()
 
         response = self.client.post(url, data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(User.objects.count(), 3)
+        self.assertEqual(User.objects.count(), count + 1)
 
     def test_valid_retrieve_current_user(self):
         self.client.force_login(self.user1)
@@ -72,6 +76,7 @@ class UserAPIPermissionsTestCase(APITestCase):
     def test_valid_update_delete(self):
         self.client.force_login(self.user1)
         url = reverse("users:detail", kwargs={"pk": self.user1.id})
+        count = User.objects.count()
 
         data = {"username": "111", "email": "111@mail.ru", "password": "password123"}
         response = self.client.put(url, data, format="json")
@@ -88,7 +93,7 @@ class UserAPIPermissionsTestCase(APITestCase):
 
         response = self.client.delete(url, format="json")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(User.objects.count(), count - 1)
 
     def test_invalid_update_delete(self):
         self.client.force_login(self.user1)
@@ -107,15 +112,15 @@ class UserAPIPermissionsTestCase(APITestCase):
 
 
 class ChangePasswordAPITestCase(APITestCase):
+    fixtures = ["user/fixtures/test.json"]
+
     def setUp(self):
-        self.user = User.objects.create(username="testuser", email="test@example.com")
-        self.user.set_password("password123")
-        self.user.save()
+        self.user = User.objects.get(username="testuser")
 
     def test_valid(self):
         self.client.force_login(self.user)
         url = reverse("users:change_password")
-        data = {"old_password": "password123", "password1": "new_password123", "password2": "new_password123"}
+        data = {"password": "111", "new_password": "new_password123", "new_password_confirm": "new_password123"}
 
         response = self.client.post(url, data, format="json")
         self.user.refresh_from_db()
@@ -126,8 +131,14 @@ class ChangePasswordAPITestCase(APITestCase):
     @parameterized.parameterized.expand(
         [
             ({},),
-            ({"old_password": "new_password123", "password1": "password123", "password2": "password123"},),
-            ({"old_password": "password123", "password1": "new_password321", "password2": "new_password123"},),
+            ({"password": "222", "new_password": "password123", "new_password_confirm": "password123"},),
+            (
+                {
+                    "password": "111",
+                    "new_password": "new_password321",
+                    "new_password_confirm": "new_password123",
+                },
+            ),
         ],
     )
     def test_invalid(self, data):

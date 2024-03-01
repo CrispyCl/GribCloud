@@ -6,14 +6,15 @@ from user.models import User
 
 
 class JWTAuthenticationTestCase(APITestCase):
+    fixtures = ["user/fixtures/test.json"]
     ordered = True
 
     def setUp(self):
-        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="password123")
+        self.user = User.objects.get(username="testuser")
 
     def test_jwt_authentication(self):
         url = reverse("token_obtain_pair")
-        data = {"username": "testuser", "password": "password123"}
+        data = {"username": "testuser", "password": "111"}
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -22,14 +23,14 @@ class JWTAuthenticationTestCase(APITestCase):
         access = response.data["access"]
 
         url = reverse("users:detail", kwargs={"pk": self.user.id})
-        response = self.client.patch(url, {"username": "testuser2"}, HTTP_AUTHORIZATION=f"Bearer {access}")
+        response = self.client.patch(url, {"username": "new_testuser"}, HTTP_AUTHORIZATION=f"Bearer {access}")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["username"], "testuser2")
+        self.assertEqual(response.data["username"], "new_testuser")
 
     def test_jwt_refresh_token(self):
         url = reverse("token_obtain_pair")
-        data = {"username": "testuser", "password": "password123"}
+        data = {"username": "testuser", "password": "111"}
         response = self.client.post(url, data, format="json")
         self.assertIn("access", response.data)
         self.assertIn("refresh", response.data)
