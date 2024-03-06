@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "core.apps.CoreConfig",
     "user.apps.UserConfig",
     "files.apps.FilesConfig",
+    "albums.apps.AlbumsConfig",
 ]
 
 MIDDLEWARE = [
