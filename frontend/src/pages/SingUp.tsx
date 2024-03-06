@@ -8,7 +8,7 @@ import {
   TextInput,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import authSlice from '@store/slices/auth'
+import { actions } from '@store/slices/auth'
 import { useAppDispatch } from '@store/store'
 import { iFormSingUp } from '@store/types'
 import { useState } from 'react'
@@ -46,14 +46,14 @@ const SingUp = () => {
       api
         .post('/api/v1/user/', { username, email, password })
         .then(res => {
-          dispatch(authSlice.actions.setAccount(res.data))
+          dispatch(actions.setAccount(res.data))
         })
         .then(() => {
           api.post('/api/v1/token/', { username, password }).then(res => {
             localStorage.setItem('token', res.data.access)
             localStorage.setItem('refreshToken', res.data.refresh)
             dispatch(
-              authSlice.actions.setAuthTokens({
+              actions.setAuthTokens({
                 token: res.data.access,
                 refreshToken: res.data.refresh,
               }),

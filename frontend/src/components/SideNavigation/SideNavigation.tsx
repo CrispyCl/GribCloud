@@ -12,14 +12,14 @@ const SideNavigation: FunctionComponent<SideNavigationProps> = () => {
         {TopLinks.map(link => {
           return (
             <NavLink
-              to={`${link.route}`}
+              to={link.route}
               key={link.name}
               style={{ display: 'block', marginBottom: '0.75rem' }}
               className={({ isActive }) =>
                 [isActive ? 'activeLink' : 'sideLink'].join(' ')
               }
             >
-              <Button className=' flex w-52 p-2 text-black'>
+              <Button variant='light' className='flex w-52 p-2 text-black'>
                 <span className='flex items-center gap-3'>
                   <img src={link.icon} alt='folderIcon' className='h-5 w-5' />
                   {link.name}

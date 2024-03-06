@@ -1,5 +1,6 @@
 import { imgStorage } from '@/firebase/config'
 import { RootState } from '@/redux/store'
+import { UserResponse } from '@/redux/types'
 import {
   getDownloadURL,
   listAll,
@@ -14,15 +15,19 @@ interface UploadImage {
   url: string
 }
 
-export function useFiles() {
+export function useFiles(user?: UserResponse) {
   const [files, setFiles] = useState<File[]>([])
   const [uploadedImages, setUploadedImages] = useState<UploadImage[]>([])
+  const [userImages, setUserImages] = useState<UploadImage[]>([])
   const [uploadProgress, setUploadProgress] = useState<number[]>([])
-  const user = useSelector((state: RootState) => state.auth.account)
+  const currentUser = useSelector((state: RootState) => state.auth.account)
 
   const uploadMultipleImages = async (files: File[]): Promise<void> => {
     const uploadTasks = files.map((file, index) => {
-      const storageRef = ref(imgStorage, `images/${user?.id}/${file.name}`)
+      const storageRef = ref(
+        imgStorage,
+        `images/${currentUser?.id}/${file.name}`,
+      )
       const uploadTask = uploadBytesResumable(storageRef, file)
 
       uploadTask.on('state_changed', snapshot => {
@@ -53,7 +58,7 @@ export function useFiles() {
 
   useEffect(() => {
     const fetchExistingImages = async () => {
-      const storageRef = ref(imgStorage, `images/${user?.id}`)
+      const storageRef = ref(imgStorage, `images/${currentUser?.id}`)
       const imagesList = await listAll(storageRef)
 
       const existingImagesPromises = imagesList.items.map(item => {
@@ -67,9 +72,24 @@ export function useFiles() {
       setUploadedImages([])
       setUploadedImages(prevImages => [...prevImages, ...existingImages])
     }
+    const fetchingUserImages = async (user: UserResponse | undefined) => {
+      const storageRef = ref(imgStorage, `images/${user?.id}/`)
+      const imagesList = await listAll(storageRef)
+
+      const existingImagesPromises = imagesList.items.map(item => {
+        return getDownloadURL(item).then(url => ({
+          name: item.name,
+          url,
+        }))
+      })
+      const existingImages = await Promise.all(existingImagesPromises)
+      setUserImages([])
+      setUserImages(prevImages => [...prevImages, ...existingImages])
+    }
     fetchExistingImages()
+    fetchingUserImages(user)
     uploadMultipleImages(files)
   }, [files])
 
-  return { user, files, uploadedImages, uploadProgress, setFiles }
+  return { uploadedImages, userImages, uploadProgress, setFiles }
 }

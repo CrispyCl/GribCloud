@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux'
 
 export function useAvatar() {
   const user = useSelector((state: RootState) => state.auth.account)
-  const [avatar, setAvatar] = useState<string | undefined>(user?.avatar)
+  const [avatar, setAvatar] = useState<string | undefined>(undefined)
   const [file, setFile] = useState<File | null>(null)
 
   const uploadAvatar = async (file: File | null) => {
@@ -27,8 +27,8 @@ export function useAvatar() {
       const url = await getDownloadURL(ref(imgStorage, `avatars/${user?.id}`))
       setAvatar(url)
     }
-    fetchExistingAvatar()
     uploadAvatar(file)
+    fetchExistingAvatar()
   }, [file])
   return { avatar, setFile }
 }

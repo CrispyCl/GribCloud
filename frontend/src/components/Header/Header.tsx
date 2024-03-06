@@ -1,10 +1,10 @@
-import { UserModalButton } from '@components/UserButton/UserModalButton'
 import { Button, FileButton } from '@mantine/core'
 import React, { FunctionComponent } from 'react'
 import { Link } from 'react-router-dom'
+import { UserButton } from './UserButton'
 
 interface HeaderProps {
-  setFiles: React.Dispatch<React.SetStateAction<File[]>>
+  setFiles?: React.Dispatch<React.SetStateAction<File[]>>
 }
 
 const Header: FunctionComponent<HeaderProps> = ({ setFiles }) => {
@@ -14,7 +14,11 @@ const Header: FunctionComponent<HeaderProps> = ({ setFiles }) => {
         <img src='/svg/GribCloud.svg' alt='logo' />
       </Link>
       <div className='flex items-center gap-4'>
-        <FileButton onChange={setFiles} accept='image/png,image/jpeg' multiple>
+        <FileButton
+          onChange={setFiles ? setFiles : () => {}}
+          accept='image/png,image/jpeg'
+          multiple
+        >
           {props => (
             <Button {...props} className='hover:bg-gray-100'>
               <span className='flex items-center gap-2 text-black'>
@@ -28,7 +32,7 @@ const Header: FunctionComponent<HeaderProps> = ({ setFiles }) => {
             </Button>
           )}
         </FileButton>
-        <UserModalButton />
+        <UserButton />
       </div>
     </header>
   )

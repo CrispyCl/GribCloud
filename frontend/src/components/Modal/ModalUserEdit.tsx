@@ -1,35 +1,28 @@
 import { useAvatar } from '@/hooks/useAvatar'
+import { actions } from '@/redux/slices/auth'
+import { RootState, useAppDispatch } from '@/redux/store'
+import { EditAccountResponse } from '@/redux/types'
+import api from '@/utils/axios'
 import {
   Avatar,
   Button,
   FileButton,
   Group,
-  Menu,
   Modal,
   PasswordInput,
   SimpleGrid,
-  Text,
   TextInput,
-  UnstyledButton,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useDisclosure, useMediaQuery } from '@mantine/hooks'
-import authSlice from '@store/slices/auth'
-import { RootState, useAppDispatch } from '@store/store'
-import { EditAccountResponse } from '@store/types'
-import axios from 'axios'
 import { useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
 
-export const UserModalButton = () => {
-  let user = useSelector((state: RootState) => state.auth.account)
-  const token = useSelector((state: RootState) => state.auth.token)
+export default function ModalUserEdit() {
+  const user = useSelector((state: RootState) => state.auth.account)
   const dispatch = useAppDispatch()
-  const navigate = useNavigate()
   const [opened, { open, close }] = useDisclosure(false)
-  const { avatar, setFile } = useAvatar()
-
   const isMobile = useMediaQuery('(max-width: 50em)')
+  const { avatar, setFile } = useAvatar()
 
   const initialValues = {
     username: user?.username || '',
@@ -57,144 +50,76 @@ export const UserModalButton = () => {
     form.reset()
   }
 
-  const handleLogout = () => {
-    dispatch(authSlice.actions.setLogout())
-    navigate('/singin')
-  }
   const handleUpdate = (
     username: string,
     email: string,
     password: string,
-    password1: string,
-    password2: string,
+    new_password: string,
+    new_password_confirm: string,
   ) => {
-    if ((password1 && password2) === '') {
-      axios
-        .put(
-          `/api/v1/user/${user?.id}/`,
-          {
-            username,
-            email,
-            password,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        )
+    if (new_password === '' && new_password_confirm === '') {
+      api
+        .put(`/api/v1/user/${user?.id}/`, { username, email, password })
         .then(res => {
-          dispatch(authSlice.actions.setAccount(res.data))
+          dispatch(actions.setAccount(res.data))
           closeModal()
         })
-        .catch(err => {
-          console.log(err)
-        })
+        .catch(err => console.log(err))
     } else if (
-      (password1 && password2) !== '' &&
-      password1 === password2 &&
+      new_password !== '' &&
+      new_password === new_password_confirm &&
       email === user?.email &&
       username === user?.username
     ) {
-      const old_password = password
-      axios
-        .post(
-          '/api/v1/user/change_password/',
-          {
-            old_password,
-            password1,
-            password2,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        )
+      api
+        .post('/api/v1/user/change_password/', {
+          password,
+          new_password,
+          new_password_confirm,
+        })
         .then(() => {
+          dispatch(
+            actions.setAuthTokens({
+              token: localStorage.getItem('token'),
+              refreshToken: localStorage.getItem('refreshToken'),
+            }),
+          )
           closeModal()
         })
-        .catch(err => {
-          console.log(err)
-        })
+        .catch(err => console.log(err))
     } else {
       const old_password = password
-      axios
-        .put(
-          `/api/v1/user/${user?.id}/`,
-          {
-            username,
-            email,
-            password,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        )
+      api
+        .put(`/api/v1/user/${user?.id}/`, { username, email, password })
         .then(res => {
-          dispatch(authSlice.actions.setAccount(res.data))
+          dispatch(actions.setAccount(res.data))
+          dispatch(
+            actions.setAuthTokens({
+              token: localStorage.getItem('token'),
+              refreshToken: localStorage.getItem('refreshToken'),
+            }),
+          )
+          return api.post('/api/v1/user/change_password/', {
+            old_password,
+            new_password,
+            new_password_confirm,
+          })
         })
         .then(() => {
-          axios
-            .post(
-              'api/v1/user/change_password/',
-              {
-                old_password,
-                password1,
-                password2,
-              },
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              },
-            )
-            .then(() => {
-              closeModal()
-            })
-            .catch(err => {
-              console.log(err)
-            })
+          dispatch(
+            actions.setAuthTokens({
+              token: localStorage.getItem('token'),
+              refreshToken: localStorage.getItem('refreshToken'),
+            }),
+          )
+          closeModal()
         })
-        .catch(err => {
-          console.log(err)
-        })
+        .catch(err => console.log(err))
     }
   }
 
   return (
     <>
-      <Menu shadow='sm' width={200}>
-        <Menu.Target>
-          <UnstyledButton>
-            <Group>
-              <Avatar src={avatar} variant='transparent' />
-              <div style={{ flex: 1 }}>
-                <Text size='sm' fw={500}>
-                  {user?.username}
-                </Text>
-
-                <Text c='dimmed' size='xs'>
-                  {user?.email}
-                </Text>
-              </div>
-            </Group>
-          </UnstyledButton>
-        </Menu.Target>
-
-        <Menu.Dropdown>
-          <Menu.Label>Application</Menu.Label>
-          <Menu.Item onClick={open}>Settings</Menu.Item>
-          <Menu.Divider />
-
-          <Menu.Label>Danger zone</Menu.Label>
-          <Menu.Item color='red' onClick={handleLogout}>
-            Выйти
-          </Menu.Item>
-        </Menu.Dropdown>
-      </Menu>
       <Modal
         opened={opened}
         onClose={closeModal}
@@ -301,6 +226,13 @@ export const UserModalButton = () => {
           </div>
         </form>
       </Modal>
+      <Button
+        onClick={open}
+        variant='outline'
+        className='my-5 border px-5 py-2 text-sm font-semibold'
+      >
+        Изменить данные
+      </Button>
     </>
   )
 }

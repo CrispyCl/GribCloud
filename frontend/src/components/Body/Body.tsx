@@ -6,10 +6,15 @@ import React, { FunctionComponent } from 'react'
 
 interface BodyProps {
   children: React.ReactNode
-  setFiles: React.Dispatch<React.SetStateAction<File[]>>
+  uploadProgress?: number[]
+  setFiles?: React.Dispatch<React.SetStateAction<File[]>>
 }
 
-const Body: FunctionComponent<BodyProps> = ({ children, setFiles }) => {
+const Body: FunctionComponent<BodyProps> = ({
+  children,
+  uploadProgress,
+  setFiles,
+}) => {
   return (
     <>
       <DropZone />
