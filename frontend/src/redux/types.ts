@@ -1,5 +1,5 @@
 export interface AccountResponse {
-  id: string
+  id: number
   email: string
   username: string
   created: Date
@@ -21,4 +21,11 @@ export interface EditAccountResponse {
   newPassword: string
   newPasswordConfirm: string
   avatar?: string
+}
+
+export interface UserResponse {
+  id: number
+  username: string
+  email: string
+  date_joined: string
 }

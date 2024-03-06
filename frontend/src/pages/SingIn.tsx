@@ -8,7 +8,7 @@ import {
   TextInput,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import authSlice from '@store/slices/auth'
+import { actions } from '@store/slices/auth'
 import { useAppDispatch } from '@store/store'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -43,7 +43,7 @@ const SingIn = () => {
           localStorage.setItem('token', res.data.access)
           localStorage.setItem('refreshToken', res.data.refresh)
           dispatch(
-            authSlice.actions.setAuthTokens({
+            actions.setAuthTokens({
               token: res.data.access,
               refreshToken: res.data.ref,
             }),
@@ -51,7 +51,7 @@ const SingIn = () => {
         })
         .then(() => {
           api.get('/api/v1/user/my/').then(res => {
-            dispatch(authSlice.actions.setAccount(res.data))
+            dispatch(actions.setAccount(res.data))
             setLoading(false)
             navigate('/')
           })
