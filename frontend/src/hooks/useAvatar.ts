@@ -1,12 +1,14 @@
 import { imgStorage } from '@/firebase/config'
+import { actions } from '@/redux/slices/auth'
 import { RootState } from '@/redux/store'
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage'
 import { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
 export function useAvatar() {
   const user = useSelector((state: RootState) => state.auth.account)
-  const [avatar, setAvatar] = useState<string | undefined>(undefined)
+  const avatar = useSelector((state: RootState) => state.auth.avatar)
+  const dispatch = useDispatch()
   const [file, setFile] = useState<File | null>(null)
 
   const uploadAvatar = async (file: File | null) => {
@@ -17,7 +19,7 @@ export function useAvatar() {
         .then(() => getDownloadURL(storageRef))
         .then(url => {
           if (typeof url === 'string') {
-            setAvatar(url)
+            dispatch(actions.setAvatarUrl({ avatar: url }))
           }
         })
     }
@@ -25,7 +27,7 @@ export function useAvatar() {
   useEffect(() => {
     const fetchExistingAvatar = async () => {
       const url = await getDownloadURL(ref(imgStorage, `avatars/${user?.id}`))
-      setAvatar(url)
+      dispatch(actions.setAvatarUrl({ avatar: url }))
     }
     uploadAvatar(file)
     fetchExistingAvatar()

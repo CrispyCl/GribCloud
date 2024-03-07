@@ -33,3 +33,23 @@ export const BottomLinks = [
     icon: '/svg/Trash.svg',
   },
 ]
+
+export const VideoType = ['mp4', 'mov', 'webm', 'ogg']
+
+export const ImageType = [
+  'png',
+  'jpg',
+  'jpeg',
+  'raw',
+  'bmp',
+  'gif',
+  'webp',
+  'svg',
+  'heif',
+  'heic',
+  'tiff',
+  'tif',
+  'ico',
+  'jfif',
+  'nef',
+]

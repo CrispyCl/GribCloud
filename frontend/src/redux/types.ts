@@ -5,6 +5,7 @@ export interface AccountResponse {
   created: Date
   access: string
   refresh: string
+  avatar: string
 }
 
 export interface iFormSingUp {
