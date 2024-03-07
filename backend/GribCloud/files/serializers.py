@@ -64,6 +64,8 @@ class FileCreateSerializer(serializers.Serializer):
 
 
 class FileSerializer(serializers.ModelSerializer):
+    author_username = serializers.CharField(source="author.username")
+
     class Meta:
         model = File
-        fields = ["id", "author", "file", "created_at"]
+        fields = ["id", "author", "author_username", "file", "created_at"]

@@ -2,10 +2,22 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import pgettext_lazy
 
+from user.models import User
+
 
 class FileManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().select_related("author")
+        return (
+            super()
+            .get_queryset()
+            .select_related("author")
+            .only(
+                File.file.field.name,
+                File.created_at.field.name,
+                f"{File.author.field.name}__{User.username.field.name}",
+                f"{File.author.field.name}__{User.email.field.name}",
+            )
+        )
 
     def by_author(self, author):
         return self.get_queryset().filter(author=author).only("id", "author", "author__username", "file", "created_at")

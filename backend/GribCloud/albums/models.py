@@ -3,11 +3,39 @@ from django.db import models
 from django.utils.translation import pgettext_lazy
 
 from files.models import File
+from user.models import User
 
 
 class AlbumManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset()
+        return (
+            super()
+            .get_queryset()
+            .select_related("author")
+            .prefetch_related(
+                models.Prefetch(
+                    Album.members.field.name,
+                    User.objects.only("id", "username"),
+                ),
+            )
+            .prefetch_related(
+                models.Prefetch(
+                    Album.files.field.name,
+                    File.objects.all(),
+                ),
+            )
+            .only(
+                Album.title.field.name,
+                Album.is_public.field.name,
+                Album.created_at.field.name,
+                f"{Album.author.field.name}__{User.username.field.name}",
+                f"{Album.author.field.name}__{User.email.field.name}",
+                f"{Album.author.field.name}__{User.date_joined.field.name}",
+            )
+        )
+
+    def public(self):
+        return self.get_queryset().filter(is_public=True)
 
 
 class Album(models.Model):
