@@ -14,6 +14,12 @@ class AlbumManager(models.Manager):
             .select_related("author")
             .prefetch_related(
                 models.Prefetch(
+                    "memberships",
+                    AlbumMembership.objects.all(),
+                ),
+            )
+            .prefetch_related(
+                models.Prefetch(
                     Album.members.field.name,
                     User.objects.only("id", "username"),
                 ),
@@ -61,6 +67,7 @@ class Album(models.Model):
     members = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         verbose_name=pgettext_lazy("members field name", "members"),
+        through="AlbumMembership",
         related_name="albums",
         related_query_name="album",
     )
@@ -79,3 +86,21 @@ class Album(models.Model):
 
     def __str__(self) -> str:
         return self.title
+
+
+class AlbumMembership(models.Model):
+    member = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=pgettext_lazy("member field name", "member"),
+        on_delete=models.CASCADE,
+        related_name="memberships",
+        related_query_name="membership",
+    )
+    album = models.ForeignKey(
+        Album,
+        verbose_name=pgettext_lazy("album field name", "album"),
+        on_delete=models.CASCADE,
+        related_name="memberships",
+        related_query_name="membership",
+    )
+    is_redactor = models.BooleanField(default=False)

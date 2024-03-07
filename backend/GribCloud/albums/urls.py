@@ -2,7 +2,7 @@ from django.urls import path
 
 from albums import views
 
-app_name = "files"
+app_name = "albums"
 
 
 urlpatterns = [

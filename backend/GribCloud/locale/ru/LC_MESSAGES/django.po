@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-01 12:34+0400\n"
+"POT-Creation-Date: 2024-03-08 01:48+0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,13 +20,74 @@ msgstr ""
 "%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n"
 "%100>=11 && n%100<=14)? 2 : 3);\n"
 
-#: .\GribCloud\settings.py:103
+#: .\GribCloud\settings.py:109
 msgid "English"
 msgstr "Английский"
 
-#: .\GribCloud\settings.py:104
+#: .\GribCloud\settings.py:110
 msgid "Russian"
 msgstr "Русский"
+
+#: .\albums\apps.py:8
+msgctxt "app name"
+msgid "albums"
+msgstr "альбомы"
+
+#: .\albums\models.py:51
+msgctxt "title field name"
+msgid "title"
+msgstr "заголовок"
+
+#: .\albums\models.py:56 .\files\models.py:31
+msgctxt "author field name"
+msgid "author"
+msgstr "автор"
+
+#: .\albums\models.py:63
+#, fuzzy
+#| msgctxt "app name"
+#| msgid "files"
+msgctxt "files field name"
+msgid "files"
+msgstr "файлы"
+
+#: .\albums\models.py:69
+msgctxt "members field name"
+msgid "members"
+msgstr "участники"
+
+#: .\albums\models.py:75
+msgctxt "is_public field name"
+msgid "is public"
+msgstr "публичный"
+
+#: .\albums\models.py:79 .\files\models.py:38
+msgctxt "created_at field name"
+msgid "created at"
+msgstr "дата создания"
+
+#: .\albums\models.py:84
+msgctxt "Album model verbose name"
+msgid "album"
+msgstr "альбом"
+
+#: .\albums\models.py:85
+msgctxt "Album model verbose name plural"
+msgid "albums"
+msgstr "альбомы"
+
+#: .\albums\models.py:94
+msgctxt "member field name"
+msgid "member"
+msgstr "участник"
+
+#: .\albums\models.py:101
+#, fuzzy
+#| msgctxt "Album model verbose name"
+#| msgid "album"
+msgctxt "album field name"
+msgid "album"
+msgstr "альбом"
 
 #: .\core\apps.py:8
 msgctxt "app name"
@@ -38,27 +99,17 @@ msgctxt "app name"
 msgid "files"
 msgstr "файлы"
 
-#: .\files\models.py:19
-msgctxt "author field name"
-msgid "author"
-msgstr "автор"
-
-#: .\files\models.py:24
+#: .\files\models.py:36
 msgctxt "file field name"
 msgid "file"
 msgstr "файл"
 
-#: .\files\models.py:26
-msgctxt "created_at field name"
-msgid "created at"
-msgstr "дата создания"
-
-#: .\files\models.py:31
+#: .\files\models.py:43
 msgctxt "File model verbose name"
 msgid "file"
 msgstr "файл"
 
-#: .\files\models.py:32
+#: .\files\models.py:44
 msgctxt "File model verbose name plural"
 msgid "files"
 msgstr "файлы"
