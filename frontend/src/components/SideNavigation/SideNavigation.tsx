@@ -7,7 +7,7 @@ interface SideNavigationProps {}
 
 const SideNavigation: FunctionComponent<SideNavigationProps> = () => {
   return (
-    <aside className='flex h-auto flex-col border-r border-gray-100 pt-2'>
+    <aside className='hidden h-auto flex-col border-r border-gray-100 pt-2 md:flex'>
       <div className='px-4 pb-3 pt-1'>
         {TopLinks.map(link => {
           return (

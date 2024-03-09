@@ -30,3 +30,22 @@ export interface UserResponse {
   email: string
   date_joined: string
 }
+
+export interface UploadImage {
+  name: string
+  url: string
+}
+
+export interface UploadImageResponse {
+  id: number
+  author: number
+  name: string
+  file: string
+  url: string
+  created_at: Date
+}
+
+export interface GroupedImages {
+  date: string
+  images: UploadImageResponse[]
+}

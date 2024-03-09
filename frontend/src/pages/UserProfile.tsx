@@ -1,19 +1,13 @@
 import Body from '@/components/Body/Body'
-import ImagesRender from '@/components/ImagesRednder/ImagesRender'
 import ModalUserEdit from '@/components/Modal/ModalUserEdit'
 import { useAvatar } from '@/hooks/useAvatar'
-import { useFiles } from '@/hooks/useFiles'
-import useFolders from '@/hooks/useFolders'
 import { RootState } from '@/redux/store'
 import { UserResponse } from '@/redux/types'
-import { Avatar, Button } from '@mantine/core'
+import { Avatar } from '@mantine/core'
 import { useSelector } from 'react-redux'
-import { Link } from 'react-router-dom'
 
 const UserProfile = ({ user }: { user: UserResponse }) => {
   const currentUser = useSelector((state: RootState) => state.auth.account)
-  const { userFolders } = useFolders(user)
-  const { userImages } = useFiles(user)
   const { avatar } = useAvatar()
 
   return (
@@ -37,26 +31,6 @@ const UserProfile = ({ user }: { user: UserResponse }) => {
           </div>
         </div>
         {user.id === currentUser?.id && <ModalUserEdit />}
-
-        <div className='mb-3 grid grid-cols-4 gap-3'>
-          {userFolders.map((folder, index) => {
-            return (
-              <Link to={folder} key={index}>
-                <Button variant='light' className='flex h-10 p-2 text-black'>
-                  <span className='flex items-center gap-3'>
-                    <img
-                      src='/svg/Folder.svg'
-                      alt='folder'
-                      className='h-5 w-5'
-                    />
-                    <span>{folder}</span>
-                  </span>
-                </Button>
-              </Link>
-            )
-          })}
-          <ImagesRender userImages={userImages} />
-        </div>
       </div>
     </Body>
   )

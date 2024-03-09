@@ -1,35 +1,29 @@
 import { imgStorage } from '@/firebase/config'
 import { RootState } from '@/redux/store'
-import { UserResponse } from '@/redux/types'
-import {
-  getDownloadURL,
-  listAll,
-  ref,
-  uploadBytesResumable,
-} from 'firebase/storage'
+import { UploadImageResponse } from '@/redux/types'
+import api from '@/utils/axios'
+import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage'
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 
-export interface UploadImage {
-  name: string
-  url: string
-}
-
-export function useFiles(user?: UserResponse) {
+export function useFiles() {
   const [files, setFiles] = useState<File[]>([])
-  const [uploadedImages, setUploadedImages] = useState<UploadImage[]>([])
-  const [userImages, setUserImages] = useState<UploadImage[]>([])
+  const [uploadedImages, setUploadedImages] = useState<UploadImageResponse[]>(
+    [],
+  )
   const [uploadProgress, setUploadProgress] = useState<number[]>([])
   const currentUser = useSelector((state: RootState) => state.auth.account)
 
   const uploadMultipleImages = async (files: File[]): Promise<void> => {
-    const uploadTasks = files.map((file, index) => {
+    const uploadTasks = files.map(async (file, index) => {
       const storageRef = ref(
         imgStorage,
         `images/${currentUser?.id}/${file.name}`,
       )
+      await api.post('/api/v1/files/', {
+        files: [`images/${currentUser?.id}/${file.name}`],
+      })
       const uploadTask = uploadBytesResumable(storageRef, file)
-
       uploadTask.on('state_changed', snapshot => {
         // Отслеживание прогресса загрузки
         const progress = Math.round(
@@ -40,15 +34,23 @@ export function useFiles(user?: UserResponse) {
         setUploadProgress(progressArray)
       })
 
-      return uploadTask
-        .then(() => getDownloadURL(storageRef))
-        .then(url => ({ name: file.name, url }))
+      return await uploadTask.then(async snapshot => {
+        const url = await getDownloadURL(snapshot.ref)
+        return {
+          name: file.name,
+          author: currentUser?.id,
+          created_at: new Date(),
+          file: `images/${currentUser?.id}/${file.name}`,
+          id: undefined,
+          url: url,
+        }
+      })
     })
 
     try {
       const downloadUrls = await Promise.all(uploadTasks)
       // @ts-ignore
-      setUploadedImages(prevImages => [...prevImages, ...downloadUrls])
+      setUploadedImages(prevImages => [...downloadUrls, ...prevImages])
       setUploadProgress([])
       console.log('All files uploaded')
     } catch (error) {
@@ -58,38 +60,40 @@ export function useFiles(user?: UserResponse) {
 
   useEffect(() => {
     const fetchExistingImages = async () => {
-      const storageRef = ref(imgStorage, `images/${currentUser?.id}`)
-      const imagesList = await listAll(storageRef)
+      try {
+        const response = await api.get('/api/v1/files/')
+        const existingImagesPromises = response.data.map(
+          (item: UploadImageResponse) => {
+            return getDownloadURL(ref(imgStorage, item.file)).then(url => ({
+              name: item.file.split('/')[2],
+              author: item.author,
+              created_at: new Date(item.created_at),
+              file: item.file,
+              id: item.id,
+              url: url,
+            }))
+          },
+        )
+        const existingImages = await Promise.all(existingImagesPromises)
+        existingImages.sort((a, b) => {
+          const dateA = new Date(a.created_at.getHours())
+          const dateB = new Date(b.created_at.getHours())
 
-      const existingImagesPromises = imagesList.items.map(item => {
-        return getDownloadURL(item).then(url => ({
-          name: item.name,
-          url,
-        }))
-      })
+          if (dateA > dateB) return -1
+          if (dateA < dateB) return 1
 
-      const existingImages = await Promise.all(existingImagesPromises)
-      setUploadedImages([])
-      setUploadedImages(prevImages => [...prevImages, ...existingImages])
+          // Если дни одинаковые, сортируем по времени
+          return b.created_at.getTime() - a.created_at.getTime()
+        })
+        setUploadedImages([])
+        setUploadedImages(prevImages => [...existingImages, ...prevImages])
+      } catch (error) {
+        console.error('Error fetching existing images:', error)
+      }
     }
-    const fetchingUserImages = async (user: UserResponse | undefined) => {
-      const storageRef = ref(imgStorage, `images/${user?.id}/`)
-      const imagesList = await listAll(storageRef)
-
-      const existingImagesPromises = imagesList.items.map(item => {
-        return getDownloadURL(item).then(url => ({
-          name: item.name,
-          url,
-        }))
-      })
-      const existingImages = await Promise.all(existingImagesPromises)
-      setUserImages([])
-      setUserImages(prevImages => [...prevImages, ...existingImages])
-    }
-    fetchExistingImages()
-    fetchingUserImages(user)
     uploadMultipleImages(files)
+    fetchExistingImages()
   }, [files])
 
-  return { uploadedImages, userImages, uploadProgress, setFiles }
+  return { files, uploadedImages, uploadProgress, setFiles }
 }

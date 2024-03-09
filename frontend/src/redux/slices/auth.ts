@@ -40,6 +40,7 @@ const authSlice = createSlice({
       state.account = null
       state.refreshToken = null
       state.token = null
+      state.avatar = undefined
     },
   },
 })

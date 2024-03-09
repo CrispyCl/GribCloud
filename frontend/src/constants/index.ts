@@ -34,7 +34,7 @@ export const BottomLinks = [
   },
 ]
 
-export const VideoType = ['mp4', 'mov', 'webm', 'ogg']
+export const VideoType = ['mp4', 'mov', 'webm']
 
 export const ImageType = [
   'png',
@@ -45,11 +45,22 @@ export const ImageType = [
   'gif',
   'webp',
   'svg',
-  'heif',
-  'heic',
-  'tiff',
-  'tif',
   'ico',
   'jfif',
-  'nef',
+]
+
+export const uploadAccept = [
+  'video/mp4',
+  'video/mov',
+  'video/webm',
+  'image/png',
+  'image/jpg',
+  'image/jpeg',
+  'image/raw',
+  'image/bmp',
+  'image/gif',
+  'image/webp',
+  'image/svg',
+  'image/ico',
+  'image/jfif',
 ]

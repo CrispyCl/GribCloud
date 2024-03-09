@@ -21,7 +21,7 @@ export default function ModalUserEdit() {
   const user = useSelector((state: RootState) => state.auth.account)
   const dispatch = useAppDispatch()
   const [opened, { open, close }] = useDisclosure(false)
-  const isMobile = useMediaQuery('(max-width: 50em)')
+  const isMobile = useMediaQuery('(max-width: 768px)')
   const { avatar, setFile } = useAvatar()
 
   const initialValues = {
@@ -128,7 +128,18 @@ export default function ModalUserEdit() {
         fullScreen={isMobile}
         size={'xl'}
       >
-        <form className='flex flex-row items-start justify-between gap-5'>
+        <form
+          onSubmit={() =>
+            handleUpdate(
+              form.values.username,
+              form.values.email,
+              form.values.oldPassword,
+              form.values.newPassword,
+              form.values.newPasswordConfirm,
+            )
+          }
+          className='flex flex-col items-center justify-center gap-5 md:flex-row md:items-start md:justify-between'
+        >
           <FileButton onChange={setFile}>
             {props => (
               <Avatar
@@ -208,18 +219,7 @@ export default function ModalUserEdit() {
               placeholder='Старый пароль'
             />
             <Group justify='flex-end' mt='md'>
-              <Button
-                onClick={() =>
-                  handleUpdate(
-                    form.values.username,
-                    form.values.email,
-                    form.values.oldPassword,
-                    form.values.newPassword,
-                    form.values.newPasswordConfirm,
-                  )
-                }
-                className='border-blue-500 text-blue-500'
-              >
+              <Button type='submit' className='border-blue-500 text-blue-500'>
                 Изменить данные
               </Button>
             </Group>

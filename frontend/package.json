@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.1.1",
     "@hookform/resolvers": "^3.3.4",
     "@mantine/carousel": "^7.5.3",
@@ -21,7 +22,6 @@
     "@mantine/notifications": "^7.5.3",
     "@mantine/nprogress": "^7.5.3",
     "@reduxjs/toolkit": "^2.2.1",
-    "add": "^2.0.6",
     "antd": "^5.14.2",
     "axios": "^1.6.7",
     "axios-auth-refresh": "^3.3.6",
@@ -33,17 +33,18 @@
     "lg-video": "^1.4.0",
     "lightgallery": "^2.7.2",
     "react": "^18.2.0",
+    "react-circular-progressbar": "^2.1.0",
     "react-cookie": "^7.0.2",
     "react-dom": "^18.2.0",
+    "react-grid-gallery": "^1.0.1-alpha.0",
     "react-hook-form": "^7.50.1",
     "react-redux": "^9.1.0",
     "react-router-dom": "^6.22.1",
     "react-toastify": "^10.0.4",
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0",
-    "swr": "^2.2.5",
     "yarn": "^1.22.21",
-    "zod": "^3.22.4"
+    "yet-another-react-lightbox": "^3.17.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.55",

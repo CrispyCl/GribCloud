@@ -16,7 +16,12 @@ interface LightGalleryProps {
 
 const LightGalleryComponent: FunctionComponent<LightGalleryProps> = props => {
   return (
-    <LightGallery plugins={[lgThumbnail, lgZoom, lgHash, lgVideo]} speed={500}>
+    <LightGallery
+      plugins={[lgThumbnail, lgZoom, lgHash, lgVideo]}
+      elementClassNames='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 p-4'
+      speed={500}
+      hash={true}
+    >
       {props.children}
     </LightGallery>
   )
