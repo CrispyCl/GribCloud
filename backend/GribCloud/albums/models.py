@@ -47,6 +47,9 @@ class AlbumManager(models.Manager):
     def by_author(self, author):
         return self.get_queryset().filter(author=author)
 
+    def by_member(self, member):
+        return self.get_queryset().filter(membership__member=member)
+
 
 class Album(models.Model):
     objects = AlbumManager()

@@ -17,6 +17,7 @@ class FileManager(models.Manager):
                 f"{File.author.field.name}__{User.username.field.name}",
                 f"{File.author.field.name}__{User.email.field.name}",
             )
+            .order_by("-created_at")
         )
 
     def by_author(self, author):
