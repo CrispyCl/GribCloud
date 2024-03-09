@@ -38,10 +38,14 @@ class AlbumManager(models.Manager):
                 f"{Album.author.field.name}__{User.email.field.name}",
                 f"{Album.author.field.name}__{User.date_joined.field.name}",
             )
+            .order_by("-created_at")
         )
 
     def public(self):
         return self.get_queryset().filter(is_public=True)
+
+    def by_author(self, author):
+        return self.get_queryset().filter(author=author)
 
 
 class Album(models.Model):
@@ -87,6 +91,12 @@ class Album(models.Model):
     def __str__(self) -> str:
         return self.title
 
+    def is_member(self, user):
+        return AlbumMembership.objects.filter(album=self, member=user).exists()
+
+    def is_redactor(self, user):
+        return AlbumMembership.objects.filter(album=self, member=user, is_redactor=True).exists()
+
 
 class AlbumMembership(models.Model):
     member = models.ForeignKey(
@@ -104,3 +114,8 @@ class AlbumMembership(models.Model):
         related_query_name="membership",
     )
     is_redactor = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = pgettext_lazy("AlbumMembership model verbose name", "album membership")
+        verbose_name_plural = pgettext_lazy("AlbumMembership model verbose name plural", "album memberships")
+        db_table = "albums_membership"
