@@ -2,15 +2,17 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy
 
-from albums.models import Album
+from albums.models import Album, AlbumMembership
 from albums.permissions import IsRedactorOrPublicAndReadOnly
 from albums.serializers import AlbumSerializer
-from core.permissions import IsAuthor
 from files.models import File
 from files.serializers import FileSerializer
+from user.models import User
+from user.serializers import UserSerializer
 
 
 class AlbumsPublicAPIView(generics.ListAPIView):
@@ -135,3 +137,87 @@ class AlbumsFilesAPIView(APIView):
         album.save() 
         album_serializer = AlbumSerializer(album) 
         return Response(album_serializer.data) 
+
+
+class AlbumsMembersAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    
+    def get(self, request, album_id, member_id):
+        user = request.user
+        album = get_object_or_404(Album, pk=album_id)
+        if album.author != user:
+            return Response(
+                {
+                    "detail": gettext_lazy(
+                        "You do not have permission to perform this action.",
+                    ),
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        member = get_object_or_404(User, pk=member_id)
+        
+        album_serializer = AlbumSerializer(album)
+        member_serializer = UserSerializer(member)
+        
+        return Response({"album": album_serializer.data, "member": member_serializer.data})
+
+    def post(self, request, album_id, member_id):
+        user = request.user
+        album = get_object_or_404(Album, pk=album_id)
+        if album.author != user:
+            return Response(
+                {
+                    "detail": gettext_lazy(
+                        "You do not have permission to perform this action.",
+                    ),
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        member = get_object_or_404(User, pk=member_id)
+        
+        if "is_redactor" not in request.data:
+            return Response(
+                {
+                    "is_redactor": [gettext_lazy(
+                        "This field is required.",
+                    )],
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        is_redactor = request.data.get("is_redactor")
+        album_membership = AlbumMembership.objects.get_or_create(member=member, album=album)[0]
+        album_membership.is_redactor = is_redactor
+        album_membership.save()
+        album.refresh_from_db()
+        
+        album_serializer = AlbumSerializer(album)
+        return Response(album_serializer.data)
+
+    def delete(self, request, album_id, member_id):
+        user = request.user
+        album = get_object_or_404(Album, pk=album_id)
+        if album.author != user:
+            return Response(
+                {
+                    "detail": gettext_lazy(
+                        "You do not have permission to perform this action.",
+                    ),
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        member = get_object_or_404(User, pk=member_id)
+        if member not in album.members.all():
+            return Response(
+                {
+                    "detail": gettext_lazy(
+                        "User is not in the album.",
+                    ),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        AlbumMembership.objects.get(member=member, album=album).delete()
+        album.refresh_from_db()
+        
+        album_serializer = AlbumSerializer(album)
+        return Response(album_serializer.data)
