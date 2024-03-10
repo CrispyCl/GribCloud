@@ -10,7 +10,6 @@ interface HeaderProps {
 }
 
 const Header: FunctionComponent<HeaderProps> = ({ setFiles, setOpen }) => {
-  console.log(uploadAccept.map(item => item).join(','))
   return (
     <header className='flex items-center justify-between border-b border-gray-100 px-7 py-4'>
       <Link to='/' className='self-center'>
