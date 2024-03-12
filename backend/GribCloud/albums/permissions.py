@@ -6,6 +6,6 @@ class IsRedactorOrPublicAndReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             if obj.is_public:
                 return True
-            if obj.is_redactor(request.user) or obj.is_member(request.user):
+            if obj.is_member(request.user):
                 return True
         return obj.author == request.user

@@ -103,7 +103,7 @@ class AlbumsFilesAPIView(APIView):
                         "File already added to the album",
                     ),
                 },
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_409_CONFLICT,
             )
         album.files.add(file)
         album.save()
@@ -130,7 +130,7 @@ class AlbumsFilesAPIView(APIView):
                         "File is not in the album",
                     ),
                 },
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_404_NOT_FOUND,
             )
         album.files.remove(file)
         album.save()
@@ -214,7 +214,7 @@ class AlbumsMembersAPIView(APIView):
                         "User is not in the album.",
                     ),
                 },
-                status=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         AlbumMembership.objects.get(member=member, album=album).delete()
