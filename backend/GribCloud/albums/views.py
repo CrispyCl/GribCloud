@@ -1,10 +1,9 @@
-from rest_framework import generics, status
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy
+from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from albums.models import Album, AlbumMembership
 from albums.permissions import IsRedactorOrPublicAndReadOnly
@@ -72,9 +71,9 @@ class AlbumsFilesAPIView(APIView):
             )
         album_serializer = AlbumSerializer(album)
         file_serializer = FileSerializer(file)
-        
+
         return Response({"album": album_serializer.data, "file": file_serializer.data})
-    
+
     def post(self, request, album_id, file_id):
         user = request.user
         album = get_object_or_404(Album, pk=album_id)
@@ -112,18 +111,18 @@ class AlbumsFilesAPIView(APIView):
         return Response(album_serializer.data)
 
     def delete(self, request, album_id, file_id):
-        user = request.user 
-        album = get_object_or_404(Album, pk=album_id) 
-        if album.author != user and not album.is_redactor(user): 
-            return Response( 
-                { 
-                    "detail": gettext_lazy( 
+        user = request.user
+        album = get_object_or_404(Album, pk=album_id)
+        if album.author != user and not album.is_redactor(user):
+            return Response(
+                {
+                    "detail": gettext_lazy(
                         "You do not have permission to perform this action.",
-                    ), 
-                }, 
-                status=status.HTTP_403_FORBIDDEN, 
-            ) 
-        file = get_object_or_404(File, pk=file_id) 
+                    ),
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        file = get_object_or_404(File, pk=file_id)
         if file not in album.files.all():
             return Response(
                 {
@@ -133,15 +132,15 @@ class AlbumsFilesAPIView(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        album.files.remove(file) 
-        album.save() 
-        album_serializer = AlbumSerializer(album) 
-        return Response(album_serializer.data) 
+        album.files.remove(file)
+        album.save()
+        album_serializer = AlbumSerializer(album)
+        return Response(album_serializer.data)
 
 
 class AlbumsMembersAPIView(APIView):
     permission_classes = (IsAuthenticated,)
-    
+
     def get(self, request, album_id, member_id):
         user = request.user
         album = get_object_or_404(Album, pk=album_id)
@@ -155,10 +154,10 @@ class AlbumsMembersAPIView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
         member = get_object_or_404(User, pk=member_id)
-        
+
         album_serializer = AlbumSerializer(album)
         member_serializer = UserSerializer(member)
-        
+
         return Response({"album": album_serializer.data, "member": member_serializer.data})
 
     def post(self, request, album_id, member_id):
@@ -174,13 +173,15 @@ class AlbumsMembersAPIView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
         member = get_object_or_404(User, pk=member_id)
-        
+
         if "is_redactor" not in request.data:
             return Response(
                 {
-                    "is_redactor": [gettext_lazy(
-                        "This field is required.",
-                    )],
+                    "is_redactor": [
+                        gettext_lazy(
+                            "This field is required.",
+                        ),
+                    ],
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -189,7 +190,7 @@ class AlbumsMembersAPIView(APIView):
         album_membership.is_redactor = is_redactor
         album_membership.save()
         album.refresh_from_db()
-        
+
         album_serializer = AlbumSerializer(album)
         return Response(album_serializer.data)
 
@@ -218,6 +219,6 @@ class AlbumsMembersAPIView(APIView):
 
         AlbumMembership.objects.get(member=member, album=album).delete()
         album.refresh_from_db()
-        
+
         album_serializer = AlbumSerializer(album)
         return Response(album_serializer.data)
