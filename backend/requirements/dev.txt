@@ -2,4 +2,3 @@
 -r test.txt
 
 sort-requirements
-django-debug-toolbar==4.3.0
