@@ -43,7 +43,7 @@ class ChangePasswordAPIView(generics.CreateAPIView):
             if not user.check_password(password):
                 return Response(
                     {
-                        "error": pgettext_lazy(
+                        "detail": pgettext_lazy(
                             "Change password validation error",
                             "Old password is not correct",
                         ),

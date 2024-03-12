@@ -15,13 +15,13 @@ venv\Scripts\activate
 
 ## Установите зависимостей
 
-* Для продакшена:
+* Для разработки:
 
     ```bash
     pip install -r requirements/dev.txt
     ```
 
-* Для разработки:
+* Для продакшена:
 
     ```bash
     pip install -r requirements/prod.txt
