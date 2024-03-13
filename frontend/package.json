@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fancyapps/ui": "^5.0.33",
     "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.1.1",
     "@hookform/resolvers": "^3.3.4",
@@ -26,6 +27,8 @@
     "axios": "^1.6.7",
     "axios-auth-refresh": "^3.3.6",
     "canvas": "^2.11.2",
+    "classnames": "^2.5.1",
+    "context-filter-polyfill": "^0.3.13",
     "dayjs": "^1.11.10",
     "embla-carousel-react": "^8.0.0-rc22",
     "firebase": "^10.8.0",
@@ -33,18 +36,20 @@
     "lg-video": "^1.4.0",
     "lightgallery": "^2.7.2",
     "react": "^18.2.0",
+    "react-advanced-cropper": "^0.19.6",
     "react-circular-progressbar": "^2.1.0",
     "react-cookie": "^7.0.2",
     "react-dom": "^18.2.0",
     "react-grid-gallery": "^1.0.1-alpha.0",
     "react-hook-form": "^7.50.1",
+    "react-mobile-cropper": "^0.10.0",
     "react-redux": "^9.1.0",
     "react-router-dom": "^6.22.1",
     "react-toastify": "^10.0.4",
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0",
-    "yarn": "^1.22.21",
-    "yet-another-react-lightbox": "^3.17.0"
+    "use-debounce": "^10.0.0",
+    "yarn": "^1.22.21"
   },
   "devDependencies": {
     "@types/react": "^18.2.55",
@@ -63,6 +68,7 @@
     "prettier": "^3.2.5",
     "prettier-plugin-tailwindcss": "^0.5.11",
     "raw-loader": "^4.0.2",
+    "sass": "^1.71.1",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.2.2",
     "vite": "^5.1.0"

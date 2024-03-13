@@ -127,6 +127,10 @@ export default function ModalUserEdit() {
         centered
         fullScreen={isMobile}
         size={'xl'}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
       >
         <form
           onSubmit={() =>
