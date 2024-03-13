@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 
 from user.models import User
@@ -46,3 +47,34 @@ class File(models.Model):
 
     def __str__(self) -> str:
         return f"{self.author.username}'s file №{self.id}"
+
+
+class Tag(models.Model):
+    title = models.CharField(
+        verbose_name=pgettext_lazy("title field name", "title"),
+        max_length=100,
+        unique=True,
+    )
+    slug = models.SlugField(
+        max_length=150,
+        blank=True,
+    )
+    files = models.ManyToManyField(
+        File,
+        verbose_name=pgettext_lazy("files field name", "files"),
+        related_name="tags",
+        related_query_name="tag",
+        null=True,
+    )
+
+    class Meta:
+        verbose_name = pgettext_lazy("Tag model verbose name", "tag")
+        verbose_name_plural = pgettext_lazy("Tag model verbose name plural", "tags")
+
+    def __str__(self) -> str:
+        return self.title
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.title, allow_unicode=True)
+
+        super().save(*args, **kwargs)

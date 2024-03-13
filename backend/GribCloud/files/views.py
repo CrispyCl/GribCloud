@@ -20,7 +20,7 @@ class FileListAPIView(APIView):
         serializer = FileCreateSerializer(data=request.data, context={"request": request})
         if serializer.is_valid():
             data = serializer.save()
-            answer = list(FileSerializer(instance).data for instance in data)
+            answer = [FileSerializer(instance).data for instance in data]
             return Response(
                 answer,
                 status=status.HTTP_201_CREATED,
