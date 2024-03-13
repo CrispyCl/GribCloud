@@ -57,10 +57,12 @@ class FileCreateSerializer(serializers.Serializer):
         else:
             user = validated_data.get("author")
         files = validated_data.pop("files")
+        answer = []
         for file_path in files:
             file_instance = File(author=user, file=file_path)
+            answer.append(file_instance)
             file_instance.save()
-        return file_instance
+        return answer
 
 
 class FileSerializer(serializers.ModelSerializer):

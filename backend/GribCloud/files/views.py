@@ -19,9 +19,10 @@ class FileListAPIView(APIView):
     def post(self, request):
         serializer = FileCreateSerializer(data=request.data, context={"request": request})
         if serializer.is_valid():
-            serializer.save()
+            data = serializer.save()
+            answer = list(FileSerializer(instance).data for instance in data)
             return Response(
-                {"message": "Files created successfully"},
+                answer,
                 status=status.HTTP_201_CREATED,
                 headers={"Location": reverse("files:list")},
             )
