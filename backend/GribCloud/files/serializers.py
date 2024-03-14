@@ -1,8 +1,14 @@
 from django.utils.translation import pgettext_lazy
 from rest_framework import serializers
 
-from files.models import File
+from files.models import File, Tag
 from user.models import User
+
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ["id", "title"]
 
 
 class FileCreateSerializer(serializers.Serializer):
@@ -67,7 +73,8 @@ class FileCreateSerializer(serializers.Serializer):
 
 class FileSerializer(serializers.ModelSerializer):
     author_username = serializers.CharField(source="author.username")
+    tags = TagSerializer(many=True)
 
     class Meta:
         model = File
-        fields = ["id", "author", "author_username", "file", "created_at"]
+        fields = ["id", "author", "author_username", "file", "tags", "created_at"]

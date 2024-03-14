@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 (
                     "files",
                     models.ManyToManyField(
-                        null=True, related_name="tags", related_query_name="tag", to="files.file", verbose_name="files"
+                        related_name="tags", related_query_name="tag", to="files.file", verbose_name="files"
                     ),
                 ),
             ],

@@ -12,6 +12,12 @@ class FileManager(models.Manager):
             super()
             .get_queryset()
             .select_related("author")
+            .prefetch_related(
+                models.Prefetch(
+                    "tags",
+                    Tag.objects.only("id", "title"),
+                ),
+            )
             .only(
                 File.file.field.name,
                 File.created_at.field.name,
@@ -22,7 +28,22 @@ class FileManager(models.Manager):
         )
 
     def by_author(self, author):
-        return self.get_queryset().filter(author=author).only("id", "author", "author__username", "file", "created_at")
+        return self.get_queryset().filter(author=author)
+
+    def by_tags(self, tags):
+        tags = {slugify(tag, allow_unicode=True) for tag in tags}
+        tags = Tag.objects.filter(slug__in=tags)
+        return self.get_queryset().filter(tag__in=tags)
+
+    def by_all_tags(self, tags):
+        tags = {slugify(tag, allow_unicode=True) for tag in tags}
+        tags = Tag.objects.filter(slug__in=tags)
+
+        queryset = self.get_queryset()
+        for tag in tags:
+            queryset = queryset.filter(tag=tag)
+
+        return queryset
 
 
 class File(models.Model):
@@ -64,7 +85,6 @@ class Tag(models.Model):
         verbose_name=pgettext_lazy("files field name", "files"),
         related_name="tags",
         related_query_name="tag",
-        null=True,
     )
 
     class Meta:
