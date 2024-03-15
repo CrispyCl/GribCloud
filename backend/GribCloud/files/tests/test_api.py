@@ -13,7 +13,6 @@ class FileListAPIViewTests(APITestCase):
     def setUp(self):
         self.user = User.objects.get(username="testuser")
         self.client.force_authenticate(user=self.user)
-        self.file_data = {"files": ["path/to/file1.jpg", "path/to/file2.png"]}
 
     def test_get_file_list(self):
         response = self.client.get(reverse("files:list"))
@@ -21,7 +20,7 @@ class FileListAPIViewTests(APITestCase):
 
     def test_create_files(self):
         url = reverse("files:list")
-        data = {"files": ["path/to/file1.jpg", "path/to/file2.png"]}
+        data = {"files": [["path/to/file1.jpg", "preview/to/file1.jpg"], ["path/to/file2.jpg", "preview/to/file2.jpg"]]}
 
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -31,7 +30,15 @@ class FileListAPIViewTests(APITestCase):
         [
             ({},),
             ({"files": []},),
-            ({"fiiles": ["path/to/file1.jpg", "path/to/file2.png"]},),
+            ({"files": ["path/to/file1.jpg", "path/to/file2.png"]},),
+            (
+                {
+                    "fiiles": [
+                        ["path/to/file1.jpg", "preview/to/file1.jpg"],
+                        ["path/to/file2.jpg", "preview/to/file2.jpg"],
+                    ],
+                },
+            ),
         ],
     )
     def test_create_invalid_files(self, data):
@@ -47,7 +54,7 @@ class FileDetailAPIViewTests(APITestCase):
     def setUp(self):
         self.user = User.objects.get(username="testuser")
         self.client.force_authenticate(user=self.user)
-        self.client.post(reverse("files:list"), {"files": ["1.jpg"]}, format="json")
+        self.client.post(reverse("files:list"), {"files": [["files/1.jpg", "previews/1.jpg"]]}, format="json")
 
     def test_get(self):
         url = reverse("files:detail", kwargs={"pk": 1})
