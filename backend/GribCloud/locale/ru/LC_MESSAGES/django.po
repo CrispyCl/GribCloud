@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-14 22:11+0400\n"
+"POT-Creation-Date: 2024-03-15 23:30+0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,17 +33,17 @@ msgctxt "app name"
 msgid "albums"
 msgstr "альбомы"
 
-#: .\albums\models.py:58 .\files\models.py:75
+#: .\albums\models.py:58 .\files\models.py:83
 msgctxt "title field name"
 msgid "title"
 msgstr "заголовок"
 
-#: .\albums\models.py:63 .\files\models.py:54
+#: .\albums\models.py:63 .\files\models.py:55
 msgctxt "author field name"
 msgid "author"
 msgstr "автор"
 
-#: .\albums\models.py:70 .\files\models.py:85
+#: .\albums\models.py:70 .\files\models.py:93
 #, fuzzy
 #| msgctxt "app name"
 #| msgid "files"
@@ -61,7 +61,7 @@ msgctxt "is_public field name"
 msgid "is public"
 msgstr "публичный"
 
-#: .\albums\models.py:86 .\files\models.py:61
+#: .\albums\models.py:86 .\files\models.py:69
 msgctxt "created_at field name"
 msgid "created at"
 msgstr "дата создания"
@@ -132,27 +132,32 @@ msgctxt "app name"
 msgid "files"
 msgstr "файлы"
 
-#: .\files\models.py:59
+#: .\files\models.py:61
 msgctxt "file field name"
 msgid "file"
 msgstr "файл"
 
-#: .\files\models.py:66
+#: .\files\models.py:65
+msgctxt "preview field name"
+msgid "file preview"
+msgstr "превью файла"
+
+#: .\files\models.py:74
 msgctxt "File model verbose name"
 msgid "file"
 msgstr "файл"
 
-#: .\files\models.py:67
+#: .\files\models.py:75
 msgctxt "File model verbose name plural"
 msgid "files"
 msgstr "файлы"
 
-#: .\files\models.py:91
+#: .\files\models.py:99
 msgctxt "Tag model verbose name"
 msgid "tag"
 msgstr ""
 
-#: .\files\models.py:92
+#: .\files\models.py:100
 msgctxt "Tag model verbose name plural"
 msgid "tags"
 msgstr ""
@@ -166,6 +171,10 @@ msgstr "Автор не предоставлен"
 msgctxt "File Create Serializer validation error no files"
 msgid "No files provided"
 msgstr "Файлы не предоставлены"
+
+#: .\files\serializers.py:61
+msgid "The file should be a list with file_path and preview_path."
+msgstr "Файл должен быть списком, содержащим file_path и preview_path."
 
 #: .\files\views.py:106
 msgid "Tag already added to the file."
