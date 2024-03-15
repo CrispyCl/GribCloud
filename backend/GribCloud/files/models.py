@@ -20,6 +20,7 @@ class FileManager(models.Manager):
             )
             .only(
                 File.file.field.name,
+                File.preview.field.name,
                 File.created_at.field.name,
                 f"{File.author.field.name}__{User.username.field.name}",
                 f"{File.author.field.name}__{User.email.field.name}",
@@ -56,7 +57,14 @@ class File(models.Model):
         related_name="files",
         related_query_name="file",
     )
-    file = models.CharField(verbose_name=pgettext_lazy("file field name", "file"), max_length=1024)
+    file = models.CharField(
+        verbose_name=pgettext_lazy("file field name", "file"),
+        max_length=1024,
+    )
+    preview = models.CharField(
+        verbose_name=pgettext_lazy("preview field name", "file preview"),
+        max_length=1024,
+    )
     created_at = models.DateTimeField(
         pgettext_lazy("created_at field name", "created at"),
         auto_now_add=True,

@@ -11,7 +11,7 @@ class FileCreateSerializerTests(TestCase):
     fixtures = ["files/fixtures/test.json"]
 
     def test_create_with_no_author(self):
-        data = {"files": ["file1.txt", "file2.txt"]}
+        data = {"files": [["images/file1.txt", "preview/file1.txt"], ["images/file2.txt", "preview/file2.txt"]]}
         serializer = FileCreateSerializer(data=data)
 
         self.assertFalse(serializer.is_valid())
@@ -26,7 +26,10 @@ class FileCreateSerializerTests(TestCase):
 
     def test_create_with_files(self):
         user = User.objects.get(username="testuser")
-        data = {"files": ["file1.txt", "file2.txt"], "author": user.id}
+        data = {
+            "files": [["images/file1.txt", "preview/file1.txt"], ["images/file2.txt", "preview/file2.txt"]],
+            "author": user.id,
+        }
         serializer = FileCreateSerializer(data=data)
 
         self.assertTrue(serializer.is_valid())
