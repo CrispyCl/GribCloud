@@ -1,7 +1,9 @@
 import Fancybox from '@/components/LightGallery/Fancybox'
+import { VideoType } from '@/constants'
 import { RootState } from '@/redux/store'
 import { GroupedImages, UploadImageResponse } from '@/redux/types'
 import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
+import { LoadingOverlay } from '@mantine/core'
 import React, { FunctionComponent } from 'react'
 import { CircularProgressbar } from 'react-circular-progressbar'
 import 'react-circular-progressbar/dist/styles.css'
@@ -10,12 +12,14 @@ import { useSelector } from 'react-redux'
 interface ImagesRenderProps {
   userImages?: UploadImageResponse[] | undefined
   uploadProgress?: number[] | undefined
+  loading: boolean
   setUrl: React.Dispatch<React.SetStateAction<string | undefined>>
   setName: React.Dispatch<React.SetStateAction<string | undefined>>
   open: () => void
 }
 
 const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
+  loading,
   userImages,
   uploadProgress,
   setUrl,
@@ -23,7 +27,7 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
   open,
 }) => {
   const groupedImages: GroupedImages[] = []
-  const user = useSelector((state: RootState) => state.auth.account)
+  const currentUser = useSelector((state: RootState) => state.auth.account)
 
   userImages?.forEach(image => {
     const date = new Date(image.created_at).toDateString() // Преобразование даты в формат строки
@@ -43,8 +47,36 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
   const deleteImage = async (name: string) => {
     // await deleteObject(ref(imgStorage, `images/${user?.id}/${name}/`))
   }
+
   return (
     <Fancybox setUrl={setUrl} setName={setName} open={open}>
+      {loading && (
+        <LoadingOverlay
+          visible={loading}
+          zIndex={1000}
+          overlayProps={{ radius: 'sm', blur: 2 }}
+        />
+      )}
+      {!userImages ||
+        (!userImages.length && (
+          <>
+            {!currentUser ? (
+              <div className='flex h-full flex-col items-center justify-center'>
+                <EllipsisHorizontalIcon className='h-16 w-16 text-gray-400' />
+                <span className='text-gray-500'>
+                  Войдите или зарегистрируйтесь
+                </span>
+              </div>
+            ) : (
+              <div className='flex h-full flex-col items-center justify-center'>
+                <EllipsisHorizontalIcon className='h-16 w-16 text-gray-400' />
+                <span className='text-gray-500'>
+                  Нет загруженных изображений
+                </span>
+              </div>
+            )}
+          </>
+        ))}
       {groupedImages
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .map((group, index) => (
@@ -73,12 +105,23 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
                         id={image.name}
                         href={image.url}
                       >
-                        <img
-                          loading='lazy'
-                          id={image.name}
-                          className='h-full w-full scale-105 transform rounded-lg object-cover transition-transform group-hover:scale-100 sm:h-80'
-                          src={image.url}
-                        />
+                        {VideoType.includes(
+                          image.name.split('.').pop() as string,
+                        ) ? (
+                          <img
+                            loading='lazy'
+                            id={image.name}
+                            className='h-full w-full scale-105 transform rounded-lg object-cover transition-transform group-hover:scale-100 sm:h-80'
+                            src={image.preview}
+                          />
+                        ) : (
+                          <img
+                            loading='lazy'
+                            id={image.name}
+                            className='h-full w-full scale-105 transform rounded-lg object-cover transition-transform group-hover:scale-100 sm:h-80'
+                            src={image.url}
+                          />
+                        )}
                       </a>
                       <button
                         onClick={() => {

@@ -1,3 +1,4 @@
+import { VideoType } from '@/constants'
 import { imgStorage } from '@/firebase/config'
 import { RootState } from '@/redux/store'
 import { UploadImageResponse } from '@/redux/types'
@@ -13,6 +14,8 @@ export function useFiles() {
   )
   const [uploadProgress, setUploadProgress] = useState<number[]>([])
   const currentUser = useSelector((state: RootState) => state.auth.account)
+  const [loading, setLoading] = useState<boolean>(false)
+  const [preview, setPreview] = useState<string | undefined>()
 
   const uploadMultipleImages = async (files: File[]): Promise<void> => {
     const uploadTasks = files.map(async (file, index) => {
@@ -23,6 +26,24 @@ export function useFiles() {
       await api.post('/api/v1/files/', {
         files: [`images/${currentUser?.id}/${file.name}`],
       })
+      if (VideoType.includes(file.type)) {
+        // Создаем превью для видео
+        const video = document.createElement('video')
+        const url = URL.createObjectURL(file)
+        video.src = url
+        video.onloadeddata = () => {
+          const canvas = document.createElement('canvas')
+          canvas.width = video.videoWidth
+          canvas.height = video.videoHeight
+          const ctx = canvas.getContext('2d')
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+            const previewUrl = canvas.toDataURL('image/jpeg')
+            setPreview(previewUrl)
+          }
+        }
+      }
+
       const uploadTask = uploadBytesResumable(storageRef, file)
       uploadTask.on('state_changed', snapshot => {
         // Отслеживание прогресса загрузки
@@ -43,6 +64,7 @@ export function useFiles() {
           file: `images/${currentUser?.id}/${file.name}`,
           id: undefined,
           url: url,
+          preview: preview,
         }
       })
     })
@@ -61,6 +83,7 @@ export function useFiles() {
   useEffect(() => {
     const fetchExistingImages = async () => {
       try {
+        setLoading(true)
         const response = await api.get('/api/v1/files/')
         const existingImagesPromises = response.data.map(
           (item: UploadImageResponse) => {
@@ -71,6 +94,7 @@ export function useFiles() {
               file: item.file,
               id: item.id,
               url: url,
+              preview: item.preview,
             }))
           },
         )
@@ -85,9 +109,11 @@ export function useFiles() {
           // Если дни одинаковые, сортируем по времени
           return b.created_at.getTime() - a.created_at.getTime()
         })
+        setLoading(false)
         setUploadedImages([])
         setUploadedImages(prevImages => [...existingImages, ...prevImages])
       } catch (error) {
+        setLoading(false)
         console.error('Error fetching existing images:', error)
       }
     }
@@ -95,5 +121,11 @@ export function useFiles() {
     fetchExistingImages()
   }, [files])
 
-  return { files, uploadedImages, uploadProgress, setFiles }
+  return {
+    loading,
+    files,
+    uploadedImages,
+    uploadProgress,
+    setFiles,
+  }
 }

@@ -1,42 +1,40 @@
-import { uploadAccept } from '@/constants'
-import { Burger, Button, FileButton } from '@mantine/core'
+import { RootState } from '@/redux/store'
+import { Burger, Button } from '@mantine/core'
 import React, { FunctionComponent } from 'react'
+import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { UserButton } from './UserButton'
 
 interface HeaderProps {
-  setFiles?: React.Dispatch<React.SetStateAction<File[]>>
   setOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const Header: FunctionComponent<HeaderProps> = ({ setFiles, setOpen }) => {
+const Header: FunctionComponent<HeaderProps> = ({ setOpen }) => {
+  const currentUser = useSelector((state: RootState) => state.auth.account)
   return (
     <header className='flex items-center justify-between border-b border-gray-100 px-7 py-4'>
       <Link to='/' className='self-center'>
         <img src='/svg/GribCloud.svg' alt='logo' />
       </Link>
       <Burger className='md:hidden' onClick={() => setOpen(true)} />
-      <div className='hidden items-center gap-4 md:flex'>
-        <FileButton
-          onChange={setFiles ? setFiles : () => {}}
-          accept={`${uploadAccept.map(item => item).join(',')}`}
-          multiple
-        >
-          {props => (
-            <Button {...props} className='hover:bg-gray-100'>
-              <span className='flex items-center gap-2 text-black'>
-                <img
-                  src='/svg/CloudArrowUp.svg'
-                  alt='upload'
-                  className='h-5 w-5'
-                />
-                Загрузить
-              </span>
+      {currentUser ? (
+        <div className='hidden items-center gap-4 md:flex'>
+          <UserButton />
+        </div>
+      ) : (
+        <div className='hidden items-center gap-4 md:flex'>
+          <Link to='/singin'>
+            <Button variant='light' className='w-20 p-2 text-black'>
+              Войти
             </Button>
-          )}
-        </FileButton>
-        <UserButton />
-      </div>
+          </Link>
+          <Link to='/singup'>
+            <Button variant='light' className='w-32 p-2 text-black'>
+              Регистрация
+            </Button>
+          </Link>
+        </div>
+      )}
     </header>
   )
 }

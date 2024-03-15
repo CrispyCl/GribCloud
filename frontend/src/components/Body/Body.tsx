@@ -19,17 +19,17 @@ const Body: FunctionComponent<BodyProps> = ({ children, setFiles }) => {
   return (
     <>
       <DropZone />
-      <Header setOpen={setOpen} setFiles={setFiles} />
+      <Header setOpen={setOpen} />
       <div className='flex h-[calc(100vh-5rem)] flex-row'>
+        {currentUser && <SideNavigation />}
         <SideNavigationMobile
           open={open}
           setOpen={setOpen}
           currentUser={currentUser}
           avatar={avatar}
         />
-        <SideNavigation />
         <div className='w-full overflow-y-auto'>
-          <BodyHeader />
+          <BodyHeader setFiles={setFiles} />
           {children}
         </div>
       </div>
