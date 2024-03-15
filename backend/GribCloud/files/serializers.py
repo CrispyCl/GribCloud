@@ -1,12 +1,18 @@
-from django.utils.translation import pgettext_lazy
+from django.utils.translation import gettext_lazy, pgettext_lazy
 from rest_framework import serializers
 
-from files.models import File
+from files.models import File, Tag
 from user.models import User
 
 
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ["id", "title"]
+
+
 class FileCreateSerializer(serializers.Serializer):
-    files = serializers.ListField(child=serializers.CharField())
+    files = serializers.ListField(child=serializers.ListField(child=serializers.CharField()))
     author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
 
     def validate(self, data):
@@ -48,6 +54,14 @@ class FileCreateSerializer(serializers.Serializer):
                 },
                 code="required",
             )
+        if any(len(file) != 2 for file in data.get("files")):
+            raise serializers.ValidationError(
+                {
+                    "files": gettext_lazy(
+                        "The file should be a list with file_path and preview_path.",
+                    ),
+                },
+            )
         return data
 
     def create(self, validated_data):
@@ -57,13 +71,19 @@ class FileCreateSerializer(serializers.Serializer):
         else:
             user = validated_data.get("author")
         files = validated_data.pop("files")
-        for file_path in files:
-            file_instance = File(author=user, file=file_path)
+        answer = []
+        for file in files:
+            path, preview = file
+            file_instance = File(author=user, file=path, preview=preview)
+            answer.append(file_instance)
             file_instance.save()
-        return file_instance
+        return answer
 
 
 class FileSerializer(serializers.ModelSerializer):
+    author_username = serializers.CharField(source="author.username")
+    tags = TagSerializer(many=True)
+
     class Meta:
         model = File
-        fields = ["id", "author", "file", "created_at"]
+        fields = ["id", "author", "author_username", "file", "preview", "tags", "created_at"]
