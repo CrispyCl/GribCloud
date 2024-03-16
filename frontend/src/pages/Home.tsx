@@ -7,7 +7,9 @@ import { FunctionComponent, useState } from 'react'
 
 interface HomeProps {}
 const Home: FunctionComponent<HomeProps> = () => {
-  const { loading, uploadedImages, uploadProgress, setFiles } = useFiles()
+  const { loading, uploadedImages, uploadProgress, setFiles } = useFiles(
+    window.location.href.split('/'),
+  )
   const [url, setUrl] = useState<string | undefined>(undefined)
   const [name, setName] = useState<string | undefined>(undefined)
   const [opened, { open, close }] = useDisclosure(false)

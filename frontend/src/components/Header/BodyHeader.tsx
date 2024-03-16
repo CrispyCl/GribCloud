@@ -27,25 +27,28 @@ const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
   return (
     <header className='flex items-center justify-between border-b border-gray-100 p-5'>
       <div className='flex items-center gap-4'>
-        {window.location.href.includes('/album/') && !isMobile && (
-          <Button
-            variant='default'
-            className='border-none'
-            leftSection={<ArrowLeftIcon className='h-5 w-5' />}
-            onClick={e => {
-              e.preventDefault()
-              navigate(-1)
-            }}
-          >
-            Назад
-          </Button>
-        )}
+        {(window.location.href.split('/').includes('album') ||
+          window.location.href.split('/').includes('publicalbums')) &&
+          !isMobile && (
+            <Button
+              variant='default'
+              className='border-none'
+              leftSection={<ArrowLeftIcon className='h-5 w-5' />}
+              onClick={e => {
+                e.preventDefault()
+                navigate(-1)
+              }}
+            >
+              Назад
+            </Button>
+          )}
         <h1 className='text-xl'>{title}</h1>
       </div>
       {currentUser && (
         <div className='flex gap-4 '>
           {(window.location.href.split('/').includes('groupalbum') ||
-            window.location.href.split('/').includes('album')) && (
+            window.location.href.split('/').includes('album') ||
+            window.location.href.split('/').includes('all')) && (
             <FileButton
               onChange={setFiles ? setFiles : () => {}}
               accept={`${uploadAccept.map(item => item).join(',')}`}

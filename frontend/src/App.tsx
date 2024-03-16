@@ -41,7 +41,7 @@ function App() {
   }, [])
   return (
     <Routes>
-      <Route path='/' element={<Home />} />
+      <Route path='/all' element={<Home />} />
       <Route path='/groupalbums' element={<GroupAlbums />} />
       <Route path='/favorites' element={<Favorites />} />
       <Route path='/albums' element={<Albums />} />
@@ -78,7 +78,7 @@ function App() {
         return (
           <Route
             key={index}
-            path={`/album/${publicAlbum.id}`}
+            path={`/publicalbums/${publicAlbum.id}`}
             element={<GroupAlbum currentPublicAlbum={publicAlbum} />}
           />
         )

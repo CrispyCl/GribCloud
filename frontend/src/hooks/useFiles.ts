@@ -1,13 +1,13 @@
 import { VideoType } from '@/constants'
 import { imgStorage } from '@/firebase/config'
 import { RootState } from '@/redux/store'
-import { UploadImageResponse } from '@/redux/types'
+import { AlbumResponse, UploadImageResponse } from '@/redux/types'
 import api from '@/utils/axios'
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 
-export function useFiles() {
+export function useFiles(path: string[]) {
   const [files, setFiles] = useState<File[]>([])
   const [uploadedImages, setUploadedImages] = useState<UploadImageResponse[]>(
     [],
@@ -17,13 +17,29 @@ export function useFiles() {
   const [loading, setLoading] = useState<boolean>(false)
   const [preview, setPreview] = useState<string>('.')
   const [response, setResponse] = useState<UploadImageResponse>()
+  const existPromise = useRef<Promise<any>[]>([])
+  const hrefRef = useRef('')
+  const apiHrefRef = useRef('')
 
+  const getHref = (path: string[] = [], file?: File) => {
+    if (path && path.includes('album')) {
+      console.log('in album')
+      hrefRef.current = `albums/${path[4]}/${path[3]}/${file}`
+      apiHrefRef.current = `/api/v1/albums/${path[4]}/`
+    } else if (path && path.includes('publicalbums')) {
+      console.log('in public album')
+      hrefRef.current = `publicalbums/${path[4]}/${path[3]}/${file}`
+      apiHrefRef.current = `/api/v1/albums/${path[4]}/`
+    } else {
+      console.log('in images')
+      hrefRef.current = `images/${currentUser?.id}/${file}`
+      apiHrefRef.current = `/api/v1/files/`
+    }
+  }
   const uploadMultipleImages = async (files: File[]): Promise<void> => {
     const uploadTasks = files.map(async (file, index) => {
-      const storageRef = ref(
-        imgStorage,
-        `images/${currentUser?.id}/${file.name}`,
-      )
+      getHref(path, file)
+      const storageRef = ref(imgStorage, hrefRef.current)
       if (VideoType.includes(file.type)) {
         const video = document.createElement('video')
         const url = URL.createObjectURL(file)
@@ -76,14 +92,28 @@ export function useFiles() {
           }
         }
       }
-
-      api
-        .post('/api/v1/files/', {
-          files: [[`images/${currentUser?.id}/${file.name}`, preview]],
-        })
-        .then(res =>
-          res.data.map((item: UploadImageResponse) => setResponse(item)),
-        )
+      if (apiHrefRef.current === '/api/v1/files/') {
+        api
+          .post('/api/v1/files/', {
+            files: [[`images/${currentUser?.id}/${file.name}`, preview]],
+          })
+          .then(res =>
+            res.data.map((item: UploadImageResponse) => setResponse(item)),
+          )
+      } else if (
+        apiHrefRef.current ===
+        `/api/v1/albums/${window.location.href.split('/')[4]}/`
+      ) {
+        api
+          .put(apiHrefRef.current, {
+            files: [
+              [`/api/v1/albums/${window.location.href.split('/')[4]}`, preview],
+            ],
+          })
+          .then(res =>
+            res.data.map((item: UploadImageResponse) => setResponse(item)),
+          )
+      }
 
       const uploadTask = uploadBytesResumable(storageRef, file)
       uploadTask.on('state_changed', snapshot => {
@@ -124,21 +154,61 @@ export function useFiles() {
     const fetchExistingImages = async () => {
       try {
         setLoading(true)
-        const response = await api.get('/api/v1/files/')
-        const existingImagesPromises = response.data.map(
-          (item: UploadImageResponse) => {
-            return getDownloadURL(ref(imgStorage, item.file)).then(url => ({
-              name: item.file.split('/')[2],
-              author: item.author,
-              created_at: new Date(item.created_at),
-              file: item.file,
-              id: item.id,
-              url: url,
-              preview: item.preview,
-            }))
-          },
-        )
-        const existingImages = await Promise.all(existingImagesPromises)
+        console.log(apiHrefRef.current)
+        if (apiHrefRef.current === '/api/v1/files/') {
+          const response = await api.get('/api/v1/files/')
+          const existingImagesPromises = response.data.map(
+            (item: UploadImageResponse) => {
+              return getDownloadURL(ref(imgStorage, item.file)).then(url => ({
+                name: item.file.split('/')[2],
+                author: item.author,
+                created_at: new Date(item.created_at),
+                file: item.file,
+                id: item.id,
+                url: url,
+                preview: item.preview,
+              }))
+            },
+          )
+          existPromise.current = existingImagesPromises
+        } else if (
+          apiHrefRef.current ===
+          `/api/v1/albums/${window.location.href.split('/')[4]}/`
+        ) {
+          const response = await api.get(
+            `/api/v1/albums/${window.location.href.split('/')[4]}/`,
+          )
+          const existingImagesPromises = response.data.map(
+            async (item: AlbumResponse) => {
+              const filesPromises = item.files.map(async file => {
+                const url = await getDownloadURL(ref(imgStorage, file.file))
+                return {
+                  title: item.title,
+                  author: item.author,
+                  created_at: new Date(item.created_at),
+                  id: item.id,
+                  files: [
+                    {
+                      name: file.file.split('/')[2],
+                      author: file.author,
+                      created_at: new Date(file.created_at),
+                      file: file.file,
+                      id: file.id,
+                      url: url,
+                      preview: file.preview,
+                    },
+                  ],
+                }
+              })
+
+              return await Promise.all(filesPromises)
+            },
+          )
+          existPromise.current = existingImagesPromises
+          console.log(existPromise)
+        }
+
+        const existingImages = await Promise.all(existPromise.current)
         existingImages.sort((a, b) => {
           const dateA = new Date(a.created_at.getHours())
           const dateB = new Date(b.created_at.getHours())
@@ -157,6 +227,7 @@ export function useFiles() {
         console.error('Error fetching existing images:', error)
       }
     }
+    getHref(path)
     uploadMultipleImages(files)
     fetchExistingImages()
   }, [files])

@@ -1,7 +1,7 @@
 export const TopLinks = [
   {
     name: 'Все файлы',
-    route: '/',
+    route: '/all',
     icon: '/svg/FolderOpen.svg',
   },
   {

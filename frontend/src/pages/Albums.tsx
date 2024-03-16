@@ -8,6 +8,7 @@ interface AlbumsProps {}
 
 const Albums: FunctionComponent<AlbumsProps> = () => {
   const { albums } = useAlbums()
+  console.log(albums)
 
   return (
     <Body>

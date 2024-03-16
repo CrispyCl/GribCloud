@@ -13,7 +13,7 @@ const Header: FunctionComponent<HeaderProps> = ({ setOpen }) => {
   const currentUser = useSelector((state: RootState) => state.auth.account)
   return (
     <header className='flex items-center justify-between border-b border-gray-100 px-7 py-4'>
-      <Link to='/' className='self-center'>
+      <Link to='/all' className='self-center'>
         <img src='/svg/GribCloud.svg' alt='logo' />
       </Link>
       <Burger className='md:hidden' onClick={() => setOpen(true)} />

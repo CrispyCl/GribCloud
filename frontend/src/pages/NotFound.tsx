@@ -22,7 +22,7 @@ const NotFound: FunctionComponent<NotFoundProps> = () => {
             неправильно ввели адрес или страница была удаленна.
           </Text>
           <Group justify='center'>
-            <Link to='/'>
+            <Link to='/all'>
               <Button
                 className='bg-blue-500 text-white hover:bg-blue-600'
                 size='md'
