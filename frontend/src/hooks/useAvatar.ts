@@ -43,13 +43,13 @@ export function useAvatar(user: useAvatarProps['user']) {
   useEffect(() => {
     const fetchExistingAvatar = async () => {
       setLoading(true)
-
-      const url = await getDownloadURL(
-        ref(imgStorage, `avatars/${currentUser?.id}`),
-      )
-      dispatch(actions.setAvatarUrl({ avatar: url }))
-
-      setLoading(false)
+      await getDownloadURL(ref(imgStorage, `avatars/${currentUser?.id}`))
+        .then(url => {
+          dispatch(actions.setAvatarUrl({ avatar: url }))
+        })
+        .catch(err => {
+          setLoading(false)
+        })
     }
 
     uploadAvatar(file)

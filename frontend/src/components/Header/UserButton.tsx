@@ -1,12 +1,5 @@
 import { useAvatar } from '@/hooks/useAvatar'
-import {
-  Avatar,
-  Group,
-  Menu,
-  Skeleton,
-  Text,
-  UnstyledButton,
-} from '@mantine/core'
+import { Avatar, Group, Menu, Text, UnstyledButton } from '@mantine/core'
 import { actions } from '@store/slices/auth'
 import { RootState, useAppDispatch } from '@store/store'
 import { useSelector } from 'react-redux'
@@ -16,7 +9,7 @@ export const UserButton = () => {
   const user = useSelector((state: RootState) => state.auth.account)
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const { loading, avatar } = useAvatar()
+  const { loading, avatar } = useAvatar(undefined)
 
   const handleLogout = () => {
     dispatch(actions.setLogout())
@@ -29,11 +22,7 @@ export const UserButton = () => {
         <Menu.Target>
           <UnstyledButton>
             <Group>
-              {loading ? (
-                <Skeleton circle w={38} h={38} />
-              ) : (
-                <Avatar src={avatar} variant='transparent' />
-              )}
+              <Avatar src={avatar} variant='transparent' />
               <div style={{ flex: 1 }}>
                 <Text size='sm' fw={500}>
                   {user?.username}

@@ -27,7 +27,6 @@ export default function ModalUserEdit() {
   const { loading, avatar, setFile } = useAvatar(undefined)
   const [updating, setUpdating] = useState<boolean>(false)
   const isUpdating = loading || updating
-  console.log(loading)
 
   const initialValues = {
     username: currentUser?.username || '',

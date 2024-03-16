@@ -28,7 +28,7 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
 }) => {
   const groupedImages: GroupedImages[] = []
   const currentUser = useSelector((state: RootState) => state.auth.account)
-
+  console.log(userImages)
   userImages?.forEach(image => {
     const date = new Date(image.created_at).toDateString() // Преобразование даты в формат строки
     const existingGroup = groupedImages.find(group => group.date === date)
@@ -106,7 +106,7 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
                         href={image.url}
                       >
                         {VideoType.includes(
-                          image.name.split('.').pop() as string,
+                          ('video/' + image.name.split('.').pop()) as string,
                         ) ? (
                           <img
                             loading='lazy'

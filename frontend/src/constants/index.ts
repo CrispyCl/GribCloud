@@ -34,7 +34,7 @@ export const BottomLinks = [
   },
 ]
 
-export const VideoType = ['mp4', 'mov', 'webm']
+export const VideoType = ['video/mp4', 'video/mov', 'video/webm']
 
 export const ImageType = [
   'png',

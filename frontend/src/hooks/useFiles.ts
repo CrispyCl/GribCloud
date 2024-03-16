@@ -15,7 +15,8 @@ export function useFiles() {
   const [uploadProgress, setUploadProgress] = useState<number[]>([])
   const currentUser = useSelector((state: RootState) => state.auth.account)
   const [loading, setLoading] = useState<boolean>(false)
-  const [preview, setPreview] = useState<string | undefined>()
+  const [preview, setPreview] = useState<string>('.')
+  const [response, setResponse] = useState<UploadImageResponse>()
 
   const uploadMultipleImages = async (files: File[]): Promise<void> => {
     const uploadTasks = files.map(async (file, index) => {
@@ -23,26 +24,67 @@ export function useFiles() {
         imgStorage,
         `images/${currentUser?.id}/${file.name}`,
       )
-      await api.post('/api/v1/files/', {
-        files: [`images/${currentUser?.id}/${file.name}`],
-      })
       if (VideoType.includes(file.type)) {
-        // Создаем превью для видео
         const video = document.createElement('video')
         const url = URL.createObjectURL(file)
         video.src = url
-        video.onloadeddata = () => {
+        video.onloadeddata = async () => {
           const canvas = document.createElement('canvas')
           canvas.width = video.videoWidth
           canvas.height = video.videoHeight
           const ctx = canvas.getContext('2d')
+
           if (ctx) {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
             const previewUrl = canvas.toDataURL('image/jpeg')
-            setPreview(previewUrl)
+
+            const previewBlob = await fetch(previewUrl).then(res => res.blob())
+            const previewStorageRef = ref(
+              imgStorage,
+              `previews/${currentUser?.id}/${file.name}.jpeg`,
+            )
+            const previewUploadTask = uploadBytesResumable(
+              previewStorageRef,
+              previewBlob,
+            )
+
+            previewUploadTask.on(
+              'state_changed',
+              snapshot => {
+                // Отслеживание прогресса загрузки
+                const progress = Math.round(
+                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100,
+                )
+                const progressArray = [...uploadProgress]
+                progressArray[index] = progress
+                setUploadProgress(progressArray)
+              },
+              error => {
+                console.error('Failed to upload preview:', error)
+              },
+            )
+
+            try {
+              await previewUploadTask
+              const previewUrl = await getDownloadURL(previewStorageRef)
+              console.log('Preview uploaded:', previewUrl)
+              setPreview(previewUrl)
+              // Здесь вы можете обработать URL превью-изображения, если необходимо
+            } catch (error) {
+              console.error('Error uploading preview:', error)
+            }
           }
         }
       }
+
+      api
+        .post('/api/v1/files/', {
+          files: [[`images/${currentUser?.id}/${file.name}`, preview]],
+        })
+        .then(res =>
+          res.data.map((item: UploadImageResponse) => setResponse(item)),
+        )
+      console.log(1313131231, response)
 
       const uploadTask = uploadBytesResumable(storageRef, file)
       uploadTask.on('state_changed', snapshot => {
@@ -55,18 +97,17 @@ export function useFiles() {
         setUploadProgress(progressArray)
       })
 
-      return await uploadTask.then(async snapshot => {
-        const url = await getDownloadURL(snapshot.ref)
-        return {
-          name: file.name,
-          author: currentUser?.id,
-          created_at: new Date(),
-          file: `images/${currentUser?.id}/${file.name}`,
-          id: undefined,
-          url: url,
-          preview: preview,
-        }
-      })
+      const snapshot = await uploadTask
+      const url = await getDownloadURL(snapshot.ref)
+      return {
+        name: file.name,
+        author: response?.author,
+        created_at: new Date(),
+        file: response?.file,
+        id: response?.id,
+        url: url,
+        preview: preview,
+      }
     })
 
     try {
