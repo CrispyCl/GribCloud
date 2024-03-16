@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from django.test import TestCase
 from django.utils.text import slugify
 
@@ -31,9 +32,9 @@ class TagModelTest(TestCase):
     fixtures = ["files/fixtures/test.json"]
 
     def test_creation(self):
-        tag = Tag.objects.create(title='New Tag')
+        tag = Tag.objects.create(title="New Tag")
         self.assertEqual(tag.slug, slugify(tag.title, allow_unicode=True))
-        
+
     def test_string_representation(self):
         tag = Tag.objects.get(pk=1)
         self.assertEqual(str(tag), tag.title)
@@ -41,9 +42,9 @@ class TagModelTest(TestCase):
     def test_unique_title_constraint(self):
         tag_title = "Unique Tag"
         Tag.objects.create(title=tag_title)
-        with self.assertRaises(Exception):
+        with self.assertRaises(IntegrityError):
             Tag.objects.create(title=tag_title)
-            
+
     def test_files_related_name(self):
         tag = Tag.objects.get(pk=1)
         file = File.objects.get(pk=1)

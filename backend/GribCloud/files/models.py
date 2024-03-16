@@ -34,7 +34,7 @@ class FileManager(models.Manager):
     def by_tags(self, tags):
         tags = {slugify(tag, allow_unicode=True) for tag in tags}
         tags = Tag.objects.filter(slug__in=tags)
-        return self.get_queryset().filter(tag__in=tags)
+        return self.get_queryset().filter(tag__in=tags).distinct()
 
     def by_all_tags(self, tags):
         tags = {slugify(tag, allow_unicode=True) for tag in tags}
@@ -44,7 +44,7 @@ class FileManager(models.Manager):
         for tag in tags:
             queryset = queryset.filter(tag=tag)
 
-        return queryset
+        return queryset.distinct()
 
 
 class File(models.Model):
