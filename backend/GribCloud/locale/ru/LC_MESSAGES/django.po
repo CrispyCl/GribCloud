@@ -155,12 +155,12 @@ msgstr "файлы"
 #: .\files\models.py:99
 msgctxt "Tag model verbose name"
 msgid "tag"
-msgstr ""
+msgstr "тег"
 
 #: .\files\models.py:100
 msgctxt "Tag model verbose name plural"
 msgid "tags"
-msgstr ""
+msgstr "теги"
 
 #: .\files\serializers.py:29 .\files\serializers.py:42
 msgctxt "File Create Serializer validation error no author"

@@ -64,6 +64,7 @@ class File(models.Model):
     preview = models.CharField(
         verbose_name=pgettext_lazy("preview field name", "file preview"),
         max_length=1024,
+        null=True,
     )
     created_at = models.DateTimeField(
         pgettext_lazy("created_at field name", "created at"),
