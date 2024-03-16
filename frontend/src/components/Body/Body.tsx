@@ -9,10 +9,11 @@ import SideNavigationMobile from '../SideNavigation/SideNavigationMobile'
 
 interface BodyProps {
   children: React.ReactNode
+  title?: string
   setFiles?: React.Dispatch<React.SetStateAction<File[]>>
 }
 
-const Body: FunctionComponent<BodyProps> = ({ children, setFiles }) => {
+const Body: FunctionComponent<BodyProps> = ({ children, setFiles, title }) => {
   const [open, setOpen] = useState<boolean>(false)
   const currentUser = useSelector((state: RootState) => state.auth.account)
   const avatar = useSelector((state: RootState) => state.auth.avatar)
@@ -29,7 +30,7 @@ const Body: FunctionComponent<BodyProps> = ({ children, setFiles }) => {
           avatar={avatar}
         />
         <div className='w-full overflow-y-auto'>
-          <BodyHeader setFiles={setFiles} />
+          <BodyHeader setFiles={setFiles} title={title} />
           {children}
         </div>
       </div>

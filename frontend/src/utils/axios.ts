@@ -45,12 +45,9 @@ api.interceptors.response.use(
           originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`
 
           return api(originalRequest)
-        } catch (refreshError) {
-          return Promise.reject(refreshError)
-        }
+        } catch (refreshError) {}
       }
     }
-    return Promise.reject(error)
   },
 )
 

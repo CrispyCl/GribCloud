@@ -48,10 +48,8 @@ export default function ModalUserEdit() {
 
   const closeModal = () => {
     close()
-    setTimeout(() => {
-      form.reset()
-    }, 1000)
-    form.reset()
+    form.setInitialValues(initialValues)
+    form.setFieldValue('oldPassword', '')
   }
 
   const handleUpdate = async (

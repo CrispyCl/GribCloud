@@ -84,7 +84,6 @@ export function useFiles() {
         .then(res =>
           res.data.map((item: UploadImageResponse) => setResponse(item)),
         )
-      console.log(1313131231, response)
 
       const uploadTask = uploadBytesResumable(storageRef, file)
       uploadTask.on('state_changed', snapshot => {

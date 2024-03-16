@@ -10,12 +10,12 @@ import 'react-circular-progressbar/dist/styles.css'
 import { useSelector } from 'react-redux'
 
 interface ImagesRenderProps {
+  loading: boolean
+  open: () => void
   userImages?: UploadImageResponse[] | undefined
   uploadProgress?: number[] | undefined
-  loading: boolean
-  setUrl: React.Dispatch<React.SetStateAction<string | undefined>>
-  setName: React.Dispatch<React.SetStateAction<string | undefined>>
-  open: () => void
+  setUrl?: React.Dispatch<React.SetStateAction<string | undefined>>
+  setName?: React.Dispatch<React.SetStateAction<string | undefined>>
 }
 
 const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
@@ -28,7 +28,6 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
 }) => {
   const groupedImages: GroupedImages[] = []
   const currentUser = useSelector((state: RootState) => state.auth.account)
-  console.log(userImages)
   userImages?.forEach(image => {
     const date = new Date(image.created_at).toDateString() // Преобразование даты в формат строки
     const existingGroup = groupedImages.find(group => group.date === date)
@@ -83,7 +82,7 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
           <div key={index} className='flex flex-col'>
             <span className='text-gray-500'>{group.date}</span>
             <div className='grid grid-cols-1 gap-4 p-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'>
-              {group.images?.map((image, imageIndex) => {
+              {group.images.map((image, imageIndex) => {
                 if (
                   uploadProgress &&
                   uploadProgress[imageIndex] !== undefined

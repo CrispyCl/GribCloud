@@ -50,3 +50,21 @@ export interface GroupedImages {
   date: string
   images: UploadImageResponse[]
 }
+
+export interface AlbumsResponse {
+  id: number
+  name: string
+  author: number
+  created_at: Date
+  images: UploadImageResponse[]
+}
+
+export interface AlbumResponse {
+  author: AccountResponse
+  created_at: Date
+  files: UploadImageResponse[]
+  id: number
+  is_public: boolean
+  memberships: AccountResponse[]
+  title: string
+}

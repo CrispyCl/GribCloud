@@ -19,9 +19,8 @@ export function useAvatar(user: useAvatarProps['user']) {
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
 
   const uploadAvatar = async (file: File | null) => {
-    setLoading(true)
-
     if (file) {
+      setLoading(true)
       const storageRef = ref(imgStorage, `avatars/${currentUser?.id}`)
       const uploadTask = uploadBytesResumable(storageRef, file)
 
@@ -45,6 +44,7 @@ export function useAvatar(user: useAvatarProps['user']) {
       setLoading(true)
       await getDownloadURL(ref(imgStorage, `avatars/${currentUser?.id}`))
         .then(url => {
+          setLoading(false)
           dispatch(actions.setAvatarUrl({ avatar: url }))
         })
         .catch(err => {
