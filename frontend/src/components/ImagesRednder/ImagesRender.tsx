@@ -26,21 +26,16 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
   setName,
   open,
 }) => {
-  const groupedImages: GroupedImages[] = []
   const currentUser = useSelector((state: RootState) => state.auth.account)
+  const groupedImages: GroupedImages[] = []
   userImages?.forEach(image => {
-    const date = new Date(image.created_at).toDateString() // Преобразование даты в формат строки
-    const existingGroup = groupedImages.find(group => group.date === date)
-
-    if (existingGroup) {
-      existingGroup.images.push(image)
+    const date = new Date(image.created_at).toLocaleDateString()
+    const group = groupedImages.find(group => group.date === date)
+    if (group) {
+      group.images.push(image)
     } else {
       groupedImages.push({ date, images: [image] })
     }
-  })
-
-  groupedImages.forEach(group => {
-    group.images.sort((a, b) => b.created_at.getTime() - a.created_at.getTime()) // Сортировка по убыванию даты создания
   })
 
   const deleteImage = async (name: string) => {
@@ -56,26 +51,23 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
           overlayProps={{ radius: 'sm', blur: 2 }}
         />
       )}
-      {!userImages ||
-        (!userImages.length && (
-          <>
-            {!currentUser ? (
-              <div className='flex h-full flex-col items-center justify-center'>
-                <EllipsisHorizontalIcon className='h-16 w-16 text-gray-400' />
-                <span className='text-gray-500'>
-                  Войдите или зарегистрируйтесь
-                </span>
-              </div>
-            ) : (
-              <div className='flex h-full flex-col items-center justify-center'>
-                <EllipsisHorizontalIcon className='h-16 w-16 text-gray-400' />
-                <span className='text-gray-500'>
-                  Нет загруженных изображений
-                </span>
-              </div>
-            )}
-          </>
-        ))}
+      {(!userImages || !userImages.length) && (
+        <>
+          {!currentUser ? (
+            <div className='flex h-full flex-col items-center justify-center'>
+              <EllipsisHorizontalIcon className='h-16 w-16 text-gray-400' />
+              <span className='text-gray-500'>
+                Войдите или зарегистрируйтесь
+              </span>
+            </div>
+          ) : (
+            <div className='flex h-full flex-col items-center justify-center'>
+              <EllipsisHorizontalIcon className='h-16 w-16 text-gray-400' />
+              <span className='text-gray-500'>Нет загруженных изображений</span>
+            </div>
+          )}
+        </>
+      )}
       {groupedImages
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .map((group, index) => (
@@ -104,7 +96,8 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
                         id={image.name}
                         href={image.url}
                       >
-                        {VideoType.includes(
+                        {image.name &&
+                        VideoType.includes(
                           ('video/' + image.name.split('.').pop()) as string,
                         ) ? (
                           <img

@@ -7,39 +7,36 @@ import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage'
 import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 
-export function useFiles(path: string[]) {
+export function useFiles(path: string[], title?: string) {
   const [files, setFiles] = useState<File[]>([])
   const [uploadedImages, setUploadedImages] = useState<UploadImageResponse[]>(
     [],
   )
   const [uploadProgress, setUploadProgress] = useState<number[]>([])
-  const currentUser = useSelector((state: RootState) => state.auth.account)
   const [loading, setLoading] = useState<boolean>(false)
   const [preview, setPreview] = useState<string>('.')
-  const [response, setResponse] = useState<UploadImageResponse>()
+  const multiUpload = useRef<UploadImageResponse[]>([])
+  const currentUser = useSelector((state: RootState) => state.auth.account)
+  const responseRef = useRef<UploadImageResponse | null>(null)
+  const AlbumResponse = useRef<AlbumResponse | null>(null)
   const existPromise = useRef<Promise<any>[]>([])
-  const hrefRef = useRef('')
   const apiHrefRef = useRef('')
 
-  const getHref = (path: string[] = [], file?: File) => {
-    if (path && path.includes('album')) {
-      console.log('in album')
-      hrefRef.current = `albums/${path[4]}/${path[3]}/${file}`
-      apiHrefRef.current = `/api/v1/albums/${path[4]}/`
-    } else if (path && path.includes('publicalbums')) {
-      console.log('in public album')
-      hrefRef.current = `publicalbums/${path[4]}/${path[3]}/${file}`
+  const getHref = (path: string[]) => {
+    if (path[4] && (path.includes('album') || path.includes('publicalbum'))) {
       apiHrefRef.current = `/api/v1/albums/${path[4]}/`
     } else {
-      console.log('in images')
-      hrefRef.current = `images/${currentUser?.id}/${file}`
       apiHrefRef.current = `/api/v1/files/`
     }
   }
+
   const uploadMultipleImages = async (files: File[]): Promise<void> => {
     const uploadTasks = files.map(async (file, index) => {
-      getHref(path, file)
-      const storageRef = ref(imgStorage, hrefRef.current)
+      getHref(path)
+      const storageRef = ref(
+        imgStorage,
+        `images/${currentUser?.id}/${file.name}`,
+      )
       if (VideoType.includes(file.type)) {
         const video = document.createElement('video')
         const url = URL.createObjectURL(file)
@@ -92,28 +89,38 @@ export function useFiles(path: string[]) {
           }
         }
       }
-      if (apiHrefRef.current === '/api/v1/files/') {
-        api
-          .post('/api/v1/files/', {
-            files: [[`images/${currentUser?.id}/${file.name}`, preview]],
-          })
-          .then(res =>
-            res.data.map((item: UploadImageResponse) => setResponse(item)),
+
+      await api
+        .post('/api/v1/files/', {
+          files: [[`images/${currentUser?.id}/${file.name}`, preview]],
+        })
+        .then(res => {
+          res.data.forEach(
+            (item: UploadImageResponse) => (responseRef.current = item),
           )
-      } else if (
-        apiHrefRef.current ===
-        `/api/v1/albums/${window.location.href.split('/')[4]}/`
-      ) {
-        api
-          .put(apiHrefRef.current, {
-            files: [
-              [`/api/v1/albums/${window.location.href.split('/')[4]}`, preview],
-            ],
-          })
-          .then(res =>
-            res.data.map((item: UploadImageResponse) => setResponse(item)),
-          )
-      }
+        })
+        .then(async () => {
+          if (apiHrefRef.current === `/api/v1/albums/${path[4]}/`) {
+            await api
+              .post(
+                `/api/v1/albums/${path[4]}/files/${responseRef.current?.id}/`,
+                {
+                  files: [
+                    [
+                      `albums/${currentUser?.id}/${title}/${file.name}`,
+                      preview,
+                    ],
+                  ],
+                },
+              )
+              .then(res => {
+                AlbumResponse.current = res.data
+              })
+          }
+        })
+
+      console.log('response.current', responseRef.current)
+      console.log('AlbumResponse.current', AlbumResponse.current)
 
       const uploadTask = uploadBytesResumable(storageRef, file)
       uploadTask.on('state_changed', snapshot => {
@@ -128,21 +135,76 @@ export function useFiles(path: string[]) {
 
       const snapshot = await uploadTask
       const url = await getDownloadURL(snapshot.ref)
-      return {
-        name: file.name,
-        author: response?.author,
-        created_at: new Date(),
-        file: response?.file,
-        id: response?.id,
-        url: url,
-        preview: preview,
+      if (apiHrefRef.current === '/api/v1/files/') {
+        return {
+          name: file.name,
+          author: currentUser?.id,
+          created_at: responseRef.current?.created_at
+            ? new Date(responseRef.current.created_at)
+            : undefined,
+          file: responseRef.current?.file,
+          id: responseRef.current?.id,
+          url: url,
+          preview: preview,
+        }
+      } else if (apiHrefRef.current === `/api/v1/albums/${path[4]}/`) {
+        return {
+          title: AlbumResponse.current?.title,
+          author: AlbumResponse.current?.author,
+          created_at: AlbumResponse.current?.created_at
+            ? new Date(AlbumResponse.current.created_at)
+            : undefined,
+          id: AlbumResponse.current?.id,
+          memberships: AlbumResponse.current?.memberships,
+          files: [
+            {
+              name: file.name,
+              author: currentUser?.id,
+              created_at: responseRef.current?.created_at
+                ? new Date(responseRef.current.created_at)
+                : undefined,
+              file: responseRef.current?.file,
+              id: responseRef.current?.id,
+              url: url,
+              preview: preview,
+            },
+          ],
+        }
       }
     })
 
+    const processFiles = (files: UploadImageResponse[]) => {
+      const sortedFiles = files.sort((a, b) => {
+        const dateA = new Date(a.created_at).getTime()
+        const dateB = new Date(b.created_at).getTime()
+        return dateB - dateA
+      })
+      setUploadedImages(prevImages => [...sortedFiles, ...prevImages])
+    }
+
     try {
-      const downloadUrls = await Promise.all(uploadTasks)
-      // @ts-ignore
-      setUploadedImages(prevImages => [...downloadUrls, ...prevImages])
+      const downloadUrls = await Promise.all(uploadTasks.filter(Boolean))
+
+      if (apiHrefRef.current === '/api/v1/files/') {
+        // @ts-ignore
+        processFiles(downloadUrls)
+      } else if (apiHrefRef.current === `/api/v1/albums/${path[4]}/`) {
+        const newFiles: UploadImageResponse[] = []
+        // @ts-ignore
+        downloadUrls.forEach((item: AlbumResponse) => {
+          item.files.forEach((file: UploadImageResponse) => {
+            if (
+              !multiUpload.current.some(
+                existingFile => existingFile.id === file.id,
+              )
+            ) {
+              newFiles.push(file)
+            }
+          })
+        })
+        processFiles(newFiles)
+      }
+
       setUploadProgress([])
       console.log('All files uploaded')
     } catch (error) {
@@ -154,71 +216,31 @@ export function useFiles(path: string[]) {
     const fetchExistingImages = async () => {
       try {
         setLoading(true)
-        console.log(apiHrefRef.current)
-        if (apiHrefRef.current === '/api/v1/files/') {
-          const response = await api.get('/api/v1/files/')
-          const existingImagesPromises = response.data.map(
-            (item: UploadImageResponse) => {
-              return getDownloadURL(ref(imgStorage, item.file)).then(url => ({
-                name: item.file.split('/')[2],
-                author: item.author,
-                created_at: new Date(item.created_at),
-                file: item.file,
-                id: item.id,
-                url: url,
-                preview: item.preview,
-              }))
-            },
-          )
-          existPromise.current = existingImagesPromises
-        } else if (
-          apiHrefRef.current ===
-          `/api/v1/albums/${window.location.href.split('/')[4]}/`
-        ) {
-          const response = await api.get(
-            `/api/v1/albums/${window.location.href.split('/')[4]}/`,
-          )
-          const existingImagesPromises = response.data.map(
-            async (item: AlbumResponse) => {
-              const filesPromises = item.files.map(async file => {
-                const url = await getDownloadURL(ref(imgStorage, file.file))
-                return {
-                  title: item.title,
-                  author: item.author,
-                  created_at: new Date(item.created_at),
-                  id: item.id,
-                  files: [
-                    {
-                      name: file.file.split('/')[2],
-                      author: file.author,
-                      created_at: new Date(file.created_at),
-                      file: file.file,
-                      id: file.id,
-                      url: url,
-                      preview: file.preview,
-                    },
-                  ],
-                }
-              })
-
-              return await Promise.all(filesPromises)
-            },
-          )
-          existPromise.current = existingImagesPromises
-          console.log(existPromise)
-        }
-
-        const existingImages = await Promise.all(existPromise.current)
-        existingImages.sort((a, b) => {
-          const dateA = new Date(a.created_at.getHours())
-          const dateB = new Date(b.created_at.getHours())
-
-          if (dateA > dateB) return -1
-          if (dateA < dateB) return 1
-
-          // Если дни одинаковые, сортируем по времени
-          return b.created_at.getTime() - a.created_at.getTime()
+        const response = await api.get(
+          apiHrefRef.current === '/api/v1/files/'
+            ? apiHrefRef.current
+            : `/api/v1/albums/${path[4]}/`,
+        )
+        const existingImagesPromises = (
+          apiHrefRef.current === '/api/v1/files/'
+            ? response.data
+            : response.data.files
+        ).map(async (item: UploadImageResponse) => {
+          const url = await getDownloadURL(ref(imgStorage, item.file))
+          return {
+            name: item.file.split('/')[2],
+            author: item.author,
+            created_at: new Date(item.created_at),
+            file: item.file.split('/')[2],
+            id: item.id,
+            url: url,
+            preview: item.preview,
+          }
         })
+        existPromise.current = existingImagesPromises
+        const existingImages = await Promise.all(existPromise.current)
+        console.log('existingImages', existingImages)
+
         setLoading(false)
         setUploadedImages([])
         setUploadedImages(prevImages => [...existingImages, ...prevImages])

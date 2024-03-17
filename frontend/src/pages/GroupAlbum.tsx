@@ -13,7 +13,10 @@ interface GroupAlbumProps {
 const GroupAlbum: FunctionComponent<GroupAlbumProps> = ({
   currentPublicAlbum,
 }) => {
-  const { loading, uploadedImages, uploadProgress, setFiles } = useFiles()
+  const { loading, uploadedImages, uploadProgress, setFiles } = useFiles(
+    window.location.href.split('/'),
+    currentPublicAlbum.title,
+  )
   const [url, setUrl] = useState<string | undefined>(undefined)
   const [name, setName] = useState<string | undefined>(undefined)
   const [opened, { open, close }] = useDisclosure(false)

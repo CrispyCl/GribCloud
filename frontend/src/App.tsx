@@ -78,7 +78,7 @@ function App() {
         return (
           <Route
             key={index}
-            path={`/publicalbums/${publicAlbum.id}`}
+            path={`/publicalbum/${publicAlbum.id}`}
             element={<GroupAlbum currentPublicAlbum={publicAlbum} />}
           />
         )

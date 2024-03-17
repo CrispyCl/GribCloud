@@ -28,7 +28,7 @@ const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
     <header className='flex items-center justify-between border-b border-gray-100 p-5'>
       <div className='flex items-center gap-4'>
         {(window.location.href.split('/').includes('album') ||
-          window.location.href.split('/').includes('publicalbums')) &&
+          window.location.href.split('/').includes('publicalbum')) &&
           !isMobile && (
             <Button
               variant='default'
@@ -46,7 +46,7 @@ const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
       </div>
       {currentUser && (
         <div className='flex gap-4 '>
-          {(window.location.href.split('/').includes('groupalbum') ||
+          {(window.location.href.split('/').includes('publicalbum') ||
             window.location.href.split('/').includes('album') ||
             window.location.href.split('/').includes('all')) && (
             <FileButton
