@@ -43,7 +43,7 @@ class FileByTagAPIView(APIView):
     serializer_class = FileSerializer
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request):
+    def post(self, request):
         if not request.data.get("tags"):
             return Response(
                 {

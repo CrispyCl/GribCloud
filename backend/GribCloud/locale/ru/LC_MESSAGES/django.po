@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-15 23:30+0400\n"
+"POT-Creation-Date: 2024-03-17 04:05+0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,17 +33,17 @@ msgctxt "app name"
 msgid "albums"
 msgstr "альбомы"
 
-#: .\albums\models.py:58 .\files\models.py:83
+#: .\albums\models.py:58 .\files\models.py:85
 msgctxt "title field name"
 msgid "title"
 msgstr "заголовок"
 
-#: .\albums\models.py:63 .\files\models.py:55
+#: .\albums\models.py:63 .\files\models.py:56
 msgctxt "author field name"
 msgid "author"
 msgstr "автор"
 
-#: .\albums\models.py:70 .\files\models.py:93
+#: .\albums\models.py:70 .\files\models.py:95
 #, fuzzy
 #| msgctxt "app name"
 #| msgid "files"
@@ -61,7 +61,7 @@ msgctxt "is_public field name"
 msgid "is public"
 msgstr "публичный"
 
-#: .\albums\models.py:86 .\files\models.py:69
+#: .\albums\models.py:86 .\files\models.py:71
 msgctxt "created_at field name"
 msgid "created at"
 msgstr "дата создания"
@@ -132,49 +132,83 @@ msgctxt "app name"
 msgid "files"
 msgstr "файлы"
 
-#: .\files\models.py:61
+#: .\files\models.py:62
 msgctxt "file field name"
 msgid "file"
 msgstr "файл"
 
-#: .\files\models.py:65
+#: .\files\models.py:66
 msgctxt "preview field name"
 msgid "file preview"
 msgstr "превью файла"
 
-#: .\files\models.py:74
+#: .\files\models.py:76
 msgctxt "File model verbose name"
 msgid "file"
 msgstr "файл"
 
-#: .\files\models.py:75
+#: .\files\models.py:77
 msgctxt "File model verbose name plural"
 msgid "files"
 msgstr "файлы"
 
-#: .\files\models.py:99
+#: .\files\models.py:101
 msgctxt "Tag model verbose name"
 msgid "tag"
-msgstr ""
+msgstr "тег"
 
-#: .\files\models.py:100
+#: .\files\models.py:102
 msgctxt "Tag model verbose name plural"
 msgid "tags"
-msgstr ""
+msgstr "теги"
 
-#: .\files\serializers.py:29 .\files\serializers.py:42
+#: .\files\models.py:119
+#, fuzzy
+#| msgctxt "file field name"
+#| msgid "file"
+msgid "file"
+msgstr "файл"
+
+#: .\files\models.py:121
+msgid "latitude"
+msgstr "широта"
+
+#: .\files\models.py:122
+msgid "longitude"
+msgstr "долгота"
+
+#: .\files\models.py:123
+msgid "country"
+msgstr "страна"
+
+#: .\files\models.py:124
+msgid "city"
+msgstr "город"
+
+#: .\files\models.py:127
+msgctxt "GeoData model verbose name"
+msgid "File Geodata"
+msgstr "Геоданные файла"
+
+#: .\files\models.py:128
+msgctxt "GeoData model verbose name plural"
+msgid "Files Geodata"
+msgstr "Геоданные файлов"
+
+#: .\files\serializers.py:35 .\files\serializers.py:48
 msgctxt "File Create Serializer validation error no author"
 msgid "Author not provided"
 msgstr "Автор не предоставлен"
 
-#: .\files\serializers.py:52
+#: .\files\serializers.py:58
 msgctxt "File Create Serializer validation error no files"
 msgid "No files provided"
 msgstr "Файлы не предоставлены"
 
-#: .\files\serializers.py:61
-msgid "The file should be a list with file_path and preview_path."
-msgstr "Файл должен быть списком, содержащим file_path и preview_path."
+#: .\files\serializers.py:66 .\files\serializers.py:76
+#: .\files\serializers.py:83 .\files\serializers.py:95
+msgid "The file should be an object: "
+msgstr "Файл должен быть объектом: "
 
 #: .\files\views.py:106
 msgid "Tag already added to the file."
