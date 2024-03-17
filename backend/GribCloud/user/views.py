@@ -12,6 +12,13 @@ class UserAPIList(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+    def get(self, request, *args, **kwargs):
+        available_params = ["username", "email"]
+        params = list(filter(lambda param: param[0] in available_params, request.query_params.items()))
+
+        self.queryset = self.queryset.filter(*params)
+        return super().get(self, request, *args, **kwargs)
+
 
 class UserAPIDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
