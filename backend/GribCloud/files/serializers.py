@@ -60,7 +60,7 @@ class FileCreateSerializer(serializers.Serializer):
                 },
                 code="required",
             )
-        if any(not (file.get("file") and file.get("preview")) for file in data.get("files")):
+        if any(not (file.get("file") and "preview" in file.keys()) for file in data.get("files")):
             raise serializers.ValidationError(
                 {
                     "files": gettext_lazy("The file should be an object: ") + "{'file': str, 'preview': str}",
