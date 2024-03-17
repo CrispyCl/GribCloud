@@ -20,9 +20,44 @@ class FileListAPIViewTests(APITestCase):
         response = self.client.get(reverse("files:list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_create_files(self):
+    @parameterized.parameterized.expand(
+        [
+            (
+                {
+                    "files": [
+                        {"file": "path/to/file1.jpg", "preview": "preview/to/file1.jpg"},
+                        {"file": "path/to/file2.jpg", "preview": "preview/to/file2.jpg"},
+                    ],
+                },
+            ),
+            (
+                {
+                    "files": [
+                        {
+                            "file": "path/to/file1.jpg",
+                            "preview": "preview/to/file1.jpg",
+                            "geodata": {
+                                "latitude": 56.855338,
+                                "longitude": 60.605306,
+                                "country": "Russian",
+                                "city": "Ekaterinburg",
+                            },
+                        },
+                        {
+                            "file": "path/to/file2.jpg",
+                            "preview": "preview/to/file2.jpg",
+                            "geodata": {
+                                "latitude": 55.751244,
+                                "longitude": 37.618423,
+                            },
+                        },
+                    ],
+                },
+            ),
+        ],
+    )
+    def test_create_files(self, data):
         url = reverse("files:list")
-        data = {"files": [["path/to/file1.jpg", "preview/to/file1.jpg"], ["path/to/file2.jpg", "preview/to/file2.jpg"]]}
 
         count = File.objects.count()
         response = self.client.post(url, data, format="json")
@@ -33,12 +68,19 @@ class FileListAPIViewTests(APITestCase):
         [
             ({},),
             ({"files": []},),
-            ({"files": ["path/to/file1.jpg", "path/to/file2.png"]},),
+            ({"files": [{"file": "path/to/file1.jpg"}]},),
+            ({"files": [{"preview": "preview/to/file1.jpg"}]},),
             (
                 {
-                    "fiiles": [
-                        ["path/to/file1.jpg", "preview/to/file1.jpg"],
-                        ["path/to/file2.jpg", "preview/to/file2.jpg"],
+                    "files": [
+                        {"file": "path/to/file1.jpg", "preview": "preview/to/file1.jpg", "geodata": {"latitude": 1}},
+                    ],
+                },
+            ),
+            (
+                {
+                    "files": [
+                        {"file": "path/to/file1.jpg", "preview": "preview/to/file1.jpg", "geodata": {"longitude": 1}},
                     ],
                 },
             ),
@@ -57,7 +99,6 @@ class FileDetailAPIViewTests(APITestCase):
     def setUp(self):
         self.user = User.objects.get(username="authoruser")
         self.client.force_authenticate(user=self.user)
-        self.client.post(reverse("files:list"), {"files": [["files/1.jpg", "previews/1.jpg"]]}, format="json")
 
     def test_get(self):
         url = reverse("files:detail", kwargs={"pk": 1})

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from files.models import File, Tag
+from files.models import File, GeoData, Tag
 
 
 class TagAdmin(admin.ModelAdmin):
@@ -16,8 +16,24 @@ class TagAdmin(admin.ModelAdmin):
         return obj
 
 
+class GeoDataAdmin(admin.ModelAdmin):
+    model = GeoData
+
+    list_display = ["title", "country", "city"]
+    list_filter = ["country", "city"]
+    search_fields = ["country", "city"]
+
+    def title(self, obj):
+        return obj
+
+
 class FileTagsInline(admin.TabularInline):
     model = File.tags.through
+    extra = 0
+
+
+class GeoDataInline(admin.StackedInline):
+    model = GeoData
     extra = 0
 
 
@@ -28,7 +44,7 @@ class FileAdmin(admin.ModelAdmin):
     list_filter = ("author",)
     search_fields = ("author__username",)
     readonly_fields = ("created_at",)
-    inlines = (FileTagsInline,)
+    inlines = (GeoDataInline, FileTagsInline)
 
     def title(self, obj):
         return obj
@@ -36,3 +52,4 @@ class FileAdmin(admin.ModelAdmin):
 
 admin.site.register(File, FileAdmin)
 admin.site.register(Tag, TagAdmin)
+admin.site.register(GeoData, GeoDataAdmin)

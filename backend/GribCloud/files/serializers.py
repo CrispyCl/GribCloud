@@ -1,7 +1,7 @@
 from django.utils.translation import gettext_lazy, pgettext_lazy
 from rest_framework import serializers
 
-from files.models import File, Tag
+from files.models import File, GeoData, Tag
 from user.models import User
 
 
@@ -11,8 +11,14 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ["id", "title"]
 
 
+class GeoDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GeoData
+        fields = ["latitude", "longitude", "country", "city"]
+
+
 class FileCreateSerializer(serializers.Serializer):
-    files = serializers.ListField(child=serializers.ListField(child=serializers.CharField()))
+    files = serializers.ListField(child=serializers.DictField())
     author = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
 
     def validate(self, data):
@@ -54,14 +60,42 @@ class FileCreateSerializer(serializers.Serializer):
                 },
                 code="required",
             )
-        if any(len(file) != 2 for file in data.get("files")):
+        if any(not (file.get("file") and file.get("preview")) for file in data.get("files")):
             raise serializers.ValidationError(
                 {
-                    "files": gettext_lazy(
-                        "The file should be a list with file_path and preview_path.",
-                    ),
+                    "files": gettext_lazy("The file should be an object: ") + "{'file': str, 'preview': str}",
                 },
             )
+        for file in data.get("files"):
+            if not file.get("geodata"):
+                continue
+            geodata = file.get("geodata")
+            if not (geodata.get("latitude") and geodata.get("longitude")):
+                raise serializers.ValidationError(
+                    {
+                        "files": gettext_lazy("The file should be an object: ") + "{'file': str, 'preview': str,"
+                        "'geodata': {'latitude': float, 'longitude': float}}.",
+                    },
+                )
+            if not (type(geodata.get("latitude")) is float and type(geodata.get("longitude")) is float):
+                raise serializers.ValidationError(
+                    {
+                        "files": gettext_lazy("The file should be an object: ") + "{'file': str, 'preview': str,"
+                        "'geodata': {'latitude': float, 'longitude': float}}.",
+                    },
+                )
+            if (
+                geodata.get("country")
+                and not (type(geodata.get("country")) is str)
+                or geodata.get("city")
+                and not (type(geodata.get("city")) is str)
+            ):
+                raise serializers.ValidationError(
+                    {
+                        "files": gettext_lazy("The file should be an object: ") + "{'file': str, 'preview': str,"
+                        "'geodata': {'latitude': float, 'longitude': float, 'country': str, 'city': str}}.",
+                    },
+                )
         return data
 
     def create(self, validated_data):
@@ -73,17 +107,28 @@ class FileCreateSerializer(serializers.Serializer):
         files = validated_data.pop("files")
         answer = []
         for file in files:
-            path, preview = file
+            path, preview = file["file"], file["preview"]
             file_instance = File(author=user, file=path, preview=preview)
-            answer.append(file_instance)
+            if file.get("geodata"):
+                geodata = file.get("geodata")
+                file_instance.geodata = GeoData(
+                    latitude=geodata.get("latitude"),
+                    longitude=geodata.get("longitude"),
+                )
+                if geodata.get("country"):
+                    file_instance.geodata.country = geodata.get("country")
+                if geodata.get("city"):
+                    file_instance.geodata.city = geodata.get("city")
             file_instance.save()
+            answer.append(file_instance)
         return answer
 
 
 class FileSerializer(serializers.ModelSerializer):
     author_username = serializers.CharField(source="author.username")
     tags = TagSerializer(many=True)
+    geodata = GeoDataSerializer()
 
     class Meta:
         model = File
-        fields = ["id", "author", "author_username", "file", "preview", "tags", "created_at"]
+        fields = ["id", "author", "author_username", "file", "preview", "geodata", "tags", "created_at"]

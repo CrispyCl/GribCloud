@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 from django.utils.text import slugify
-from django.utils.translation import pgettext_lazy
+from django.utils.translation import gettext_lazy as _, pgettext_lazy
 
 from user.models import User
 
@@ -12,6 +12,7 @@ class FileManager(models.Manager):
             super()
             .get_queryset()
             .select_related("author")
+            .select_related("geodata")
             .prefetch_related(
                 models.Prefetch(
                     "tags",
@@ -107,3 +108,24 @@ class Tag(models.Model):
         self.slug = slugify(self.title, allow_unicode=True)
 
         super().save(*args, **kwargs)
+
+
+class GeoData(models.Model):
+    file = models.OneToOneField(
+        File,
+        on_delete=models.CASCADE,
+        related_name="geodata",
+        related_query_name="geodata",
+        verbose_name=_("file"),
+    )
+    latitude = models.FloatField(_("latitude"))
+    longitude = models.FloatField(_("longitude"))
+    country = models.CharField(_("country"), max_length=100, null=True, blank=True)
+    city = models.CharField(_("city"), max_length=100, null=True, blank=True)
+
+    class Meta:
+        verbose_name = pgettext_lazy("GeoData model verbose name", "File Geodata")
+        verbose_name_plural = pgettext_lazy("GeoData model verbose name plural", "Files Geodata")
+
+    def __str__(self):
+        return f"Geodata for File {self.file.id}"
