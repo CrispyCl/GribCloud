@@ -21,6 +21,22 @@ class UserAPIUrlsTestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    @parameterized.parameterized.expand(
+        [
+            ("?username=testuser1",),
+            ("?email=test1@example.com",),
+            ("?email=test1@example.com&username=testuser1",),
+        ],
+    )
+    def test_list_query_params(self, params):
+        url = reverse("users:list") + params
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        user = response.data[0]
+
+        self.assertEqual(user, UserSerializer(self.user1).data)
+
     def test_detail(self):
         url = reverse("users:detail", kwargs={"pk": self.user1.id})
         response = self.client.get(url)
