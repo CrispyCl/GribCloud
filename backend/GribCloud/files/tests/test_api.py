@@ -107,7 +107,7 @@ class FileDetailAPIViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         file = response.data
-        list_in = ["id", "author", "file", "created_at"]
+        list_in = ["id", "author", "author_username", "file", "preview", "geodata", "tags", "created_at"]
         for el in list_in:
             self.assertIn(el, file)
 

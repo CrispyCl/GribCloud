@@ -109,6 +109,7 @@ class FileCreateSerializer(serializers.Serializer):
         for file in files:
             path, preview = file["file"], file["preview"]
             file_instance = File(author=user, file=path, preview=preview)
+            file_instance.save()
             if file.get("geodata"):
                 geodata = file.get("geodata")
                 file_instance.geodata = GeoData(
@@ -119,7 +120,7 @@ class FileCreateSerializer(serializers.Serializer):
                     file_instance.geodata.country = geodata.get("country")
                 if geodata.get("city"):
                     file_instance.geodata.city = geodata.get("city")
-            file_instance.save()
+                file_instance.geodata.save()
             answer.append(file_instance)
         return answer
 
