@@ -1,11 +1,11 @@
+import ContextMenu from '@/components/ContextMenu/ContextMenu'
 import Fancybox from '@/components/LightGallery/Fancybox'
 import { VideoType } from '@/constants'
 import { RootState } from '@/redux/store'
 import { GroupedImages, UploadImageResponse } from '@/redux/types'
 import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
 import { LoadingOverlay } from '@mantine/core'
-import React, { FunctionComponent } from 'react'
-import { CircularProgressbar } from 'react-circular-progressbar'
+import React, { FunctionComponent, useState } from 'react'
 import 'react-circular-progressbar/dist/styles.css'
 import { useSelector } from 'react-redux'
 
@@ -13,9 +13,16 @@ interface ImagesRenderProps {
   loading: boolean
   open: () => void
   userImages?: UploadImageResponse[] | undefined
-  uploadProgress?: number[] | undefined
+  uploadProgress?: { id: number; progress: number } | undefined
   setUrl?: React.Dispatch<React.SetStateAction<string | undefined>>
   setName?: React.Dispatch<React.SetStateAction<string | undefined>>
+}
+
+const initialContextMenu = {
+  show: false,
+  x: 0,
+  y: 0,
+  image: undefined as UploadImageResponse | undefined,
 }
 
 const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
@@ -26,8 +33,9 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
   setName,
   open,
 }) => {
-  const currentUser = useSelector((state: RootState) => state.auth.account)
   const groupedImages: GroupedImages[] = []
+  const [contextMenu, setContextMenu] = useState(initialContextMenu)
+  const currentUser = useSelector((state: RootState) => state.auth.account)
   userImages?.forEach(image => {
     const date = new Date(image.created_at).toLocaleDateString()
     const group = groupedImages.find(group => group.date === date)
@@ -38,12 +46,34 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
     }
   })
 
-  const deleteImage = async (name: string) => {
-    // await deleteObject(ref(imgStorage, `images/${user?.id}/${name}/`))
+  // custom right click on image menu
+  const handleContextMenu = (
+    e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+    image: UploadImageResponse,
+  ) => {
+    if (currentUser && !window.location.href.split('/').includes('all')) {
+      e.preventDefault()
+      const { clientX, clientY } = e
+      setContextMenu({ show: true, x: clientX, y: clientY, image })
+    }
   }
 
+  // close context menu
+  const closeContextMenu = () => {
+    setContextMenu(initialContextMenu)
+  }
   return (
     <Fancybox setUrl={setUrl} setName={setName} open={open}>
+      {contextMenu.show &&
+        currentUser &&
+        !window.location.href.split('/').includes('all') && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            image={contextMenu.image}
+            closeContextMenu={closeContextMenu}
+          />
+        )}
       {loading && (
         <LoadingOverlay
           visible={loading}
@@ -73,59 +103,49 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
         .map((group, index) => (
           <div key={index} className='flex flex-col'>
             <span className='text-gray-500'>{group.date}</span>
-            <div className='grid grid-cols-1 gap-4 p-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'>
+            <div className='grid grid-cols-1 gap-14 p-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'>
               {group.images.map((image, imageIndex) => {
-                if (
-                  uploadProgress &&
-                  uploadProgress[imageIndex] !== undefined
-                ) {
+                if (uploadProgress) {
+                  console.log(12312312, uploadProgress)
                   return (
-                    <div key={imageIndex} className='h-64 max-w-64 rounded-lg'>
-                      <CircularProgressbar
-                        value={uploadProgress[imageIndex]}
-                        text={`${uploadProgress[imageIndex]}%`}
-                      />
-                    </div>
-                  )
-                } else {
-                  return (
-                    <div key={imageIndex} className='group relative'>
-                      <a
-                        className='cursor-pointer'
-                        data-fancybox='gallery'
-                        id={image.name}
-                        href={image.url}
-                      >
-                        {image.name &&
-                        VideoType.includes(
-                          ('video/' + image.name.split('.').pop()) as string,
-                        ) ? (
-                          <img
-                            loading='lazy'
-                            id={image.name}
-                            className='h-full w-full scale-105 transform rounded-lg object-cover transition-transform group-hover:scale-100 sm:h-80'
-                            src={image.preview}
-                          />
-                        ) : (
-                          <img
-                            loading='lazy'
-                            id={image.name}
-                            className='h-full w-full scale-105 transform rounded-lg object-cover transition-transform group-hover:scale-100 sm:h-80'
-                            src={image.url}
-                          />
-                        )}
-                      </a>
-                      <button
-                        onClick={() => {
-                          deleteImage(image.name)
-                        }}
-                        className='absolute right-1 top-1 hidden h-10 w-10 items-center justify-center rounded-full bg-gray-50 bg-opacity-100 transition-opacity group-hover:flex'
-                      >
-                        <EllipsisHorizontalIcon className='h-5 w-5' />
-                      </button>
-                    </div>
+                    <LoadingOverlay
+                      key={imageIndex}
+                      visible={uploadProgress.progress !== 100}
+                      zIndex={1000}
+                      overlayProps={{ radius: 'sm', blur: 2 }}
+                    />
                   )
                 }
+                return (
+                  <div key={imageIndex} className='group relative'>
+                    <a
+                      className='cursor-pointer'
+                      data-fancybox='gallery'
+                      id={image.name}
+                      href={image.url}
+                      onContextMenu={e => handleContextMenu(e, image)}
+                    >
+                      {image.name &&
+                      VideoType.includes(
+                        ('video/' + image.name.split('.').pop()) as string,
+                      ) ? (
+                        <img
+                          loading='lazy'
+                          id={image.name}
+                          className='h-full w-full scale-105 transform rounded-lg object-cover transition-transform group-hover:scale-100 sm:h-80'
+                          src={image.preview}
+                        />
+                      ) : (
+                        <img
+                          loading='lazy'
+                          id={image.name}
+                          className='h-full w-full scale-105 transform rounded-lg object-cover transition-transform group-hover:scale-100 sm:h-80'
+                          src={image.url}
+                        />
+                      )}
+                    </a>
+                  </div>
+                )
               })}
             </div>
           </div>

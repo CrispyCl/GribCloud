@@ -12,7 +12,9 @@ export function useFiles(path: string[], title?: string) {
   const [uploadedImages, setUploadedImages] = useState<UploadImageResponse[]>(
     [],
   )
-  const [uploadProgress, setUploadProgress] = useState<number[]>([])
+  const [uploadProgress, setUploadProgress] = useState<
+    { id: number; progress: number } | undefined
+  >(undefined)
   const [loading, setLoading] = useState<boolean>(false)
   const [preview, setPreview] = useState<string>('.')
   const multiUpload = useRef<UploadImageResponse[]>([])
@@ -29,7 +31,6 @@ export function useFiles(path: string[], title?: string) {
       apiHrefRef.current = `/api/v1/files/`
     }
   }
-
   const uploadMultipleImages = async (files: File[]): Promise<void> => {
     const uploadTasks = files.map(async (file, index) => {
       getHref(path)
@@ -61,26 +62,9 @@ export function useFiles(path: string[], title?: string) {
               previewBlob,
             )
 
-            previewUploadTask.on(
-              'state_changed',
-              snapshot => {
-                // Отслеживание прогресса загрузки
-                const progress = Math.round(
-                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100,
-                )
-                const progressArray = [...uploadProgress]
-                progressArray[index] = progress
-                setUploadProgress(progressArray)
-              },
-              error => {
-                console.error('Failed to upload preview:', error)
-              },
-            )
-
             try {
               await previewUploadTask
               const previewUrl = await getDownloadURL(previewStorageRef)
-              console.log('Preview uploaded:', previewUrl)
               setPreview(previewUrl)
               // Здесь вы можете обработать URL превью-изображения, если необходимо
             } catch (error) {
@@ -92,7 +76,13 @@ export function useFiles(path: string[], title?: string) {
 
       await api
         .post('/api/v1/files/', {
-          files: [[`images/${currentUser?.id}/${file.name}`, preview]],
+          files: [
+            {
+              file: `images/${currentUser?.id}/${file.name}`,
+              preview: preview,
+              geodata: {},
+            },
+          ],
         })
         .then(res => {
           res.data.forEach(
@@ -106,10 +96,11 @@ export function useFiles(path: string[], title?: string) {
                 `/api/v1/albums/${path[4]}/files/${responseRef.current?.id}/`,
                 {
                   files: [
-                    [
-                      `albums/${currentUser?.id}/${title}/${file.name}`,
-                      preview,
-                    ],
+                    {
+                      file: `albums/${currentUser?.id}/${title}/${file.name}`,
+                      preview: preview,
+                      geodata: {},
+                    },
                   ],
                 },
               )
@@ -118,19 +109,15 @@ export function useFiles(path: string[], title?: string) {
               })
           }
         })
-
-      console.log('response.current', responseRef.current)
-      console.log('AlbumResponse.current', AlbumResponse.current)
-
       const uploadTask = uploadBytesResumable(storageRef, file)
       uploadTask.on('state_changed', snapshot => {
-        // Отслеживание прогресса загрузки
         const progress = Math.round(
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100,
         )
-        const progressArray = [...uploadProgress]
-        progressArray[index] = progress
-        setUploadProgress(progressArray)
+        setUploadProgress({
+          id: responseRef.current?.id as number,
+          progress: progress,
+        })
       })
 
       const snapshot = await uploadTask
@@ -204,9 +191,7 @@ export function useFiles(path: string[], title?: string) {
         })
         processFiles(newFiles)
       }
-
-      setUploadProgress([])
-      console.log('All files uploaded')
+      setUploadProgress(undefined)
     } catch (error) {
       console.error(error)
     }
@@ -217,14 +202,18 @@ export function useFiles(path: string[], title?: string) {
       try {
         setLoading(true)
         const response = await api.get(
-          apiHrefRef.current === '/api/v1/files/'
-            ? apiHrefRef.current
-            : `/api/v1/albums/${path[4]}/`,
+          currentUser
+            ? apiHrefRef.current === '/api/v1/files/'
+              ? apiHrefRef.current
+              : `/api/v1/albums/${path[4]}/`
+            : '/api/v1/albums/',
         )
         const existingImagesPromises = (
-          apiHrefRef.current === '/api/v1/files/'
-            ? response.data
-            : response.data.files
+          currentUser
+            ? apiHrefRef.current === '/api/v1/files/'
+              ? response.data
+              : response.data.files
+            : response.data[0].files
         ).map(async (item: UploadImageResponse) => {
           const url = await getDownloadURL(ref(imgStorage, item.file))
           return {
@@ -239,7 +228,6 @@ export function useFiles(path: string[], title?: string) {
         })
         existPromise.current = existingImagesPromises
         const existingImages = await Promise.all(existPromise.current)
-        console.log('existingImages', existingImages)
 
         setLoading(false)
         setUploadedImages([])

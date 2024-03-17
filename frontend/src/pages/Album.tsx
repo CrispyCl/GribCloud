@@ -20,7 +20,7 @@ const Album: FunctionComponent<AlbumProps> = ({ currentAlbum }) => {
   const [opened, { open, close }] = useDisclosure(false)
   const [key, setKey] = useState(0)
   return (
-    <Body key={key} setFiles={setFiles} title={currentAlbum.title}>
+    <Body key={key} setFiles={setFiles} album={currentAlbum}>
       <div className='m-5'>
         <ImagesRender
           loading={loading}

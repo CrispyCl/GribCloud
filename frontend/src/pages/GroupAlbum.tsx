@@ -22,7 +22,7 @@ const GroupAlbum: FunctionComponent<GroupAlbumProps> = ({
   const [opened, { open, close }] = useDisclosure(false)
   const [key, setKey] = useState(0)
   return (
-    <Body key={key} setFiles={setFiles} title={currentPublicAlbum.title}>
+    <Body key={key} setFiles={setFiles} album={currentPublicAlbum}>
       <div className='m-5'>
         <ImagesRender
           loading={loading}

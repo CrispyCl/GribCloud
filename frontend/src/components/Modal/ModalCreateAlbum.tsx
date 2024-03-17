@@ -1,3 +1,4 @@
+import useAlbums from '@/hooks/useAlbums'
 import { RootState } from '@/redux/store'
 import { AccountResponse } from '@/redux/types'
 import {
@@ -14,25 +15,18 @@ import { useMediaQuery } from '@mantine/hooks'
 import { FunctionComponent } from 'react'
 import { useSelector } from 'react-redux'
 
-interface ModalAlbumsProps {
-  loading: boolean
+interface ModalCreateAlbumProps {
   opened: boolean
   close: () => void
-  createAlbum: (
-    albumName: string,
-    currentUser: AccountResponse,
-    _public?: boolean,
-  ) => void
 }
 
-const ModalAlbums: FunctionComponent<ModalAlbumsProps> = ({
-  loading,
+const ModalCreateAlbum: FunctionComponent<ModalCreateAlbumProps> = ({
   opened,
   close,
-  createAlbum,
 }) => {
   const currentUser = useSelector((state: RootState) => state.auth.account)
   const isMobile = useMediaQuery('(max-width: 768px)')
+  const { loading, createAlbum } = useAlbums()
 
   const form = useForm({
     initialValues: {
@@ -106,4 +100,4 @@ const ModalAlbums: FunctionComponent<ModalAlbumsProps> = ({
   )
 }
 
-export default ModalAlbums
+export default ModalCreateAlbum

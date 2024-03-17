@@ -12,10 +12,14 @@ import {
   persistStore,
 } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
+import { albumsReducer } from './slices/albums'
 import { reducer } from './slices/auth'
+import { publicAlbumsSliceReducer } from './slices/publicAlbums'
 
 const rootReducer = combineReducers({
   auth: reducer,
+  albums: albumsReducer,
+  publicAlbums: publicAlbumsSliceReducer,
 })
 
 const persistedReducer = persistReducer(

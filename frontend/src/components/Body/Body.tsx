@@ -1,4 +1,5 @@
 import { RootState } from '@/redux/store'
+import { AlbumResponse } from '@/redux/types'
 import { DropZone } from '@components/Dropzone/Dropzone'
 import BodyHeader from '@components/Header/BodyHeader'
 import Header from '@components/Header/Header'
@@ -9,11 +10,11 @@ import SideNavigationMobile from '../SideNavigation/SideNavigationMobile'
 
 interface BodyProps {
   children: React.ReactNode
-  title?: string
+  album?: AlbumResponse
   setFiles?: React.Dispatch<React.SetStateAction<File[]>>
 }
 
-const Body: FunctionComponent<BodyProps> = ({ children, setFiles, title }) => {
+const Body: FunctionComponent<BodyProps> = ({ children, setFiles, album }) => {
   const [open, setOpen] = useState<boolean>(false)
   const currentUser = useSelector((state: RootState) => state.auth.account)
   const avatar = useSelector((state: RootState) => state.auth.avatar)
@@ -30,7 +31,7 @@ const Body: FunctionComponent<BodyProps> = ({ children, setFiles, title }) => {
           avatar={avatar}
         />
         <div className='w-full overflow-y-auto'>
-          <BodyHeader setFiles={setFiles} title={title} />
+          <BodyHeader setFiles={setFiles} album={album} />
           {children}
         </div>
       </div>

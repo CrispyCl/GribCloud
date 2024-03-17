@@ -59,7 +59,7 @@ const SingIn: FunctionComponent<SingInProps> = ({ loading, setLoading }) => {
           api.get('/api/v1/user/my/').then(res => {
             dispatch(actions.setAccount(res.data))
             setLoading(false)
-            navigate('/')
+            navigate('/all')
           })
         })
         .catch(err => {

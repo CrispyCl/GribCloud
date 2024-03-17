@@ -63,7 +63,7 @@ const SingUp: FunctionComponent<SingUpProps> = ({ loading, setLoading }) => {
               }),
             )
             setLoading(false)
-            navigate('/')
+            navigate('/all')
           })
         })
         .catch(err => {

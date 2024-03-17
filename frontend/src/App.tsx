@@ -6,9 +6,7 @@ import GroupAlbums from '@pages/GroupAlbums'
 import Home from '@pages/Home'
 import Settings from '@pages/Settings'
 import Trash from '@pages/Trash'
-import { RootState } from '@store/store'
 import { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
 import { Route, Routes } from 'react-router-dom'
 import useAlbums from './hooks/useAlbums'
 import Album from './pages/Album'
@@ -20,12 +18,10 @@ import UserProfile from './pages/UserProfile'
 import { UserResponse } from './redux/types'
 import api from './utils/axios'
 function App() {
-  const auth = useSelector((state: RootState) => state.auth)
   const [users, setUsers] = useState<UserResponse[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [userLoading, setUserLoading] = useState<boolean>(false)
   const { albums, publicAlbums } = useAlbums()
-
   const fetchUsers = async () => {
     setUserLoading(true)
     await api.get('/api/v1/user/').then(res => {
@@ -65,24 +61,27 @@ function App() {
           />
         )
       })}
-      {albums.map((album, index) => {
-        return (
-          <Route
-            key={index}
-            path={`/album/${album.id}`}
-            element={<Album currentAlbum={album} />}
-          />
-        )
-      })}
-      {publicAlbums.map((publicAlbum, index) => {
-        return (
-          <Route
-            key={index}
-            path={`/publicalbum/${publicAlbum.id}`}
-            element={<GroupAlbum currentPublicAlbum={publicAlbum} />}
-          />
-        )
-      })}
+      {Array.isArray(albums) &&
+        albums.map((album, index) => {
+          return (
+            <Route
+              key={index}
+              path={`/album/${album.id}`}
+              element={<Album currentAlbum={album} />}
+            />
+          )
+        })}
+      {Array.isArray(publicAlbums) &&
+        publicAlbums.map((publicAlbum, index) => {
+          return (
+            <Route
+              key={index}
+              path={`/album/${publicAlbum.id}`}
+              element={<GroupAlbum currentPublicAlbum={publicAlbum} />}
+            />
+          )
+        })}
+
       <Route path='*' element={<NotFound />} />
     </Routes>
   )

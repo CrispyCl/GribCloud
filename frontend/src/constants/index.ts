@@ -18,7 +18,7 @@ export const TopLinks = [
 
 export const BottomLinks = [
   {
-    name: 'Альбомы',
+    name: 'Мои альбомы',
     route: '/albums',
     icon: '/svg/Photo.svg',
   },
