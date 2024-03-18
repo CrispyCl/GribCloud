@@ -9,7 +9,7 @@ export const UserButton = () => {
   const user = useSelector((state: RootState) => state.auth.account)
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const { avatar } = useAvatar()
+  const { avatar } = useAvatar(undefined)
 
   const handleLogout = () => {
     dispatch(actions.setLogout())
@@ -37,13 +37,12 @@ export const UserButton = () => {
         </Menu.Target>
 
         <Menu.Dropdown>
-          <Menu.Label>Application</Menu.Label>
           <Menu.Item>
             <Link to={`/user/${user?.id}/`}>Профиль</Link>
           </Menu.Item>
           <Menu.Divider />
 
-          <Menu.Label>Danger zone</Menu.Label>
+          <Menu.Label>Осторожно</Menu.Label>
           <Menu.Item color='red' onClick={handleLogout}>
             Выйти
           </Menu.Item>

@@ -3,6 +3,7 @@ import {
   Anchor,
   Button,
   Group,
+  LoadingOverlay,
   PasswordInput,
   Stack,
   TextInput,
@@ -11,13 +12,17 @@ import { useForm } from '@mantine/form'
 import { actions } from '@store/slices/auth'
 import { useAppDispatch } from '@store/store'
 import { iFormSingUp } from '@store/types'
-import { useState } from 'react'
+import React, { FunctionComponent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-const SingUp = () => {
+interface SingUpProps {
+  loading: boolean
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+const SingUp: FunctionComponent<SingUpProps> = ({ loading, setLoading }) => {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
-  const [loading, setLoading] = useState<boolean>(false)
   const [message, setMessage] = useState<string>('')
 
   const form = useForm<iFormSingUp>({
@@ -31,9 +36,7 @@ const SingUp = () => {
     validate: {
       email: (val: string) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
       password: (val: string) =>
-        val.length <= 6
-          ? 'Password should include at least 6 characters'
-          : null,
+        val.length < 6 ? 'Password should include at least 6 characters' : null,
     },
   })
 
@@ -43,6 +46,7 @@ const SingUp = () => {
     password: string,
   ) => {
     try {
+      setLoading(true)
       api
         .post('/api/v1/user/', { username, email, password })
         .then(res => {
@@ -59,8 +63,12 @@ const SingUp = () => {
               }),
             )
             setLoading(false)
-            navigate('/')
+            navigate('/all')
           })
+        })
+        .catch(err => {
+          setMessage((err as Error).message)
+          setLoading(false)
         })
     } catch (err) {
       setMessage((err as Error).message)
@@ -76,6 +84,11 @@ const SingUp = () => {
       </div>
 
       <div className=' sm:w-full sm:max-w-md sm:space-y-8'>
+        <LoadingOverlay
+          visible={loading}
+          zIndex={1000}
+          overlayProps={{ radius: 'sm', blur: 2 }}
+        />
         <div className='overflow-hidden rounded-lg bg-white shadow-lg'>
           <div className='my-8 max-sm:mx-5 sm:mx-auto sm:w-full sm:max-w-sm'>
             <div className='space-y-6'>
@@ -154,6 +167,7 @@ const SingUp = () => {
                 <Group justify='space-between' mt='xl'>
                   <Button
                     type='submit'
+                    disabled={loading}
                     className='flex w-full items-center justify-center rounded-md bg-blue-500 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500'
                     radius='xl'
                   >

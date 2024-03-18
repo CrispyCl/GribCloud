@@ -31,7 +31,7 @@ api.interceptors.response.use(
         error.response.data.detail === 'Token is invalid or expired'
       ) {
         localStorage.clear()
-        window.location.href = '/login'
+        window.location.href = '/singin'
       } else {
         originalRequest._retry = true
 
@@ -45,12 +45,9 @@ api.interceptors.response.use(
           originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`
 
           return api(originalRequest)
-        } catch (refreshError) {
-          return Promise.reject(refreshError)
-        }
+        } catch (refreshError) {}
       }
     }
-    return Promise.reject(error)
   },
 )
 

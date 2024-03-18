@@ -5,6 +5,7 @@ export interface AccountResponse {
   created: Date
   access: string
   refresh: string
+  avatar: string
 }
 
 export interface iFormSingUp {
@@ -28,4 +29,42 @@ export interface UserResponse {
   username: string
   email: string
   date_joined: string
+}
+
+export interface UploadImage {
+  name: string
+  url: string
+}
+
+export interface UploadImageResponse {
+  id: number
+  author: number
+  name: string
+  file: string
+  url: string
+  created_at: Date
+  preview: string
+}
+
+export interface GroupedImages {
+  date: string
+  images: UploadImageResponse[]
+}
+
+export interface AlbumsResponse {
+  id: number
+  name: string
+  author: number
+  created_at: Date
+  images: UploadImageResponse[]
+}
+
+export interface AlbumResponse {
+  author: AccountResponse
+  created_at: Date
+  files: UploadImageResponse[]
+  id: number
+  is_public: boolean
+  memberships: AccountResponse[]
+  title: string
 }

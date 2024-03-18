@@ -8,6 +8,7 @@ import {
   Button,
   FileButton,
   Group,
+  LoadingOverlay,
   Modal,
   PasswordInput,
   SimpleGrid,
@@ -15,18 +16,21 @@ import {
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useDisclosure, useMediaQuery } from '@mantine/hooks'
+import { useState } from 'react'
 import { useSelector } from 'react-redux'
 
 export default function ModalUserEdit() {
-  const user = useSelector((state: RootState) => state.auth.account)
+  const currentUser = useSelector((state: RootState) => state.auth.account)
   const dispatch = useAppDispatch()
   const [opened, { open, close }] = useDisclosure(false)
-  const isMobile = useMediaQuery('(max-width: 50em)')
-  const { avatar, setFile } = useAvatar()
+  const isMobile = useMediaQuery('(max-width: 768px)')
+  const { loading, avatar, setFile } = useAvatar(undefined)
+  const [updating, setUpdating] = useState<boolean>(false)
+  const isUpdating = loading || updating
 
   const initialValues = {
-    username: user?.username || '',
-    email: user?.email || '',
+    username: currentUser?.username || '',
+    email: currentUser?.email || '',
     newPassword: '',
     newPasswordConfirm: '',
     oldPassword: '',
@@ -44,34 +48,37 @@ export default function ModalUserEdit() {
 
   const closeModal = () => {
     close()
-    setTimeout(() => {
-      form.reset()
-    }, 1000)
-    form.reset()
+    form.setInitialValues(initialValues)
+    form.setFieldValue('oldPassword', '')
   }
 
-  const handleUpdate = (
+  const handleUpdate = async (
     username: string,
     email: string,
     password: string,
     new_password: string,
     new_password_confirm: string,
   ) => {
+    setUpdating(true)
     if (new_password === '' && new_password_confirm === '') {
-      api
-        .put(`/api/v1/user/${user?.id}/`, { username, email, password })
+      await api
+        .put(`/api/v1/user/${currentUser?.id}/`, { username, email, password })
         .then(res => {
           dispatch(actions.setAccount(res.data))
+          setUpdating(false)
           closeModal()
         })
-        .catch(err => console.log(err))
+        .catch(err => {
+          setUpdating(false)
+          console.log(err)
+        })
     } else if (
       new_password !== '' &&
       new_password === new_password_confirm &&
-      email === user?.email &&
-      username === user?.username
+      email === currentUser?.email &&
+      username === currentUser?.username
     ) {
-      api
+      await api
         .post('/api/v1/user/change_password/', {
           password,
           new_password,
@@ -84,13 +91,17 @@ export default function ModalUserEdit() {
               refreshToken: localStorage.getItem('refreshToken'),
             }),
           )
+          setUpdating(false)
           closeModal()
         })
-        .catch(err => console.log(err))
+        .catch(err => {
+          setUpdating(false)
+          console.log(err)
+        })
     } else {
       const old_password = password
-      api
-        .put(`/api/v1/user/${user?.id}/`, { username, email, password })
+      await api
+        .put(`/api/v1/user/${currentUser?.id}/`, { username, email, password })
         .then(res => {
           dispatch(actions.setAccount(res.data))
           dispatch(
@@ -112,9 +123,13 @@ export default function ModalUserEdit() {
               refreshToken: localStorage.getItem('refreshToken'),
             }),
           )
+          setUpdating(false)
           closeModal()
         })
-        .catch(err => console.log(err))
+        .catch(err => {
+          setUpdating(false)
+          console.log(err)
+        })
     }
   }
 
@@ -127,8 +142,19 @@ export default function ModalUserEdit() {
         centered
         fullScreen={isMobile}
         size={'xl'}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
       >
-        <form className='flex flex-row items-start justify-between gap-5'>
+        {isUpdating && (
+          <LoadingOverlay
+            visible={updating || loading}
+            zIndex={1000}
+            overlayProps={{ radius: 'sm', blur: 2 }}
+          />
+        )}
+        <div className='flex flex-col items-center justify-center gap-5 md:flex-row md:items-start md:justify-between'>
           <FileButton onChange={setFile}>
             {props => (
               <Avatar
@@ -148,7 +174,7 @@ export default function ModalUserEdit() {
                 }
                 error={form.errors.username && 'Такое имя уже занято'}
                 label='Ваш логин'
-                placeholder={user?.username}
+                placeholder={currentUser?.username}
               />
               <TextInput
                 value={form.values.email}
@@ -157,7 +183,7 @@ export default function ModalUserEdit() {
                 }
                 error={form.errors.email && 'Такая почта уже занята'}
                 label='Ваша почта'
-                placeholder={user?.email}
+                placeholder={currentUser?.email}
               />
             </SimpleGrid>
 
@@ -224,7 +250,7 @@ export default function ModalUserEdit() {
               </Button>
             </Group>
           </div>
-        </form>
+        </div>
       </Modal>
       <Button
         onClick={open}

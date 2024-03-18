@@ -1,28 +1,39 @@
+import { RootState } from '@/redux/store'
 import { DropZone } from '@components/Dropzone/Dropzone'
-import BodyHeader from '@components/Header/BodyHeader'
 import Header from '@components/Header/Header'
 import SideNavigation from '@components/SideNavigation/SideNavigation'
-import React, { FunctionComponent } from 'react'
+import { LoadingOverlay } from '@mantine/core'
+import React, { FunctionComponent, useState } from 'react'
+import { useSelector } from 'react-redux'
+import SideNavigationMobile from '../SideNavigation/SideNavigationMobile'
 
 interface BodyProps {
   children: React.ReactNode
-  uploadProgress?: number[]
-  setFiles?: React.Dispatch<React.SetStateAction<File[]>>
+  loading: boolean
 }
 
-const Body: FunctionComponent<BodyProps> = ({
-  children,
-  uploadProgress,
-  setFiles,
-}) => {
+const Body: FunctionComponent<BodyProps> = ({ children, loading }) => {
+  const [open, setOpen] = useState<boolean>(false)
+  const currentUser = useSelector((state: RootState) => state.auth.account)
+  const avatar = useSelector((state: RootState) => state.auth.avatar)
   return (
     <>
       <DropZone />
-      <Header setFiles={setFiles} />
+      <Header setOpen={setOpen} />
       <div className='flex h-[calc(100vh-5rem)] flex-row'>
-        <SideNavigation />
-        <div className='w-full overflow-y-auto'>
-          <BodyHeader />
+        {currentUser && <SideNavigation />}
+        <SideNavigationMobile
+          open={open}
+          setOpen={setOpen}
+          currentUser={currentUser}
+          avatar={avatar}
+        />
+        <div className='relative w-full overflow-y-auto'>
+          <LoadingOverlay
+            visible={loading}
+            zIndex={1000}
+            overlayProps={{ radius: 'sm', blur: 2 }}
+          />
           {children}
         </div>
       </div>

@@ -5,12 +5,14 @@ type AuthState = {
   token: string | null
   refreshToken: string | null
   account: AccountResponse | null
+  avatar: string | undefined
 }
 
 const initialState: AuthState = {
   token: localStorage.getItem('token') || null,
   refreshToken: localStorage.getItem('refreshToken') || null,
   account: null,
+  avatar: undefined,
 }
 
 const authSlice = createSlice({
@@ -30,11 +32,15 @@ const authSlice = createSlice({
     setAccount: (state, action: PayloadAction<AccountResponse>) => {
       state.account = action.payload
     },
+    setAvatarUrl: (state, action: PayloadAction<{ avatar: string }>) => {
+      state.avatar = action.payload.avatar
+    },
     setLogout: state => {
       localStorage.clear()
       state.account = null
       state.refreshToken = null
       state.token = null
+      state.avatar = undefined
     },
   },
 })

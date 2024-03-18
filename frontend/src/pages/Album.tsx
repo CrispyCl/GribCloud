@@ -1,25 +1,32 @@
+import Body from '@/components/Body/Body'
 import ImagesRender from '@/components/ImagesRednder/ImagesRender'
 import ModalImageEdit from '@/components/Modal/ModalImageEdit'
+import useAlbums from '@/hooks/useAlbums'
 import { useFiles } from '@/hooks/useFiles'
-import { UploadImageResponse } from '@/redux/types'
-import Body from '@components/Body/Body'
+import { AlbumResponse, UploadImageResponse } from '@/redux/types'
 import { useDisclosure } from '@mantine/hooks'
 import { FunctionComponent, useEffect, useState } from 'react'
 
-interface HomeProps {}
-const PATH = window.location.href.split('/')
-const Home: FunctionComponent<HomeProps> = () => {
-  const { loading, uploadedImages, uploadProgress } = useFiles(
+interface AlbumProps {
+  currentAlbum: AlbumResponse
+}
+
+const Album: FunctionComponent<AlbumProps> = ({ currentAlbum }) => {
+  const { loading, uploadProgress, uploadedImages, setFiles } = useFiles(
     window.location.href.split('/'),
+    currentAlbum.title,
   )
   const [url, setUrl] = useState<string | undefined>(undefined)
   const [name, setName] = useState<string | undefined>(undefined)
   const [opened, { open, close }] = useDisclosure(false)
   const [key, setKey] = useState(0)
-  const { removeFile } = useFiles(PATH)
+  const { removeImageFromAlbum } = useAlbums()
   const [userImages, setUserImages] = useState<UploadImageResponse[]>([])
-  const handleRemoveImage = async (image: number) => {
-    await removeFile(image)
+  const handleRemoveImageFromAlbum = async (
+    album: AlbumResponse,
+    image: number,
+  ) => {
+    await removeImageFromAlbum(album, image)
     setUserImages(prevImages => prevImages.filter(img => img.id !== image))
   }
   useEffect(() => {
@@ -28,11 +35,13 @@ const Home: FunctionComponent<HomeProps> = () => {
     }
   }, [uploadedImages])
   return (
-    <Body loading={loading} key={key}>
+    <Body key={key} loading={loading}>
       <ImagesRender
-        handleRemoveImage={handleRemoveImage}
+        handleRemoveImageFromAlbum={handleRemoveImageFromAlbum}
+        album={currentAlbum}
         open={open}
         setName={setName}
+        setFiles={setFiles}
         setUrl={setUrl}
         userImages={userImages}
         uploadProgress={uploadProgress}
@@ -50,4 +59,4 @@ const Home: FunctionComponent<HomeProps> = () => {
   )
 }
 
-export default Home
+export default Album
