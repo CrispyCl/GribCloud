@@ -4,7 +4,6 @@ import Archive from '@pages/Archive'
 import Favorites from '@pages/Favorites'
 import GroupAlbums from '@pages/GroupAlbums'
 import Home from '@pages/Home'
-import Settings from '@pages/Settings'
 import Trash from '@pages/Trash'
 import { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
@@ -43,7 +42,6 @@ function App() {
       <Route path='/albums' element={<Albums />} />
       <Route path='/archive' element={<Archive />} />
       <Route path='/trash' element={<Trash />} />
-      <Route path='/settings' element={<Settings />} />
       <Route
         path='/singin'
         element={<SingIn loading={loading} setLoading={setLoading} />}

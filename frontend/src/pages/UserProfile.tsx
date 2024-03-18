@@ -1,4 +1,5 @@
 import Body from '@/components/Body/Body'
+import BodyHeader from '@/components/Header/BodyHeader'
 import ModalUserEdit from '@/components/Modal/ModalUserEdit'
 import { useAvatar } from '@/hooks/useAvatar'
 import { RootState } from '@/redux/store'
@@ -21,6 +22,7 @@ const UserProfile: FunctionComponent<UserProfileProps> = ({
 
   return (
     <Body loading={userLoading}>
+      <BodyHeader />
       <div className='my-5 flex flex-col items-center justify-center'>
         <Avatar
           src={currentUser ? avatar : userAvatar}

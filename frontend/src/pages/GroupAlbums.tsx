@@ -1,3 +1,4 @@
+import BodyHeader from '@/components/Header/BodyHeader'
 import useAlbums from '@/hooks/useAlbums'
 import Body from '@components/Body/Body'
 import { EllipsisHorizontalIcon, FolderIcon } from '@heroicons/react/24/outline'
@@ -10,6 +11,7 @@ const GroupAlbums: FunctionComponent<GroupAlbumsProps> = () => {
   const { publicAlbums, loading } = useAlbums()
   return (
     <Body loading={loading}>
+      <BodyHeader />
       {!publicAlbums.length && (
         <div className='flex flex-col items-center justify-center'>
           <EllipsisHorizontalIcon className='h-16 w-16 text-gray-400' />

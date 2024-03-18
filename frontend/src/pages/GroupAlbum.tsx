@@ -1,10 +1,11 @@
 import Body from '@/components/Body/Body'
 import ImagesRender from '@/components/ImagesRednder/ImagesRender'
 import ModalImageEdit from '@/components/Modal/ModalImageEdit'
+import useAlbums from '@/hooks/useAlbums'
 import { useFiles } from '@/hooks/useFiles'
-import { AlbumResponse } from '@/redux/types'
+import { AlbumResponse, UploadImageResponse } from '@/redux/types'
 import { useDisclosure } from '@mantine/hooks'
-import { FunctionComponent, useState } from 'react'
+import { FunctionComponent, useEffect, useState } from 'react'
 
 interface GroupAlbumProps {
   currentPublicAlbum: AlbumResponse
@@ -21,23 +22,32 @@ const GroupAlbum: FunctionComponent<GroupAlbumProps> = ({
   const [name, setName] = useState<string | undefined>(undefined)
   const [opened, { open, close }] = useDisclosure(false)
   const [key, setKey] = useState(0)
+  const { removeImageFromAlbum } = useAlbums()
+  const [userImages, setUserImages] = useState<UploadImageResponse[]>([])
+  const handleRemoveImageFromAlbum = async (
+    album: AlbumResponse,
+    image: number,
+  ) => {
+    await removeImageFromAlbum(album, image)
+    setUserImages(prevImages => prevImages.filter(img => img.id !== image))
+  }
+  useEffect(() => {
+    if (uploadedImages) {
+      setUserImages(uploadedImages)
+    }
+  }, [uploadedImages])
   return (
-    <Body
-      key={key}
-      setFiles={setFiles}
-      album={currentPublicAlbum}
-      loading={loading}
-    >
-      <div className='m-5'>
-        <ImagesRender
-          album={currentPublicAlbum}
-          open={open}
-          setName={setName}
-          setUrl={setUrl}
-          userImages={uploadedImages}
-          uploadProgress={uploadProgress}
-        />
-      </div>
+    <Body key={key} loading={loading}>
+      <ImagesRender
+        handleRemoveImageFromAlbum={handleRemoveImageFromAlbum}
+        album={currentPublicAlbum}
+        open={open}
+        setName={setName}
+        setUrl={setUrl}
+        setFiles={setFiles}
+        userImages={userImages}
+        uploadProgress={uploadProgress}
+      />
       {url && name && (
         <ModalImageEdit
           setKey={setKey}

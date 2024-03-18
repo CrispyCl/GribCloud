@@ -1,7 +1,5 @@
 import { RootState } from '@/redux/store'
-import { AlbumResponse } from '@/redux/types'
 import { DropZone } from '@components/Dropzone/Dropzone'
-import BodyHeader from '@components/Header/BodyHeader'
 import Header from '@components/Header/Header'
 import SideNavigation from '@components/SideNavigation/SideNavigation'
 import { LoadingOverlay } from '@mantine/core'
@@ -11,17 +9,10 @@ import SideNavigationMobile from '../SideNavigation/SideNavigationMobile'
 
 interface BodyProps {
   children: React.ReactNode
-  album?: AlbumResponse
-  setFiles?: React.Dispatch<React.SetStateAction<File[]>>
   loading: boolean
 }
 
-const Body: FunctionComponent<BodyProps> = ({
-  children,
-  setFiles,
-  album,
-  loading,
-}) => {
+const Body: FunctionComponent<BodyProps> = ({ children, loading }) => {
   const [open, setOpen] = useState<boolean>(false)
   const currentUser = useSelector((state: RootState) => state.auth.account)
   const avatar = useSelector((state: RootState) => state.auth.avatar)
@@ -37,8 +28,7 @@ const Body: FunctionComponent<BodyProps> = ({
           currentUser={currentUser}
           avatar={avatar}
         />
-        <div className='w-full overflow-y-auto'>
-          <BodyHeader setFiles={setFiles} album={album} />
+        <div className='relative w-full overflow-y-auto'>
           <LoadingOverlay
             visible={loading}
             zIndex={1000}

@@ -9,7 +9,7 @@ import { FunctionComponent, useEffect, useState } from 'react'
 interface HomeProps {}
 const PATH = window.location.href.split('/')
 const Home: FunctionComponent<HomeProps> = () => {
-  const { loading, uploadedImages, uploadProgress, setFiles } = useFiles(
+  const { loading, uploadedImages, uploadProgress } = useFiles(
     window.location.href.split('/'),
   )
   const [url, setUrl] = useState<string | undefined>(undefined)
@@ -28,17 +28,15 @@ const Home: FunctionComponent<HomeProps> = () => {
     }
   }, [uploadedImages])
   return (
-    <Body loading={loading} key={key} setFiles={setFiles}>
-      <div className='m-5'>
-        <ImagesRender
-          handleRemoveImage={handleRemoveImage}
-          open={open}
-          setName={setName}
-          setUrl={setUrl}
-          userImages={userImages}
-          uploadProgress={uploadProgress}
-        />
-      </div>
+    <Body loading={loading} key={key}>
+      <ImagesRender
+        handleRemoveImage={handleRemoveImage}
+        open={open}
+        setName={setName}
+        setUrl={setUrl}
+        userImages={userImages}
+        uploadProgress={uploadProgress}
+      />
       {url && name && (
         <ModalImageEdit
           setKey={setKey}

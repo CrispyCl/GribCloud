@@ -76,7 +76,11 @@ const Fancybox: FunctionComponent<Fancybox> = ({
     }
   })
 
-  return <div ref={containerRef}>{children}</div>
+  return (
+    <div ref={containerRef} className='m-5'>
+      {children}
+    </div>
+  )
 }
 
 export default Fancybox

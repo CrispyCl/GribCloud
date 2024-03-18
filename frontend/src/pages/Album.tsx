@@ -35,18 +35,17 @@ const Album: FunctionComponent<AlbumProps> = ({ currentAlbum }) => {
     }
   }, [uploadedImages])
   return (
-    <Body key={key} setFiles={setFiles} album={currentAlbum} loading={loading}>
-      <div className='m-5'>
-        <ImagesRender
-          handleRemoveImageFromAlbum={handleRemoveImageFromAlbum}
-          album={currentAlbum}
-          open={open}
-          setName={setName}
-          setUrl={setUrl}
-          userImages={userImages}
-          uploadProgress={uploadProgress}
-        />
-      </div>
+    <Body key={key} loading={loading}>
+      <ImagesRender
+        handleRemoveImageFromAlbum={handleRemoveImageFromAlbum}
+        album={currentAlbum}
+        open={open}
+        setName={setName}
+        setFiles={setFiles}
+        setUrl={setUrl}
+        userImages={userImages}
+        uploadProgress={uploadProgress}
+      />
       {url && name && (
         <ModalImageEdit
           setKey={setKey}

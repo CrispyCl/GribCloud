@@ -2,7 +2,13 @@ import { uploadAccept } from '@/constants'
 import useAlbums from '@/hooks/useAlbums'
 import { RootState } from '@/redux/store'
 import { AlbumResponse } from '@/redux/types'
-import { ArrowLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline'
+import {
+  ArrowLeftIcon,
+  CheckIcon,
+  CloudArrowUpIcon,
+  Cog6ToothIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
 import { Button, FileButton } from '@mantine/core'
 import { useDisclosure, useMediaQuery } from '@mantine/hooks'
 import React, { FunctionComponent } from 'react'
@@ -12,13 +18,17 @@ import ModalCreateAlbum from '../Modal/ModalCreateAlbum'
 import ModalSettingAlbum from '../Modal/ModalSettingAlbum'
 
 interface BodyHeaderProps {
+  check?: { id: number; checked: boolean }[]
   album?: AlbumResponse
   setFiles?: React.Dispatch<React.SetStateAction<File[]>>
+  selectAll?: () => void
 }
 
 const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
+  check,
   album,
   setFiles,
+  selectAll,
 }) => {
   const { loading } = useAlbums()
   const [openedCreate, { open: openCreate, close: closeCreate }] =
@@ -64,40 +74,52 @@ const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
             >
               {props => (
                 <Button
-                  variant='default'
+                  variant='outline'
                   {...props}
-                  className='border-none hover:bg-gray-100'
-                  leftSection={
-                    <img
-                      src='/svg/CloudArrowUp.svg'
-                      alt='upload'
-                      className='h-5 w-5'
-                    />
-                  }
+                  leftSection={<CloudArrowUpIcon className='h-5 w-5' />}
                 >
                   Загрузить
                 </Button>
               )}
             </FileButton>
           )}
+          {(window.location.href.split('/').includes('album') ||
+            window.location.href.split('/').includes('all')) &&
+            check?.length !== 0 && (
+              <Button
+                variant='outline'
+                onClick={selectAll}
+                leftSection={
+                  check?.every(item => item.checked) ? (
+                    <XMarkIcon className='h-5 w-5' />
+                  ) : (
+                    <CheckIcon className='h-5 w-5' />
+                  )
+                }
+              >
+                {check?.every(item => item.checked)
+                  ? 'Убрать выделение'
+                  : 'Выбрать все файлы'}
+              </Button>
+            )}
           {window.location.href.split('/').includes('album') &&
             currentUser.id === album?.author.id && (
               <Button
-                variant='default'
+                variant='outline'
                 onClick={openSettings}
-                className='border-none hover:bg-gray-100'
                 leftSection={<Cog6ToothIcon className='h-5 w-5' />}
               >
                 Настройки
               </Button>
             )}
-
           {(window.location.href.split('/').includes('groupalbums') ||
-            window.location.href.split('/').includes('albums')) && (
-            <Button onClick={openCreate} variant='default'>
-              Создать альбом
-            </Button>
-          )}
+            window.location.href.split('/').includes('albums')) &&
+            currentUser && (
+              <Button onClick={openCreate} variant='outline'>
+                Создать альбом
+              </Button>
+            )}
+
           <ModalCreateAlbum close={closeCreate} opened={openedCreate} />
           <ModalSettingAlbum
             setKey={setKey}
