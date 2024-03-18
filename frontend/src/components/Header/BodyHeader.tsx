@@ -54,32 +54,32 @@ const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
       </div>
       {currentUser && (
         <div className='flex gap-4 '>
-          {(window.location.href.split('/').includes('album') ||
-            window.location.href.split('/').includes('all')) &&
-            currentUser.id === album?.author.id && (
-              <FileButton
-                onChange={setFiles ? setFiles : () => {}}
-                accept={`${uploadAccept.map(item => item).join(',')}`}
-                multiple
-              >
-                {props => (
-                  <Button
-                    variant='default'
-                    {...props}
-                    className='border-none hover:bg-gray-100'
-                    leftSection={
-                      <img
-                        src='/svg/CloudArrowUp.svg'
-                        alt='upload'
-                        className='h-5 w-5'
-                      />
-                    }
-                  >
-                    Загрузить
-                  </Button>
-                )}
-              </FileButton>
-            )}
+          {((window.location.href.split('/').includes('album') &&
+            currentUser.id === album?.author.id) ||
+            window.location.href.split('/').includes('all')) && (
+            <FileButton
+              onChange={setFiles ? setFiles : () => {}}
+              accept={`${uploadAccept.map(item => item).join(',')}`}
+              multiple
+            >
+              {props => (
+                <Button
+                  variant='default'
+                  {...props}
+                  className='border-none hover:bg-gray-100'
+                  leftSection={
+                    <img
+                      src='/svg/CloudArrowUp.svg'
+                      alt='upload'
+                      className='h-5 w-5'
+                    />
+                  }
+                >
+                  Загрузить
+                </Button>
+              )}
+            </FileButton>
+          )}
           {window.location.href.split('/').includes('album') &&
             currentUser.id === album?.author.id && (
               <Button

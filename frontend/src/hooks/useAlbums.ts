@@ -187,18 +187,15 @@ const useAlbums = (path?: string[]) => {
   const removeImageFromAlbum = async (album: AlbumResponse, image: number) => {
     try {
       setLoading(true)
-      await api
-        .delete(`/api/v1/albums/${album.id}/files/${image}/`)
-        .then(res => {
-          if (album.is_public) {
-            dispatch(fetchAlbumsSuccess(res.data))
-          } else {
-            dispatch(fetchPublicAlbumsSuccess(res.data))
-          }
-        })
-      fetchAlbums()
-      fetchPublicAlbums()
+      const res = await api.delete(`/api/v1/albums/${album.id}/files/${image}/`)
       setLoading(false)
+      if (album.is_public) {
+        fetchPublicAlbums()
+      } else {
+        fetchAlbums()
+      }
+      // Return the new list of images
+      return res.data
     } catch (error) {
       console.error(
         'Ошибка при удалении изображения из альбома:',
@@ -215,21 +212,18 @@ const useAlbums = (path?: string[]) => {
       album.files.forEach(async file => {
         await api.delete(`/api/v1/files/${file.id}/`)
       })
-      await api
-        .delete(`/api/v1/albums/${album.id}/`)
-        .then(() => {
-          setLoading(false)
-        })
-        .catch(err => {
-          console.log('error removing album', err)
-          setLoading(false)
-        })
+      await api.delete(`/api/v1/albums/${album.id}/`)
+      setLoading(false)
+      if (album.is_public) {
+        fetchPublicAlbums()
+      } else {
+        fetchAlbums()
+      }
     } catch (error) {
       console.error('Ошибка при удалении альбома:', (error as Error).message)
       setLoading(false)
     }
   }
-
   useEffect(() => {
     fetchAlbums()
     fetchPublicAlbums()

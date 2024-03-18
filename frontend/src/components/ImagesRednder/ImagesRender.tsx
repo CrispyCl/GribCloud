@@ -14,12 +14,14 @@ import 'react-circular-progressbar/dist/styles.css'
 import { useSelector } from 'react-redux'
 
 interface ImagesRenderProps {
-  album: AlbumResponse
+  album?: AlbumResponse
   open: () => void
-  userImages?: UploadImageResponse[] | undefined
+  userImages: UploadImageResponse[]
   uploadProgress?: { id: number; progress: number } | undefined
   setUrl?: React.Dispatch<React.SetStateAction<string | undefined>>
   setName?: React.Dispatch<React.SetStateAction<string | undefined>>
+  handleRemoveImageFromAlbum?: (album: AlbumResponse, image: number) => void
+  handleRemoveImage?: (image: number) => void
 }
 
 const initialContextMenu = {
@@ -30,6 +32,8 @@ const initialContextMenu = {
 }
 
 const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
+  handleRemoveImageFromAlbum,
+  handleRemoveImage,
   album,
   userImages,
   uploadProgress,
@@ -40,7 +44,8 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
   const groupedImages: GroupedImages[] = []
   const [contextMenu, setContextMenu] = useState(initialContextMenu)
   const currentUser = useSelector((state: RootState) => state.auth.account)
-  userImages?.forEach(image => {
+  console.log(userImages)
+  userImages.forEach(image => {
     const date = new Date(image.created_at).toLocaleDateString()
     const group = groupedImages.find(group => group.date === date)
     if (group) {
@@ -55,7 +60,7 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
     e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
     image: UploadImageResponse,
   ) => {
-    if (currentUser && !window.location.href.split('/').includes('all')) {
+    if (currentUser) {
       e.preventDefault()
       const { clientX, clientY } = e
       setContextMenu({ show: true, x: clientX, y: clientY, image })
@@ -68,17 +73,22 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
   }
   return (
     <Fancybox setUrl={setUrl} setName={setName} open={open}>
-      {contextMenu.show &&
-        currentUser &&
-        !window.location.href.split('/').includes('all') && (
-          <ContextMenu
-            album={album}
-            x={contextMenu.x}
-            y={contextMenu.y}
-            image={contextMenu.image}
-            closeContextMenu={closeContextMenu}
-          />
-        )}
+      {contextMenu.show && currentUser && (
+        <ContextMenu
+          handleRemoveImage={handleRemoveImage as (image: number) => void}
+          handleRemoveImageFromAlbum={
+            handleRemoveImageFromAlbum as (
+              album: AlbumResponse,
+              image: number,
+            ) => void
+          }
+          album={album as AlbumResponse}
+          x={contextMenu.x}
+          y={contextMenu.y}
+          image={contextMenu.image}
+          closeContextMenu={closeContextMenu}
+        />
+      )}
 
       {(!userImages || !userImages.length) && (
         <>

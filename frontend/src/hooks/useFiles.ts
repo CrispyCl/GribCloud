@@ -32,7 +32,7 @@ export function useFiles(path: string[], title?: string) {
     }
   }
   const uploadMultipleImages = async (files: File[]): Promise<void> => {
-    const uploadTasks = files.map(async (file, index) => {
+    const uploadTasks = files.map(async file => {
       getHref(path)
       const storageRef = ref(
         imgStorage,
@@ -242,11 +242,25 @@ export function useFiles(path: string[], title?: string) {
     fetchExistingImages()
   }, [files])
 
+  // Remove file
+  const removeFile = async (id: number) => {
+    try {
+      setLoading(true)
+      const res = await api.delete(`/api/v1/files/${id}/`)
+      setLoading(false)
+      return res.data
+    } catch (error) {
+      setLoading(false)
+      console.error('Error removing file:', error)
+    }
+  }
+
   return {
     loading,
     files,
     uploadedImages,
     uploadProgress,
     setFiles,
+    removeFile,
   }
 }

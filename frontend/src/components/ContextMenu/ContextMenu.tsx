@@ -10,18 +10,20 @@ interface ContextMenuProps {
   y: number
   image: UploadImageResponse | undefined
   closeContextMenu: () => void
+  handleRemoveImageFromAlbum: (album: AlbumResponse, image: number) => void
+  handleRemoveImage: (image: number) => void
 }
 
 const ContextMenu: FunctionComponent<ContextMenuProps> = ({
+  handleRemoveImageFromAlbum,
+  handleRemoveImage,
   album,
   x,
   y,
   image,
   closeContextMenu,
 }) => {
-  const { loading, removeImageFromAlbum } = useAlbums(
-    window.location.href.split('/'),
-  )
+  const { loading } = useAlbums(window.location.href.split('/'))
   const ref = useClickOutside(() => {
     if (!opened) {
       closeContextMenu()
@@ -47,16 +49,35 @@ const ContextMenu: FunctionComponent<ContextMenuProps> = ({
           Удалить
         </Button>
       </Card>
-      <Modal opened={opened} onClose={close} title='Удаление' size='sm'>
-        {loading && (
-          <LoadingOverlay
-            visible={loading}
-            zIndex={1000}
-            overlayProps={{ radius: 'sm', blur: 2 }}
-          />
-        )}
+      <Modal
+        opened={opened}
+        onClose={() => {
+          close()
+          setTimeout(() => {
+            closeContextMenu()
+          }, 100)
+        }}
+        title='Удаление'
+        size='sm'
+      >
+        <LoadingOverlay
+          visible={loading}
+          zIndex={1000}
+          overlayProps={{ radius: 'sm', blur: 2 }}
+        />
         <div className='flex flex-col'>
-          <p className='text-gray-500'>Вы уверены, что хотите удалить?</p>
+          <p className='flex flex-col text-gray-500'>
+            {window.location.href.includes('all') ? (
+              <>
+                <span>Вы уверены, что хотите удалить {image?.name}? </span>
+                <span className='mt-2'>
+                  Он удалиться из всех альбомов, в которых он находится.
+                </span>
+              </>
+            ) : (
+              <span>Вы уверены, что хотите удалить {image?.name}?</span>
+            )}
+          </p>
           <div className='mt-5 flex justify-end gap-5'>
             <Button
               onClick={() => {
@@ -73,12 +94,15 @@ const ContextMenu: FunctionComponent<ContextMenuProps> = ({
             <Button
               onClick={() => {
                 if (image) {
-                  removeImageFromAlbum(album, image.id).then(() => {
-                    close()
-                    setTimeout(() => {
-                      closeContextMenu()
-                    }, 100)
-                  })
+                  if (album) {
+                    handleRemoveImageFromAlbum(album, image.id)
+                  } else {
+                    handleRemoveImage(image.id)
+                  }
+                  close()
+                  setTimeout(() => {
+                    closeContextMenu()
+                  }, 100)
                 }
               }}
               variant='outline'

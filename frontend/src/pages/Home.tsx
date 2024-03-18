@@ -1,11 +1,13 @@
 import ImagesRender from '@/components/ImagesRednder/ImagesRender'
 import ModalImageEdit from '@/components/Modal/ModalImageEdit'
 import { useFiles } from '@/hooks/useFiles'
+import { UploadImageResponse } from '@/redux/types'
 import Body from '@components/Body/Body'
 import { useDisclosure } from '@mantine/hooks'
-import { FunctionComponent, useState } from 'react'
+import { FunctionComponent, useEffect, useState } from 'react'
 
 interface HomeProps {}
+const PATH = window.location.href.split('/')
 const Home: FunctionComponent<HomeProps> = () => {
   const { loading, uploadedImages, uploadProgress, setFiles } = useFiles(
     window.location.href.split('/'),
@@ -14,15 +16,26 @@ const Home: FunctionComponent<HomeProps> = () => {
   const [name, setName] = useState<string | undefined>(undefined)
   const [opened, { open, close }] = useDisclosure(false)
   const [key, setKey] = useState(0)
-
+  const { removeFile } = useFiles(PATH)
+  const [userImages, setUserImages] = useState<UploadImageResponse[]>([])
+  const handleRemoveImage = async (image: number) => {
+    await removeFile(image)
+    setUserImages(prevImages => prevImages.filter(img => img.id !== image))
+  }
+  useEffect(() => {
+    if (uploadedImages) {
+      setUserImages(uploadedImages)
+    }
+  }, [uploadedImages])
   return (
     <Body loading={loading} key={key} setFiles={setFiles}>
       <div className='m-5'>
         <ImagesRender
+          handleRemoveImage={handleRemoveImage}
           open={open}
           setName={setName}
           setUrl={setUrl}
-          userImages={uploadedImages}
+          userImages={userImages}
           uploadProgress={uploadProgress}
         />
       </div>
