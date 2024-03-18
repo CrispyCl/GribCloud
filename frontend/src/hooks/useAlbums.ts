@@ -1,6 +1,6 @@
 import { imgStorage } from '@/firebase/config'
 import { RootState } from '@/redux/store'
-import { AccountResponse } from '@/redux/types'
+import { AccountResponse, AlbumResponse } from '@/redux/types'
 import api from '@/utils/axios' // Импортируйте actions
 import {
   fetchAlbumsFailure,
@@ -184,24 +184,48 @@ const useAlbums = (path?: string[]) => {
   }
 
   // Remove image from album
-  const removeImageFromAlbum = async (imageId: number) => {
+  const removeImageFromAlbum = async (album: AlbumResponse, image: number) => {
     try {
       setLoading(true)
       await api
-        .delete(`/api/v1/albums/${path && path[4]}/files/${imageId}/`)
+        .delete(`/api/v1/albums/${album.id}/files/${image}/`)
         .then(res => {
-          console.log('removed image from album', res.data)
-          setLoading(false)
+          if (album.is_public) {
+            dispatch(fetchAlbumsSuccess(res.data))
+          } else {
+            dispatch(fetchPublicAlbumsSuccess(res.data))
+          }
         })
-        .catch(err => {
-          console.log('error removing image from album', err)
-          setLoading(false)
-        })
+      fetchAlbums()
+      fetchPublicAlbums()
+      setLoading(false)
     } catch (error) {
       console.error(
         'Ошибка при удалении изображения из альбома:',
         (error as Error).message,
       )
+      setLoading(false)
+    }
+  }
+
+  // Remove album
+  const removeAlbum = async (album: AlbumResponse) => {
+    try {
+      setLoading(true)
+      album.files.forEach(async file => {
+        await api.delete(`/api/v1/files/${file.id}/`)
+      })
+      await api
+        .delete(`/api/v1/albums/${album.id}/`)
+        .then(() => {
+          setLoading(false)
+        })
+        .catch(err => {
+          console.log('error removing album', err)
+          setLoading(false)
+        })
+    } catch (error) {
+      console.error('Ошибка при удалении альбома:', (error as Error).message)
       setLoading(false)
     }
   }
@@ -221,6 +245,7 @@ const useAlbums = (path?: string[]) => {
     fetchMembers,
     removeMemberFromAlbum,
     removeImageFromAlbum,
+    removeAlbum,
   }
 }
 export default useAlbums

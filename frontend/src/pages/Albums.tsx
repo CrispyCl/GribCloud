@@ -1,7 +1,6 @@
 import useAlbums from '@/hooks/useAlbums'
 import Body from '@components/Body/Body'
 import { EllipsisHorizontalIcon, FolderIcon } from '@heroicons/react/24/outline'
-import { LoadingOverlay } from '@mantine/core'
 import { FunctionComponent } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -10,19 +9,12 @@ interface AlbumsProps {}
 const Albums: FunctionComponent<AlbumsProps> = () => {
   const { loading, albums } = useAlbums()
   return (
-    <Body>
+    <Body loading={loading}>
       {!albums.length && (
         <div className='flex flex-col items-center justify-center'>
           <EllipsisHorizontalIcon className='h-16 w-16 text-gray-400' />
           <span className='text-gray-500'>Нет созданных альбомов</span>
         </div>
-      )}
-      {loading && (
-        <LoadingOverlay
-          visible={loading}
-          zIndex={1000}
-          overlayProps={{ radius: 'sm', blur: 2 }}
-        />
       )}
       <div className='m-10 grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'>
         {albums.map((item, index) => {

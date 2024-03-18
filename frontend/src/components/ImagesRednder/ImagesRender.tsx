@@ -2,7 +2,11 @@ import ContextMenu from '@/components/ContextMenu/ContextMenu'
 import Fancybox from '@/components/LightGallery/Fancybox'
 import { VideoType } from '@/constants'
 import { RootState } from '@/redux/store'
-import { GroupedImages, UploadImageResponse } from '@/redux/types'
+import {
+  AlbumResponse,
+  GroupedImages,
+  UploadImageResponse,
+} from '@/redux/types'
 import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
 import { LoadingOverlay } from '@mantine/core'
 import React, { FunctionComponent, useState } from 'react'
@@ -10,7 +14,7 @@ import 'react-circular-progressbar/dist/styles.css'
 import { useSelector } from 'react-redux'
 
 interface ImagesRenderProps {
-  loading: boolean
+  album: AlbumResponse
   open: () => void
   userImages?: UploadImageResponse[] | undefined
   uploadProgress?: { id: number; progress: number } | undefined
@@ -26,7 +30,7 @@ const initialContextMenu = {
 }
 
 const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
-  loading,
+  album,
   userImages,
   uploadProgress,
   setUrl,
@@ -68,19 +72,14 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
         currentUser &&
         !window.location.href.split('/').includes('all') && (
           <ContextMenu
+            album={album}
             x={contextMenu.x}
             y={contextMenu.y}
             image={contextMenu.image}
             closeContextMenu={closeContextMenu}
           />
         )}
-      {loading && (
-        <LoadingOverlay
-          visible={loading}
-          zIndex={1000}
-          overlayProps={{ radius: 'sm', blur: 2 }}
-        />
-      )}
+
       {(!userImages || !userImages.length) && (
         <>
           {!currentUser ? (

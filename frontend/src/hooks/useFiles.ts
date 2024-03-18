@@ -25,7 +25,7 @@ export function useFiles(path: string[], title?: string) {
   const apiHrefRef = useRef('')
 
   const getHref = (path: string[]) => {
-    if (path[4] && (path.includes('album') || path.includes('publicalbum'))) {
+    if (path[4] && path.includes('album')) {
       apiHrefRef.current = `/api/v1/albums/${path[4]}/`
     } else {
       apiHrefRef.current = `/api/v1/files/`

@@ -7,9 +7,9 @@ import { Link } from 'react-router-dom'
 interface GroupAlbumsProps {}
 
 const GroupAlbums: FunctionComponent<GroupAlbumsProps> = () => {
-  const { publicAlbums } = useAlbums()
+  const { publicAlbums, loading } = useAlbums()
   return (
-    <Body>
+    <Body loading={loading}>
       {!publicAlbums.length && (
         <div className='flex flex-col items-center justify-center'>
           <EllipsisHorizontalIcon className='h-16 w-16 text-gray-400' />

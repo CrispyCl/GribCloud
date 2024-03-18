@@ -4,6 +4,7 @@ import { DropZone } from '@components/Dropzone/Dropzone'
 import BodyHeader from '@components/Header/BodyHeader'
 import Header from '@components/Header/Header'
 import SideNavigation from '@components/SideNavigation/SideNavigation'
+import { LoadingOverlay } from '@mantine/core'
 import React, { FunctionComponent, useState } from 'react'
 import { useSelector } from 'react-redux'
 import SideNavigationMobile from '../SideNavigation/SideNavigationMobile'
@@ -12,9 +13,15 @@ interface BodyProps {
   children: React.ReactNode
   album?: AlbumResponse
   setFiles?: React.Dispatch<React.SetStateAction<File[]>>
+  loading: boolean
 }
 
-const Body: FunctionComponent<BodyProps> = ({ children, setFiles, album }) => {
+const Body: FunctionComponent<BodyProps> = ({
+  children,
+  setFiles,
+  album,
+  loading,
+}) => {
   const [open, setOpen] = useState<boolean>(false)
   const currentUser = useSelector((state: RootState) => state.auth.account)
   const avatar = useSelector((state: RootState) => state.auth.avatar)
@@ -32,6 +39,11 @@ const Body: FunctionComponent<BodyProps> = ({ children, setFiles, album }) => {
         />
         <div className='w-full overflow-y-auto'>
           <BodyHeader setFiles={setFiles} album={album} />
+          <LoadingOverlay
+            visible={loading}
+            zIndex={1000}
+            overlayProps={{ radius: 'sm', blur: 2 }}
+          />
           {children}
         </div>
       </div>

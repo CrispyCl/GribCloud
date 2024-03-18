@@ -1,10 +1,11 @@
 import useAlbums from '@/hooks/useAlbums'
-import { UploadImageResponse } from '@/redux/types'
+import { AlbumResponse, UploadImageResponse } from '@/redux/types'
 import { Button, Card, LoadingOverlay, Modal } from '@mantine/core'
 import { useClickOutside, useDisclosure } from '@mantine/hooks'
 import { FunctionComponent } from 'react'
 
 interface ContextMenuProps {
+  album: AlbumResponse
   x: number
   y: number
   image: UploadImageResponse | undefined
@@ -12,6 +13,7 @@ interface ContextMenuProps {
 }
 
 const ContextMenu: FunctionComponent<ContextMenuProps> = ({
+  album,
   x,
   y,
   image,
@@ -71,7 +73,7 @@ const ContextMenu: FunctionComponent<ContextMenuProps> = ({
             <Button
               onClick={() => {
                 if (image) {
-                  removeImageFromAlbum(image.id).then(() => {
+                  removeImageFromAlbum(album, image.id).then(() => {
                     close()
                     setTimeout(() => {
                       closeContextMenu()

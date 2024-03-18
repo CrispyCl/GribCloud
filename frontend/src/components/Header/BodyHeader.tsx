@@ -55,8 +55,8 @@ const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
       {currentUser && (
         <div className='flex gap-4 '>
           {(window.location.href.split('/').includes('album') ||
-            window.location.href.split('/').includes('all')) && (
-            <>
+            window.location.href.split('/').includes('all')) &&
+            currentUser.id === album?.author.id && (
               <FileButton
                 onChange={setFiles ? setFiles : () => {}}
                 accept={`${uploadAccept.map(item => item).join(',')}`}
@@ -79,6 +79,9 @@ const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
                   </Button>
                 )}
               </FileButton>
+            )}
+          {window.location.href.split('/').includes('album') &&
+            currentUser.id === album?.author.id && (
               <Button
                 variant='default'
                 onClick={openSettings}
@@ -87,8 +90,7 @@ const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
               >
                 Настройки
               </Button>
-            </>
-          )}
+            )}
 
           {(window.location.href.split('/').includes('groupalbums') ||
             window.location.href.split('/').includes('albums')) && (

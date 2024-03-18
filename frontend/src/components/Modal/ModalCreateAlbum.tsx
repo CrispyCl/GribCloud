@@ -54,13 +54,11 @@ const ModalCreateAlbum: FunctionComponent<ModalCreateAlbumProps> = ({
         blur: 3,
       }}
     >
-      {loading && (
-        <LoadingOverlay
-          visible={loading}
-          zIndex={1000}
-          overlayProps={{ radius: 'sm', blur: 2 }}
-        />
-      )}
+      <LoadingOverlay
+        visible={loading}
+        zIndex={1000}
+        overlayProps={{ radius: 'sm', blur: 2 }}
+      />
       <Group className='flex flex-col gap-5'>
         <Group className='flex-start flex gap-5'>
           <Input.Wrapper w={'100%'} label='Название альбома' withAsterisk>

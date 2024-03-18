@@ -3,7 +3,7 @@ import ModalUserEdit from '@/components/Modal/ModalUserEdit'
 import { useAvatar } from '@/hooks/useAvatar'
 import { RootState } from '@/redux/store'
 import { UserResponse } from '@/redux/types'
-import { Avatar, LoadingOverlay } from '@mantine/core'
+import { Avatar } from '@mantine/core'
 import { FunctionComponent } from 'react'
 import { useSelector } from 'react-redux'
 
@@ -20,14 +20,7 @@ const UserProfile: FunctionComponent<UserProfileProps> = ({
   const { avatar, userAvatar } = useAvatar(user)
 
   return (
-    <Body>
-      {userLoading && (
-        <LoadingOverlay
-          visible={userLoading}
-          zIndex={1000}
-          overlayProps={{ radius: 'sm', blur: 2 }}
-        />
-      )}
+    <Body loading={userLoading}>
       <div className='my-5 flex flex-col items-center justify-center'>
         <Avatar
           src={currentUser ? avatar : userAvatar}

@@ -16,10 +16,9 @@ const Home: FunctionComponent<HomeProps> = () => {
   const [key, setKey] = useState(0)
 
   return (
-    <Body key={key} setFiles={setFiles}>
+    <Body loading={loading} key={key} setFiles={setFiles}>
       <div className='m-5'>
         <ImagesRender
-          loading={loading}
           open={open}
           setName={setName}
           setUrl={setUrl}
