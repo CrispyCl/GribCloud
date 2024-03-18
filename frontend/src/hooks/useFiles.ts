@@ -3,6 +3,7 @@ import { imgStorage } from '@/firebase/config'
 import { RootState } from '@/redux/store'
 import { AlbumResponse, UploadImageResponse } from '@/redux/types'
 import api from '@/utils/axios'
+import exifr from 'exifr'
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage'
 import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
@@ -17,6 +18,8 @@ export function useFiles(path: string[], title?: string) {
   >(undefined)
   const [loading, setLoading] = useState<boolean>(false)
   const [preview, setPreview] = useState<string>('.')
+  const latitude = useRef<number>(0)
+  const longitude = useRef<number>(0)
   const multiUpload = useRef<UploadImageResponse[]>([])
   const currentUser = useSelector((state: RootState) => state.auth.account)
   const responseRef = useRef<UploadImageResponse | null>(null)
@@ -32,6 +35,7 @@ export function useFiles(path: string[], title?: string) {
     }
   }
   const uploadMultipleImages = async (files: File[]): Promise<void> => {
+    setLoading(true)
     const uploadTasks = files.map(async file => {
       getHref(path)
       const storageRef = ref(
@@ -73,42 +77,92 @@ export function useFiles(path: string[], title?: string) {
           }
         }
       }
-
-      await api
-        .post('/api/v1/files/', {
-          files: [
-            {
-              file: `images/${currentUser?.id}/${file.name}`,
-              preview: preview,
-              geodata: {},
-            },
-          ],
-        })
-        .then(res => {
-          res.data.forEach(
-            (item: UploadImageResponse) => (responseRef.current = item),
-          )
-        })
-        .then(async () => {
-          if (apiHrefRef.current === `/api/v1/albums/${path[4]}/`) {
-            await api
-              .post(
-                `/api/v1/albums/${path[4]}/files/${responseRef.current?.id}/`,
+      // take metadata from image
+      console.log(file)
+      const getMetadata = async (file: File) => {
+        const exif = await exifr.parse(file)
+        latitude.current = exif?.latitude || 0
+        longitude.current = exif?.longitude || 0
+        return latitude && longitude
+      }
+      getMetadata(file).then(async () => {
+        console.log(latitude, longitude)
+        if (latitude.current !== 0 && longitude.current !== 0) {
+          await api
+            .post('/api/v1/files/', {
+              files: [
                 {
-                  files: [
-                    {
-                      file: `albums/${currentUser?.id}/${title}/${file.name}`,
-                      preview: preview,
-                      geodata: {},
-                    },
-                  ],
+                  file: `images/${currentUser?.id}/${file.name}`,
+                  preview: preview,
+                  geodata: {
+                    latitude: latitude.current,
+                    longitude: longitude.current,
+                  },
                 },
+              ],
+            })
+            .then(res => {
+              console.log(res.data)
+              res.data.forEach(
+                (item: UploadImageResponse) => (responseRef.current = item),
               )
-              .then(res => {
-                AlbumResponse.current = res.data
-              })
-          }
-        })
+            })
+            .then(async () => {
+              if (apiHrefRef.current === `/api/v1/albums/${path[4]}/`) {
+                await api
+                  .post(
+                    `/api/v1/albums/${path[4]}/files/${responseRef.current?.id}/`,
+                    {
+                      files: [
+                        {
+                          file: `albums/${currentUser?.id}/${title}/${file.name}`,
+                          preview: preview,
+                        },
+                      ],
+                    },
+                  )
+                  .then(res => {
+                    AlbumResponse.current = res.data
+                  })
+              }
+            })
+        } else {
+          await api
+            .post('/api/v1/files/', {
+              files: [
+                {
+                  file: `images/${currentUser?.id}/${file.name}`,
+                  preview: preview,
+                },
+              ],
+            })
+            .then(res => {
+              res.data.forEach(
+                (item: UploadImageResponse) => (responseRef.current = item),
+              )
+            })
+            .then(async () => {
+              if (apiHrefRef.current === `/api/v1/albums/${path[4]}/`) {
+                await api
+                  .post(
+                    `/api/v1/albums/${path[4]}/files/${responseRef.current?.id}/`,
+                    {
+                      files: [
+                        {
+                          file: `albums/${currentUser?.id}/${title}/${file.name}`,
+                          preview: preview,
+                        },
+                      ],
+                    },
+                  )
+                  .then(res => {
+                    AlbumResponse.current = res.data
+                  })
+              }
+            })
+        }
+      })
+
       const uploadTask = uploadBytesResumable(storageRef, file)
       uploadTask.on('state_changed', snapshot => {
         const progress = Math.round(
@@ -123,6 +177,7 @@ export function useFiles(path: string[], title?: string) {
       const snapshot = await uploadTask
       const url = await getDownloadURL(snapshot.ref)
       if (apiHrefRef.current === '/api/v1/files/') {
+        console.log(responseRef.current)
         return {
           name: file.name,
           author: currentUser?.id,
@@ -130,6 +185,10 @@ export function useFiles(path: string[], title?: string) {
             ? new Date(responseRef.current.created_at)
             : undefined,
           file: responseRef.current?.file,
+          geoData: {
+            latitude: latitude.current,
+            longitude: longitude.current,
+          },
           id: responseRef.current?.id,
           url: url,
           preview: preview,
@@ -151,6 +210,10 @@ export function useFiles(path: string[], title?: string) {
                 ? new Date(responseRef.current.created_at)
                 : undefined,
               file: responseRef.current?.file,
+              geoData: {
+                latitude: latitude.current,
+                longitude: longitude.current,
+              },
               id: responseRef.current?.id,
               url: url,
               preview: preview,
@@ -192,15 +255,21 @@ export function useFiles(path: string[], title?: string) {
         processFiles(newFiles)
       }
       setUploadProgress(undefined)
+      setTimeout(() => {
+        setLoading(false)
+      }, 500)
     } catch (error) {
       console.error(error)
+      setTimeout(() => {
+        setLoading(false)
+      }, 500)
     }
   }
 
   useEffect(() => {
+    setLoading(true)
     const fetchExistingImages = async () => {
       try {
-        setLoading(true)
         const response = await api.get(
           currentUser
             ? apiHrefRef.current === '/api/v1/files/'
@@ -221,6 +290,7 @@ export function useFiles(path: string[], title?: string) {
             author: item.author,
             created_at: new Date(item.created_at),
             file: item.file.split('/')[2],
+            geodata: item.geodata,
             id: item.id,
             url: url,
             preview: item.preview,
@@ -229,12 +299,16 @@ export function useFiles(path: string[], title?: string) {
         existPromise.current = existingImagesPromises
         const existingImages = await Promise.all(existPromise.current)
 
-        setLoading(false)
         setUploadedImages([])
         setUploadedImages(prevImages => [...existingImages, ...prevImages])
+        setTimeout(() => {
+          setLoading(false)
+        }, 500)
       } catch (error) {
-        setLoading(false)
         console.error('Error fetching existing images:', error)
+        setTimeout(() => {
+          setLoading(false)
+        }, 500)
       }
     }
     getHref(path)
@@ -247,11 +321,15 @@ export function useFiles(path: string[], title?: string) {
     try {
       setLoading(true)
       const res = await api.delete(`/api/v1/files/${id}/`)
-      setLoading(false)
+      setTimeout(() => {
+        setLoading(false)
+      }, 500)
       return res.data
     } catch (error) {
-      setLoading(false)
       console.error('Error removing file:', error)
+      setTimeout(() => {
+        setLoading(false)
+      }, 500)
     }
   }
 

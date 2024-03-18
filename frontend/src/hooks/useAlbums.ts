@@ -26,24 +26,34 @@ const useAlbums = (path?: string[]) => {
   )
   // fetching albums
   const fetchAlbums = async () => {
-    dispatch(fetchAlbumsStart())
+    setLoading(true)
     try {
       const res = await api.get('/api/v1/albums/my/')
       dispatch(fetchAlbumsSuccess(res.data))
+      setLoading(false)
     } catch (err: any) {
       console.log(err)
       dispatch(fetchAlbumsFailure(err.toString()))
+      setTimeout(() => {
+        setLoading(false)
+      }, 500)
     }
   }
 
   const fetchPublicAlbums = async () => {
-    dispatch(fetchPublicAlbumsStart())
+    setLoading(true)
     try {
       const res = await api.get('/api/v1/albums/')
       dispatch(fetchPublicAlbumsSuccess(res.data))
+      setTimeout(() => {
+        setLoading(false)
+      }, 500)
     } catch (err: any) {
       console.log(err)
       dispatch(fetchPublicAlbumsFailure(err.toString()))
+      setTimeout(() => {
+        setLoading(false)
+      }, 500)
     }
   }
 
@@ -54,6 +64,7 @@ const useAlbums = (path?: string[]) => {
     is_public: boolean,
   ) => {
     try {
+      setLoading(true)
       if (is_public) dispatch(fetchPublicAlbumsStart())
       else dispatch(fetchAlbumsStart())
       await api
@@ -65,15 +76,24 @@ const useAlbums = (path?: string[]) => {
           if (is_public) {
             dispatch(fetchPublicAlbumsSuccess(res.data))
             fetchPublicAlbums()
+            setTimeout(() => {
+              setLoading(false)
+            }, 500)
           } else {
             dispatch(fetchAlbumsSuccess(res.data))
             fetchAlbums()
+            setTimeout(() => {
+              setLoading(false)
+            }, 500)
           }
         })
         .catch(err => {
           console.log(err)
           if (is_public) dispatch(fetchPublicAlbumsFailure(err.toString()))
           else dispatch(fetchAlbumsFailure(err.toString()))
+          setTimeout(() => {
+            setLoading(false)
+          }, 500)
         })
     } catch (error) {
       console.error(
@@ -83,21 +103,28 @@ const useAlbums = (path?: string[]) => {
       if (is_public)
         dispatch(fetchPublicAlbumsFailure((error as Error).message))
       else dispatch(fetchAlbumsFailure((error as Error).message))
+      setTimeout(() => {
+        setLoading(false)
+      }, 500)
     }
   }
 
   // Fetch members of album
   const fetchMembers = async (albumId: number) => {
-    dispatch(fetchAlbumsStart())
+    setLoading(true)
     await api
       .get(`/api/v1/albums/${albumId}/members/${currentUser?.id}`)
       .then(res => {
         console.log('members', res.data)
-        setLoading(false)
+        setTimeout(() => {
+          setLoading(false)
+        }, 500)
       })
       .catch(err => {
         console.log(err)
-        setLoading(false)
+        setTimeout(() => {
+          setLoading(false)
+        }, 500)
       })
   }
 
@@ -121,17 +148,23 @@ const useAlbums = (path?: string[]) => {
             `albums/${currentUser.id}/${albumName}/.folder`,
           )
           await uploadString(storageRef, JSON.stringify({ isFolder: true }))
-          setLoading(false)
           if (_public) fetchPublicAlbums()
           else fetchAlbums()
+          setTimeout(() => {
+            setLoading(false)
+          }, 500)
         })
         .catch(err => {
           console.log('error creating album', err)
-          setLoading(false)
+          setTimeout(() => {
+            setLoading(false)
+          }, 500)
         })
     } catch (error) {
       console.error('Ошибка при создании альбома:', (error as Error).message)
-      setLoading(false)
+      setTimeout(() => {
+        setLoading(false)
+      }, 500)
     }
   }
 
@@ -145,18 +178,24 @@ const useAlbums = (path?: string[]) => {
         })
         .then(res => {
           console.log('added member to album', res.data)
-          setLoading(false)
+          setTimeout(() => {
+            setLoading(false)
+          }, 500)
         })
         .catch(err => {
           console.log('error adding member to album', err)
-          setLoading(false)
+          setTimeout(() => {
+            setLoading(false)
+          }, 500)
         })
     } catch (error) {
       console.error(
         'Ошибка при добавлении участника в альбом:',
         (error as Error).message,
       )
-      setLoading(false)
+      setTimeout(() => {
+        setLoading(false)
+      }, 500)
     }
   }
 
@@ -168,18 +207,24 @@ const useAlbums = (path?: string[]) => {
         .delete(`/api/v1/albums/${path && path[4]}/members/${userId}/`)
         .then(res => {
           console.log('removed member from album', res.data)
-          setLoading(false)
+          setTimeout(() => {
+            setLoading(false)
+          }, 500)
         })
         .catch(err => {
           console.log('error removing member from album', err)
-          setLoading(false)
+          setTimeout(() => {
+            setLoading(false)
+          }, 500)
         })
     } catch (error) {
       console.error(
         'Ошибка при удалении участника из альбома:',
         (error as Error).message,
       )
-      setLoading(false)
+      setTimeout(() => {
+        setLoading(false)
+      }, 500)
     }
   }
 
@@ -188,20 +233,23 @@ const useAlbums = (path?: string[]) => {
     try {
       setLoading(true)
       const res = await api.delete(`/api/v1/albums/${album.id}/files/${image}/`)
-      setLoading(false)
       if (album.is_public) {
         fetchPublicAlbums()
       } else {
         fetchAlbums()
       }
-      // Return the new list of images
+      setTimeout(() => {
+        setLoading(false)
+      }, 500)
       return res.data
     } catch (error) {
       console.error(
         'Ошибка при удалении изображения из альбома:',
         (error as Error).message,
       )
-      setLoading(false)
+      setTimeout(() => {
+        setLoading(false)
+      }, 500)
     }
   }
 
@@ -213,15 +261,19 @@ const useAlbums = (path?: string[]) => {
         await api.delete(`/api/v1/files/${file.id}/`)
       })
       await api.delete(`/api/v1/albums/${album.id}/`)
-      setLoading(false)
       if (album.is_public) {
         fetchPublicAlbums()
       } else {
         fetchAlbums()
       }
+      setTimeout(() => {
+        setLoading(false)
+      }, 500)
     } catch (error) {
       console.error('Ошибка при удалении альбома:', (error as Error).message)
-      setLoading(false)
+      setTimeout(() => {
+        setLoading(false)
+      }, 500)
     }
   }
   useEffect(() => {

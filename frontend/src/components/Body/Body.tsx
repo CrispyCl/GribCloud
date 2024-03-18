@@ -28,14 +28,12 @@ const Body: FunctionComponent<BodyProps> = ({ children, loading }) => {
           currentUser={currentUser}
           avatar={avatar}
         />
-        <div className='relative w-full overflow-y-auto'>
-          <LoadingOverlay
-            visible={loading}
-            zIndex={1000}
-            overlayProps={{ radius: 'sm', blur: 2 }}
-          />
-          {children}
-        </div>
+        <LoadingOverlay
+          visible={loading}
+          zIndex={1000}
+          overlayProps={{ radius: 'sm', blur: 2 }}
+        />
+        <div className='relative w-full overflow-y-auto'>{children}</div>
       </div>
     </>
   )

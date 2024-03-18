@@ -1,4 +1,4 @@
-import { BottomLinks, TopLinks } from '@/constants'
+import { TopLinks } from '@/constants'
 import { actions } from '@/redux/slices/auth'
 import { useAppDispatch } from '@/redux/store'
 import { AccountResponse } from '@/redux/types'
@@ -87,77 +87,40 @@ const SideNavigationMobile: FunctionComponent<SideNavigationMobileProps> = ({
                   <CloseButton onClick={() => setOpen(false)} />
                 </div>
                 {currentUser ? (
-                  <>
-                    <div className='space-y-6 border-t border-gray-200 px-4 py-4'>
-                      {TopLinks.map((link, index) => {
-                        return (
-                          <div key={index} className='flow-root'>
-                            <Button
-                              onClick={() => {
-                                if (
-                                  link.route ===
-                                  '/' + window.location.pathname.split('/')[1]
-                                ) {
-                                  setOpen(false)
-                                } else {
-                                  navigate(link.route)
-                                }
-                              }}
-                              className='-m-2 block border-none p-2 font-medium text-gray-900'
-                              leftSection={
-                                <img
-                                  src={link.icon}
-                                  alt='folderIcon'
-                                  className='h-5 w-5'
-                                />
+                  <div className='space-y-6 border-t border-gray-200 px-4 py-4'>
+                    {TopLinks.map((link, index) => {
+                      return (
+                        <div key={index} className='flow-root'>
+                          <Button
+                            onClick={() => {
+                              if (
+                                link.route ===
+                                '/' + window.location.pathname.split('/')[1]
+                              ) {
+                                setOpen(false)
+                              } else {
+                                navigate(link.route)
                               }
-                              variant='default'
-                              fullWidth
-                              justify='space-between'
-                              rightSection={<span />}
-                            >
-                              {link.name}
-                            </Button>
-                          </div>
-                        )
-                      })}
-                    </div>
-                    <div className='space-y-6 px-4 py-3'>
-                      <Text className='text-gray-400'>Библиотека</Text>
-                      {BottomLinks.map((link, index) => {
-                        return (
-                          <div key={index} className='flow-root'>
-                            <Button
-                              onClick={() => {
-                                if (
-                                  link.route ===
-                                  '/' + window.location.pathname.split('/')[1]
-                                ) {
-                                  setOpen(false)
-                                } else {
-                                  navigate(link.route)
-                                }
-                              }}
-                              className='-m-2 -mt-2 block border-none p-2  font-medium text-gray-900'
-                              leftSection={
-                                <img
-                                  src={link.icon}
-                                  alt='folderIcon'
-                                  className='h-5 w-5'
-                                />
-                              }
-                              fullWidth
-                              variant='default'
-                              justify='space-between'
-                              rightSection={<span />}
-                            >
-                              {link.name}
-                            </Button>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </>
+                            }}
+                            className='-m-2 block border-none p-2 font-medium text-gray-900'
+                            leftSection={
+                              <img
+                                src={link.icon}
+                                alt='folderIcon'
+                                className='h-5 w-5'
+                              />
+                            }
+                            variant='default'
+                            fullWidth
+                            justify='space-between'
+                            rightSection={<span />}
+                          >
+                            {link.name}
+                          </Button>
+                        </div>
+                      )
+                    })}
+                  </div>
                 ) : (
                   <div className='space-y-6 border-t border-gray-200 px-4 py-4'>
                     <Button

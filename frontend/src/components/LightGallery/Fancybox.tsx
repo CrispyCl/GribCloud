@@ -6,8 +6,11 @@ import '@fancyapps/ui/dist/fancybox/fancybox.css'
 interface Fancybox {
   children: React.ReactNode
   open: () => void
+  openMap: () => void
   setUrl?: React.Dispatch<React.SetStateAction<string | undefined>>
   setName?: React.Dispatch<React.SetStateAction<string | undefined>>
+  setLatitude?: React.Dispatch<React.SetStateAction<number | undefined>>
+  setLongitude?: React.Dispatch<React.SetStateAction<number | undefined>>
 }
 
 const Fancybox: FunctionComponent<Fancybox> = ({
@@ -15,6 +18,9 @@ const Fancybox: FunctionComponent<Fancybox> = ({
   setUrl,
   setName,
   open,
+  openMap,
+  setLatitude,
+  setLongitude,
 }) => {
   const containerRef = useRef(null)
 
@@ -51,6 +57,17 @@ const Fancybox: FunctionComponent<Fancybox> = ({
               link.click()
             },
           },
+          mapButton: {
+            tpl: '<button data-fancybox-map="javascript:;" class="f-button" type="button" title="Показать на карте"><svg data-slot="icon" fill="none" stroke-width="1.5" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 22s-6-4.5-6-10.5a6 6 0 0 1 12 0c0 6-6 10.5-6 10.5Zm0 0V18m0 0-3-3m3 3 3-3m-3 3V6m0 0a3 3 0 0 0-3 3c0 3 3 7.5 3 7.5Z"></path></svg></button>',
+            click: async () => {
+              const current = NativeFancybox.getSlide()
+              // @ts-ignore
+              setLatitude(current?.fancyboxMap.split(',')[0])
+              // @ts-ignore
+              setLongitude(current?.fancyboxMap.split(',')[1])
+              openMap()
+            },
+          },
         },
         display: {
           left: ['infobar'],
@@ -63,7 +80,7 @@ const Fancybox: FunctionComponent<Fancybox> = ({
             'flipX',
             'flipY',
           ],
-          right: ['edit', 'downloadBtn', 'thumbs', 'close'],
+          right: ['mapButton', 'edit', 'downloadBtn', 'thumbs', 'close'],
         },
       },
     }

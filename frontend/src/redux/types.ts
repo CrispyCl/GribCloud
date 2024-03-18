@@ -41,6 +41,12 @@ export interface UploadImageResponse {
   author: number
   name: string
   file: string
+  geodata: {
+    city: string
+    country: string
+    latitude: number
+    longitude: number
+  }
   url: string
   created_at: Date
   preview: string

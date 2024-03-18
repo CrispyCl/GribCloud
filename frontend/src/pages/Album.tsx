@@ -1,6 +1,7 @@
 import Body from '@/components/Body/Body'
 import ImagesRender from '@/components/ImagesRednder/ImagesRender'
 import ModalImageEdit from '@/components/Modal/ModalImageEdit'
+import ModalMap from '@/components/Modal/ModalMap'
 import useAlbums from '@/hooks/useAlbums'
 import { useFiles } from '@/hooks/useFiles'
 import { AlbumResponse, UploadImageResponse } from '@/redux/types'
@@ -19,6 +20,9 @@ const Album: FunctionComponent<AlbumProps> = ({ currentAlbum }) => {
   const [url, setUrl] = useState<string | undefined>(undefined)
   const [name, setName] = useState<string | undefined>(undefined)
   const [opened, { open, close }] = useDisclosure(false)
+  const [openedMap, { open: openMap, close: closeMap }] = useDisclosure(false)
+  const [latitude, setLatitude] = useState<number | undefined>(undefined)
+  const [longitude, setLongitude] = useState<number | undefined>(undefined)
   const [key, setKey] = useState(0)
   const { removeImageFromAlbum } = useAlbums()
   const [userImages, setUserImages] = useState<UploadImageResponse[]>([])
@@ -39,6 +43,9 @@ const Album: FunctionComponent<AlbumProps> = ({ currentAlbum }) => {
       <ImagesRender
         handleRemoveImageFromAlbum={handleRemoveImageFromAlbum}
         album={currentAlbum}
+        openMap={openMap}
+        setLatitude={setLatitude}
+        setLongitude={setLongitude}
         open={open}
         setName={setName}
         setFiles={setFiles}
@@ -53,6 +60,14 @@ const Album: FunctionComponent<AlbumProps> = ({ currentAlbum }) => {
           close={close}
           url={url}
           name={name}
+        />
+      )}
+      {latitude && longitude && (
+        <ModalMap
+          openedMap={openedMap}
+          closeMap={closeMap}
+          latitude={latitude}
+          longitude={longitude}
         />
       )}
     </Body>

@@ -1,10 +1,7 @@
 import '@mantine/dropzone/styles.css'
 import Albums from '@pages/Albums'
-import Archive from '@pages/Archive'
-import Favorites from '@pages/Favorites'
 import GroupAlbums from '@pages/GroupAlbums'
 import Home from '@pages/Home'
-import Trash from '@pages/Trash'
 import { useEffect, useState } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import useAlbums from './hooks/useAlbums'
@@ -38,10 +35,7 @@ function App() {
     <Routes>
       <Route path='/all' element={<Home />} />
       <Route path='/groupalbums' element={<GroupAlbums />} />
-      <Route path='/favorites' element={<Favorites />} />
       <Route path='/albums' element={<Albums />} />
-      <Route path='/archive' element={<Archive />} />
-      <Route path='/trash' element={<Trash />} />
       <Route
         path='/singin'
         element={<SingIn loading={loading} setLoading={setLoading} />}

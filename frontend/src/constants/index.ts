@@ -5,35 +5,16 @@ export const TopLinks = [
     icon: '/svg/FolderOpen.svg',
   },
   {
-    name: 'Общие альбомы',
+    name: 'Доступные альбомы',
     route: '/groupalbums',
     icon: '/svg/UserGroup.svg',
   },
-  {
-    name: 'Избранные',
-    route: '/favorites',
-    icon: '/svg/Star.svg',
-  },
-]
-
-export const BottomLinks = [
   {
     name: 'Мои альбомы',
     route: '/albums',
     icon: '/svg/Photo.svg',
   },
-  {
-    name: 'Архив',
-    route: '/archive',
-    icon: '/svg/ArchiveBox.svg',
-  },
-  {
-    name: 'Корзина',
-    route: '/trash',
-    icon: '/svg/Trash.svg',
-  },
 ]
-
 export const VideoType = ['video/mp4', 'video/mov', 'video/webm']
 
 export const ImageType = [

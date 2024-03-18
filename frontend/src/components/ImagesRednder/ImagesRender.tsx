@@ -19,11 +19,14 @@ import BodyHeader from '../Header/BodyHeader'
 interface ImagesRenderProps {
   userImages: UploadImageResponse[]
   open: () => void
+  openMap: () => void
   uploadProgress?: { id: number; progress: number } | undefined
   album?: AlbumResponse
   setFiles?: React.Dispatch<React.SetStateAction<File[]>>
   setUrl?: React.Dispatch<React.SetStateAction<string | undefined>>
   setName?: React.Dispatch<React.SetStateAction<string | undefined>>
+  setLatitude?: React.Dispatch<React.SetStateAction<number | undefined>>
+  setLongitude?: React.Dispatch<React.SetStateAction<number | undefined>>
   handleRemoveImageFromAlbum?: (album: AlbumResponse, image: number) => void
   handleRemoveImage?: (image: number) => void
 }
@@ -44,7 +47,10 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
   setUrl,
   setFiles,
   setName,
+  setLatitude,
+  setLongitude,
   open,
+  openMap,
 }) => {
   const groupedImages: GroupedImages[] = []
   const [contextMenu, setContextMenu] = useState(initialContextMenu)
@@ -146,6 +152,7 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
     if (userImages.length > 0) {
       setCheck(userImages.map(image => ({ id: image.id, checked: false })))
     }
+    console.log('userImages', userImages)
   }, [userImages, files])
   return (
     <>
@@ -155,7 +162,14 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
         selectAll={selectAll}
         check={check}
       />
-      <Fancybox setUrl={setUrl} setName={setName} open={open}>
+      <Fancybox
+        setUrl={setUrl}
+        setName={setName}
+        open={open}
+        openMap={openMap}
+        setLatitude={setLatitude}
+        setLongitude={setLongitude}
+      >
         {contextMenu.show && currentUser && (
           <ContextMenu
             handleRemoveImage={handleRemoveImage as (image: number) => void}
@@ -220,6 +234,10 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
                       <a
                         className='cursor-pointer'
                         data-fancybox='gallery'
+                        data-fancybox-map={[
+                          `${image.geodata?.latitude}`,
+                          `${image.geodata?.longitude}`,
+                        ]}
                         id={image.name}
                         href={image.url}
                         onContextMenu={e => handleContextMenu(e, image)}
