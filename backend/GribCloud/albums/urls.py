@@ -6,7 +6,7 @@ app_name = "albums"
 
 
 urlpatterns = [
-    path("", views.AlbumsPublicAPIView.as_view(), name="public"),
+    path("", views.AlbumsAPIView.as_view(), name="all"),
     path("my/", views.AlbumsMyAPIView.as_view(), name="my"),
     path("available/", views.AlbumsAvailableAPIView.as_view(), name="available"),
     path("<int:pk>/", views.AlbumsDetailAPIView.as_view(), name="detail"),

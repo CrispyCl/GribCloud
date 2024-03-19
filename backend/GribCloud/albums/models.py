@@ -50,6 +50,13 @@ class AlbumManager(models.Manager):
     def by_member(self, member):
         return self.get_queryset().filter(membership__member=member)
 
+    def by_user(self, user):
+        if user.is_authenticated:
+            return self.get_queryset().filter(
+                models.Q(author=user) | models.Q(membership__member=user) | models.Q(is_public=True),
+            )
+        return self.public()
+
 
 class Album(models.Model):
     objects = AlbumManager()
