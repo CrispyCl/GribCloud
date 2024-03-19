@@ -10,20 +10,14 @@ from files.models import File
 User = get_user_model()
 
 
-class AlbumsPublicAPIViewTests(APITestCase):
+class AlbumsAPIViewTests(APITestCase):
     fixtures = ["albums/fixtures/test.json"]
 
     def test_get(self):
-        response = self.client.get(reverse("albums:public"))
+        response = self.client.get(reverse("albums:all"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_get_fields(self):
-        response = self.client.get(reverse("albums:public"))
-        albums = response.data
-
-        self.assertTrue(all(album["is_public"] for album in albums))
-
-        album = albums[0]
+        album = response.data[0]
 
         self.assertIn("id", album)
         self.assertIn("title", album)
@@ -32,6 +26,25 @@ class AlbumsPublicAPIViewTests(APITestCase):
         self.assertIn("files", album)
         self.assertIn("memberships", album)
         self.assertIn("created_at", album)
+
+    def test_get_filter_by_is_public(self):
+        response = self.client.get(reverse("albums:all") + "?is_piblic=True")
+        albums = response.data
+
+        self.assertTrue(all(album["is_public"] for album in albums))
+
+    @parameterized.parameterized.expand(
+        [
+            ("?author=3",),
+            ("?author__username=authoruser",),
+            ("?author__email=authoruser@mail.ru",),
+        ],
+    )
+    def test_get_filter_by_author(self, query):
+        response = self.client.get(reverse("albums:all") + query)
+        albums = response.data
+
+        self.assertTrue(all(album["author"]["id"] == 3 for album in albums))
 
 
 class AlbumsMyAPIViewTests(APITestCase):
