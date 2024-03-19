@@ -26,8 +26,12 @@ interface ImagesRenderProps {
   setName?: React.Dispatch<React.SetStateAction<string | undefined>>
   setLatitude?: React.Dispatch<React.SetStateAction<number | undefined>>
   setLongitude?: React.Dispatch<React.SetStateAction<number | undefined>>
-  handleRemoveImageFromAlbum?: (album: AlbumResponse, image: number) => void
-  handleRemoveImage?: (image: number) => void
+  handleRemoveImageFromAlbum?: (
+    album: AlbumResponse,
+    image: number,
+    path: string,
+  ) => void
+  handleRemoveImage?: (image: number, path: string) => void
 }
 
 const initialContextMenu = {
@@ -151,7 +155,6 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
     if (userImages.length > 0) {
       setCheck(userImages.map(image => ({ id: image.id, checked: false })))
     }
-    console.log('userImages', userImages)
   }, [userImages, files])
   return (
     <>
@@ -275,9 +278,12 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
             </div>
           ))}
       </Fancybox>
-      <div className='absolute bottom-0 w-full'>
+      <div
+        className={`absolute bottom-0 w-full ${check.some(item => item.checked === true) ? 'block opacity-100' : 'hidden'} 
+         opacity-0 transition-opacity duration-300 ease-in-out `}
+      >
         <div
-          className={`${check.some(item => item.checked === true) && 'opacity-100'} delay-10 fixed bottom-0 flex h-32 w-full border-t border-gray-100 bg-gray-100 px-5 opacity-0 transition-opacity duration-300 ease-in-out`}
+          className={`delay-10 fixed bottom-0 flex h-32 w-full border-t border-gray-100 bg-gray-100 px-5 `}
         >
           <Group>
             <Button variant='outline' onClick={downloadImages}>
@@ -297,6 +303,7 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
                     handleRemoveImageFromAlbum?.(
                       album as AlbumResponse,
                       image.id,
+                      image.file,
                     )
                   })
                 } else {
@@ -306,7 +313,7 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
                     ),
                   )
                   checkedImages.forEach(image => {
-                    handleRemoveImage?.(image.id)
+                    handleRemoveImage?.(image.id, image.file)
                   })
                 }
               }}

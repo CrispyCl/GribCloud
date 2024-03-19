@@ -29,6 +29,7 @@ export interface UserResponse {
   username: string
   email: string
   date_joined: string
+  avatar: string
 }
 
 export interface UploadImage {
@@ -71,6 +72,9 @@ export interface AlbumResponse {
   files: UploadImageResponse[]
   id: number
   is_public: boolean
-  memberships: AccountResponse[]
+  memberships: {
+    is_redactor: boolean
+    member: number
+  }[]
   title: string
 }

@@ -20,8 +20,8 @@ const Home: FunctionComponent<HomeProps> = () => {
   const [longitude, setLongitude] = useState<number | undefined>(undefined)
   const [key, setKey] = useState(0)
   const [userImages, setUserImages] = useState<UploadImageResponse[]>([])
-  const handleRemoveImage = async (image: number) => {
-    await removeFile(image)
+  const handleRemoveImage = async (image: number, path: string) => {
+    await removeFile(image, path)
     setUserImages(prevImages => prevImages.filter(img => img.id !== image))
   }
   useEffect(() => {

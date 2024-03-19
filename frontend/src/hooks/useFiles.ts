@@ -5,7 +5,12 @@ import { AlbumResponse, UploadImageResponse } from '@/redux/types'
 import api from '@/utils/axios'
 import Compressor from 'compressorjs'
 import exifr from 'exifr'
-import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage'
+import {
+  deleteObject,
+  getDownloadURL,
+  ref,
+  uploadBytesResumable,
+} from 'firebase/storage'
 import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 export function useFiles(path: string[], title?: string) {
@@ -305,7 +310,6 @@ export function useFiles(path: string[], title?: string) {
         const snapshot = await uploadTask
         const url = await getDownloadURL(snapshot.ref)
         if (apiHrefRef.current === '/api/v1/files/') {
-          console.log(responseRef.current)
           return {
             name: file.name,
             author: currentUser?.id,
@@ -446,10 +450,11 @@ export function useFiles(path: string[], title?: string) {
   }, [files])
 
   // Remove file
-  const removeFile = async (id: number) => {
+  const removeFile = async (id: number, path: string) => {
     try {
       setLoading(true)
       const res = await api.delete(`/api/v1/files/${id}/`)
+      deleteObject(ref(imgStorage, path))
       setTimeout(() => {
         setLoading(false)
       }, 500)

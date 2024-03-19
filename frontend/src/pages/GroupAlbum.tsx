@@ -31,8 +31,9 @@ const GroupAlbum: FunctionComponent<GroupAlbumProps> = ({
   const handleRemoveImageFromAlbum = async (
     album: AlbumResponse,
     image: number,
+    path: string,
   ) => {
-    await removeImageFromAlbum(album, image)
+    await removeImageFromAlbum(album, image, path)
     setUserImages(prevImages => prevImages.filter(img => img.id !== image))
   }
   useEffect(() => {
