@@ -3,11 +3,11 @@ import { imgStorage } from '@/firebase/config'
 import { RootState } from '@/redux/store'
 import { AlbumResponse, UploadImageResponse } from '@/redux/types'
 import api from '@/utils/axios'
+import Compressor from 'compressorjs'
 import exifr from 'exifr'
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage'
 import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
-
 export function useFiles(path: string[], title?: string) {
   const [files, setFiles] = useState<File[]>([])
   const [uploadedImages, setUploadedImages] = useState<UploadImageResponse[]>(
@@ -17,7 +17,6 @@ export function useFiles(path: string[], title?: string) {
     { id: number; progress: number } | undefined
   >(undefined)
   const [loading, setLoading] = useState<boolean>(false)
-  const [preview, setPreview] = useState<string>('.')
   const latitude = useRef<number>(0)
   const longitude = useRef<number>(0)
   const multiUpload = useRef<UploadImageResponse[]>([])
@@ -34,6 +33,32 @@ export function useFiles(path: string[], title?: string) {
       apiHrefRef.current = `/api/v1/files/`
     }
   }
+
+  const compressImage = async (file: File): Promise<string> => {
+    return await new Promise((resolve, reject) => {
+      new Compressor(file, {
+        quality: 0.4,
+        success(result) {
+          const previewBlob = new Blob([result], { type: 'image/jpeg' })
+          const previewStorageRef = ref(
+            imgStorage,
+            `previews/${currentUser?.id}/${file.name}`,
+          )
+          const previewUploadTask = uploadBytesResumable(
+            previewStorageRef,
+            previewBlob,
+          )
+          previewUploadTask
+            .then(async () => {
+              const previewUrl = await getDownloadURL(previewStorageRef)
+              resolve(previewUrl)
+            })
+            .catch(reject)
+        },
+      })
+    })
+  }
+
   const uploadMultipleImages = async (files: File[]): Promise<void> => {
     setLoading(true)
     const uploadTasks = files.map(async file => {
@@ -42,51 +67,155 @@ export function useFiles(path: string[], title?: string) {
         imgStorage,
         `images/${currentUser?.id}/${file.name}`,
       )
-      if (VideoType.includes(file.type)) {
-        const video = document.createElement('video')
-        const url = URL.createObjectURL(file)
-        video.src = url
-        video.onloadeddata = async () => {
-          const canvas = document.createElement('canvas')
-          canvas.width = video.videoWidth
-          canvas.height = video.videoHeight
-          const ctx = canvas.getContext('2d')
 
-          if (ctx) {
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-            const previewUrl = canvas.toDataURL('image/jpeg')
-
-            const previewBlob = await fetch(previewUrl).then(res => res.blob())
-            const previewStorageRef = ref(
-              imgStorage,
-              `previews/${currentUser?.id}/${file.name}.jpeg`,
-            )
-            const previewUploadTask = uploadBytesResumable(
-              previewStorageRef,
-              previewBlob,
-            )
-
-            try {
-              await previewUploadTask
-              const previewUrl = await getDownloadURL(previewStorageRef)
-              setPreview(previewUrl)
-              // Здесь вы можете обработать URL превью-изображения, если необходимо
-            } catch (error) {
-              console.error('Error uploading preview:', error)
-            }
-          }
-        }
-      }
-      // take metadata from image
-      console.log(file)
+      // Get metadata
       const getMetadata = async (file: File) => {
         const exif = await exifr.parse(file)
         latitude.current = exif?.latitude || 0
         longitude.current = exif?.longitude || 0
         return latitude && longitude
       }
-      getMetadata(file).then(async () => {
-        console.log(latitude, longitude)
+      if (!VideoType.includes(file.type)) {
+        const preview = await compressImage(file)
+
+        getMetadata(file).then(async () => {
+          console.log('aaaaa', preview)
+          if (latitude.current !== 0 && longitude.current !== 0) {
+            await api
+              .post('/api/v1/files/', {
+                files: [
+                  {
+                    file: `images/${currentUser?.id}/${file.name}`,
+                    preview: preview,
+                    geodata: {
+                      latitude: latitude.current,
+                      longitude: longitude.current,
+                    },
+                  },
+                ],
+              })
+              .then(res => {
+                console.log(res.data)
+                res.data.forEach(
+                  (item: UploadImageResponse) => (responseRef.current = item),
+                )
+              })
+              .then(async () => {
+                if (apiHrefRef.current === `/api/v1/albums/${path[4]}/`) {
+                  await api
+                    .post(
+                      `/api/v1/albums/${path[4]}/files/${responseRef.current?.id}/`,
+                      {
+                        files: [
+                          {
+                            file: `albums/${currentUser?.id}/${title}/${file.name}`,
+                            preview: preview,
+                          },
+                        ],
+                      },
+                    )
+                    .then(res => {
+                      AlbumResponse.current = res.data
+                    })
+                }
+              })
+          } else {
+            await api
+              .post('/api/v1/files/', {
+                files: [
+                  {
+                    file: `images/${currentUser?.id}/${file.name}`,
+                    preview: preview,
+                  },
+                ],
+              })
+              .then(res => {
+                res.data.forEach(
+                  (item: UploadImageResponse) => (responseRef.current = item),
+                )
+              })
+              .then(async () => {
+                if (apiHrefRef.current === `/api/v1/albums/${path[4]}/`) {
+                  await api
+                    .post(
+                      `/api/v1/albums/${path[4]}/files/${responseRef.current?.id}/`,
+                      {
+                        files: [
+                          {
+                            file: `albums/${currentUser?.id}/${title}/${file.name}`,
+                            preview: preview,
+                          },
+                        ],
+                      },
+                    )
+                    .then(res => {
+                      AlbumResponse.current = res.data
+                    })
+                }
+              })
+          }
+        })
+
+        const uploadTask = uploadBytesResumable(storageRef, file)
+        uploadTask.on('state_changed', snapshot => {
+          const progress = Math.round(
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100,
+          )
+          setUploadProgress({
+            id: responseRef.current?.id as number,
+            progress: progress,
+          })
+        })
+
+        const snapshot = await uploadTask
+        const url = await getDownloadURL(snapshot.ref)
+        if (apiHrefRef.current === '/api/v1/files/') {
+          console.log(responseRef.current)
+          return {
+            name: file.name,
+            author: currentUser?.id,
+            created_at: responseRef.current?.created_at
+              ? new Date(responseRef.current.created_at)
+              : undefined,
+            file: responseRef.current?.file,
+            geoData: {
+              latitude: latitude.current,
+              longitude: longitude.current,
+            },
+            id: responseRef.current?.id,
+            url: url,
+            preview: preview,
+          }
+        } else if (apiHrefRef.current === `/api/v1/albums/${path[4]}/`) {
+          return {
+            title: AlbumResponse.current?.title,
+            author: AlbumResponse.current?.author,
+            created_at: AlbumResponse.current?.created_at
+              ? new Date(AlbumResponse.current.created_at)
+              : undefined,
+            id: AlbumResponse.current?.id,
+            memberships: AlbumResponse.current?.memberships,
+            files: [
+              {
+                name: file.name,
+                author: currentUser?.id,
+                created_at: responseRef.current?.created_at
+                  ? new Date(responseRef.current.created_at)
+                  : undefined,
+                file: responseRef.current?.file,
+                geoData: {
+                  latitude: latitude.current,
+                  longitude: longitude.current,
+                },
+                id: responseRef.current?.id,
+                url: url,
+                preview: preview,
+              },
+            ],
+          }
+        }
+      } else {
+        const preview = '/video-placeholder.webp'
         if (latitude.current !== 0 && longitude.current !== 0) {
           await api
             .post('/api/v1/files/', {
@@ -161,64 +290,64 @@ export function useFiles(path: string[], title?: string) {
               }
             })
         }
-      })
 
-      const uploadTask = uploadBytesResumable(storageRef, file)
-      uploadTask.on('state_changed', snapshot => {
-        const progress = Math.round(
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100,
-        )
-        setUploadProgress({
-          id: responseRef.current?.id as number,
-          progress: progress,
+        const uploadTask = uploadBytesResumable(storageRef, file)
+        uploadTask.on('state_changed', snapshot => {
+          const progress = Math.round(
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100,
+          )
+          setUploadProgress({
+            id: responseRef.current?.id as number,
+            progress: progress,
+          })
         })
-      })
 
-      const snapshot = await uploadTask
-      const url = await getDownloadURL(snapshot.ref)
-      if (apiHrefRef.current === '/api/v1/files/') {
-        console.log(responseRef.current)
-        return {
-          name: file.name,
-          author: currentUser?.id,
-          created_at: responseRef.current?.created_at
-            ? new Date(responseRef.current.created_at)
-            : undefined,
-          file: responseRef.current?.file,
-          geoData: {
-            latitude: latitude.current,
-            longitude: longitude.current,
-          },
-          id: responseRef.current?.id,
-          url: url,
-          preview: preview,
-        }
-      } else if (apiHrefRef.current === `/api/v1/albums/${path[4]}/`) {
-        return {
-          title: AlbumResponse.current?.title,
-          author: AlbumResponse.current?.author,
-          created_at: AlbumResponse.current?.created_at
-            ? new Date(AlbumResponse.current.created_at)
-            : undefined,
-          id: AlbumResponse.current?.id,
-          memberships: AlbumResponse.current?.memberships,
-          files: [
-            {
-              name: file.name,
-              author: currentUser?.id,
-              created_at: responseRef.current?.created_at
-                ? new Date(responseRef.current.created_at)
-                : undefined,
-              file: responseRef.current?.file,
-              geoData: {
-                latitude: latitude.current,
-                longitude: longitude.current,
-              },
-              id: responseRef.current?.id,
-              url: url,
-              preview: preview,
+        const snapshot = await uploadTask
+        const url = await getDownloadURL(snapshot.ref)
+        if (apiHrefRef.current === '/api/v1/files/') {
+          console.log(responseRef.current)
+          return {
+            name: file.name,
+            author: currentUser?.id,
+            created_at: responseRef.current?.created_at
+              ? new Date(responseRef.current.created_at)
+              : undefined,
+            file: responseRef.current?.file,
+            geoData: {
+              latitude: latitude.current,
+              longitude: longitude.current,
             },
-          ],
+            id: responseRef.current?.id,
+            url: url,
+            preview: preview,
+          }
+        } else if (apiHrefRef.current === `/api/v1/albums/${path[4]}/`) {
+          return {
+            title: AlbumResponse.current?.title,
+            author: AlbumResponse.current?.author,
+            created_at: AlbumResponse.current?.created_at
+              ? new Date(AlbumResponse.current.created_at)
+              : undefined,
+            id: AlbumResponse.current?.id,
+            memberships: AlbumResponse.current?.memberships,
+            files: [
+              {
+                name: file.name,
+                author: currentUser?.id,
+                created_at: responseRef.current?.created_at
+                  ? new Date(responseRef.current.created_at)
+                  : undefined,
+                file: responseRef.current?.file,
+                geoData: {
+                  latitude: latitude.current,
+                  longitude: longitude.current,
+                },
+                id: responseRef.current?.id,
+                url: url,
+                preview: preview,
+              },
+            ],
+          }
         }
       }
     })

@@ -26,6 +26,7 @@
     "axios": "^1.6.7",
     "axios-auth-refresh": "^3.3.6",
     "canvas": "^2.11.2",
+    "compressorjs": "^1.2.1",
     "context-filter-polyfill": "^0.3.13",
     "dayjs": "^1.11.10",
     "embla-carousel-react": "^8.0.0-rc22",

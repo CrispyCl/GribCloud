@@ -1,6 +1,5 @@
 import ContextMenu from '@/components/ContextMenu/ContextMenu'
 import Fancybox from '@/components/LightGallery/Fancybox'
-import { VideoType } from '@/constants'
 import { useFiles } from '@/hooks/useFiles'
 import { RootState } from '@/redux/store'
 import {
@@ -242,34 +241,15 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
                         href={image.url}
                         onContextMenu={e => handleContextMenu(e, image)}
                       >
-                        {image.name &&
-                        VideoType.includes(
-                          ('video/' + image.name.split('.').pop()) as string,
-                        ) ? (
-                          <>
-                            <img
-                              loading='lazy'
-                              id={image.name}
-                              className={`${check.find(item => item.id === image.id)?.checked === true ? 'scale-95' : ''} h-full w-full transform rounded-lg object-cover transition-transform sm:h-80`}
-                              src={image.preview}
-                            />
-                            <div
-                              className={`${check.find(item => item.id === image.id)?.checked === true ? 'scale-95' : ''} group-hover:bg-fade-top absolute inset-0 transform rounded-lg transition-all duration-300`}
-                            ></div>
-                          </>
-                        ) : (
-                          <>
-                            <img
-                              loading='lazy'
-                              id={image.name}
-                              className={`${check.find(item => item.id === image.id)?.checked === true ? 'scale-95' : ''} h-full w-full transform rounded-lg object-cover transition-transform sm:h-80`}
-                              src={image.url}
-                            />
-                            <div
-                              className={`${check.find(item => item.id === image.id)?.checked === true ? 'scale-95' : ''} group-hover:bg-fade-top absolute inset-0 transform rounded-lg transition-all duration-300`}
-                            ></div>
-                          </>
-                        )}
+                        <img
+                          loading='lazy'
+                          id={image.name}
+                          className={`${check.find(item => item.id === image.id)?.checked === true ? 'scale-95' : ''} h-full w-full transform rounded-lg object-cover transition-transform sm:h-80`}
+                          src={image.preview}
+                        />
+                        <div
+                          className={`${check.find(item => item.id === image.id)?.checked === true ? 'scale-95' : ''} absolute inset-0 transform rounded-lg transition-all duration-300 group-hover:bg-fade-top`}
+                        ></div>
                       </a>
                       <Checkbox
                         className={`${check.find(item => item.id === image.id)?.checked === true ? 'left-3 top-3 block' : 'hidden'} absolute left-1 top-1 transform bg-transparent transition-transform group-hover:block`}
