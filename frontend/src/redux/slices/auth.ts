@@ -1,16 +1,18 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AccountResponse } from '../types'
 
-type State = {
+type AuthState = {
   token: string | null
   refreshToken: string | null
   account: AccountResponse | null
+  avatar: string | undefined
 }
 
-const initialState: State = {
-  token: null,
-  refreshToken: null,
+const initialState: AuthState = {
+  token: localStorage.getItem('token') || null,
+  refreshToken: localStorage.getItem('refreshToken') || null,
   account: null,
+  avatar: undefined,
 }
 
 const authSlice = createSlice({
@@ -18,21 +20,29 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setAuthTokens: (
-      state: State,
-      action: PayloadAction<{ token: string; refreshToken: string }>,
+      state,
+      action: PayloadAction<{
+        token: string | null
+        refreshToken: string | null
+      }>,
     ) => {
       state.refreshToken = action.payload.refreshToken
       state.token = action.payload.token
     },
-    setAccount: (state: State, action: PayloadAction<AccountResponse>) => {
+    setAccount: (state, action: PayloadAction<AccountResponse>) => {
       state.account = action.payload
     },
-    setLogout: (state: State) => {
+    setAvatarUrl: (state, action: PayloadAction<{ avatar: string }>) => {
+      state.avatar = action.payload.avatar
+    },
+    setLogout: state => {
+      localStorage.clear()
       state.account = null
       state.refreshToken = null
       state.token = null
+      state.avatar = undefined
     },
   },
 })
 
-export default authSlice
+export const { actions, reducer } = authSlice

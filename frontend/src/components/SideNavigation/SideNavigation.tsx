@@ -7,23 +7,29 @@ interface SideNavigationProps {}
 
 const SideNavigation: FunctionComponent<SideNavigationProps> = () => {
   return (
-    <aside className='flex h-auto flex-col border-r border-gray-100 pt-2'>
+    <aside className='hidden h-auto flex-col border-r border-gray-100 pt-2 md:flex'>
       <div className='px-4 pb-3 pt-1'>
         {TopLinks.map(link => {
           return (
             <NavLink
-              to={`${link.route}`}
+              to={link.route}
               key={link.name}
               style={{ display: 'block', marginBottom: '0.75rem' }}
               className={({ isActive }) =>
                 [isActive ? 'activeLink' : 'sideLink'].join(' ')
               }
             >
-              <Button className=' flex w-52 p-2 text-black'>
-                <span className='flex items-center gap-3'>
+              <Button
+                variant='default'
+                justify='space-between'
+                leftSection={
                   <img src={link.icon} alt='folderIcon' className='h-5 w-5' />
-                  {link.name}
-                </span>
+                }
+                rightSection={<span />}
+                fullWidth
+                className='flex w-52 border-none p-2 text-black'
+              >
+                {link.name}
               </Button>
             </NavLink>
           )
@@ -39,11 +45,17 @@ const SideNavigation: FunctionComponent<SideNavigationProps> = () => {
                 [isActive ? 'activeLink' : 'sideLink'].join(' ')
               }
             >
-              <Button className=' flex w-52 p-2 text-black'>
-                <span className='flex items-center gap-3'>
+              <Button
+                variant='default'
+                justify='space-between'
+                leftSection={
                   <img src={link.icon} alt='folderIcon' className='h-5 w-5' />
-                  {link.name}
-                </span>
+                }
+                rightSection={<span />}
+                fullWidth
+                className='flex w-52 border-none p-2 text-black'
+              >
+                {link.name}
               </Button>
             </NavLink>
           )

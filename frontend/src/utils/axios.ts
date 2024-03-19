@@ -15,24 +15,39 @@ api.interceptors.response.use(
   async error => {
     const originalRequest = error.config
 
+    // if (error.response) {
+    //   const errorCode = error.response.status
+    //   const errorMessage = error.response.data.message || 'Unknown error'
+    //   console.error('Error details:')
+    //   console.error(error)
+    //   console.error('Error code:', errorCode)
+    //   console.error('Error message:', errorMessage)
+    //   console.error('Error detail', error.response.data.detail)
+    // }
+
     if (error.response.status === 401 && !originalRequest._retry) {
-      const refreshToken = localStorage.getItem('refreshToken')
+      if (
+        error.response.data.detail === 'Токен недействителен или просрочен' ||
+        error.response.data.detail === 'Token is invalid or expired'
+      ) {
+        localStorage.clear()
+        window.location.href = '/singin'
+      } else {
+        originalRequest._retry = true
 
-      try {
-        const response = await api.post('/api/v1/token/refresh', {
-          refreshToken,
-        })
+        const refresh = localStorage.getItem('refreshToken')
 
-        const newAccessToken = response.data.token
+        try {
+          const response = await api.post('/api/v1/token/refresh/', { refresh })
+          const newAccessToken = response.data.access
 
-        originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`
+          localStorage.setItem('token', newAccessToken)
+          originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`
 
-        return api(originalRequest)
-      } catch (refreshError) {
-        return Promise.reject(refreshError)
+          return api(originalRequest)
+        } catch (refreshError) {}
       }
     }
-    return Promise.reject(error)
   },
 )
 
@@ -45,9 +60,7 @@ api.interceptors.request.use(
     }
     return config
   },
-  error => {
-    return Promise.reject(error)
-  },
+  error => Promise.reject(error),
 )
 
 export default api

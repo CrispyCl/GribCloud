@@ -1,7 +1,7 @@
 export const TopLinks = [
   {
     name: 'Все файлы',
-    route: '/',
+    route: '/all',
     icon: '/svg/FolderOpen.svg',
   },
   {
@@ -18,7 +18,7 @@ export const TopLinks = [
 
 export const BottomLinks = [
   {
-    name: 'Альбомы',
+    name: 'Мои альбомы',
     route: '/albums',
     icon: '/svg/Photo.svg',
   },
@@ -32,4 +32,35 @@ export const BottomLinks = [
     route: '/trash',
     icon: '/svg/Trash.svg',
   },
+]
+
+export const VideoType = ['video/mp4', 'video/mov', 'video/webm']
+
+export const ImageType = [
+  'png',
+  'jpg',
+  'jpeg',
+  'raw',
+  'bmp',
+  'gif',
+  'webp',
+  'svg',
+  'ico',
+  'jfif',
+]
+
+export const uploadAccept = [
+  'video/mp4',
+  'video/mov',
+  'video/webm',
+  'image/png',
+  'image/jpg',
+  'image/jpeg',
+  'image/raw',
+  'image/bmp',
+  'image/gif',
+  'image/webp',
+  'image/svg',
+  'image/ico',
+  'image/jfif',
 ]

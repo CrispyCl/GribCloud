@@ -1,39 +1,36 @@
 import { useAvatar } from '@/hooks/useAvatar'
+import { actions } from '@/redux/slices/auth'
+import { RootState, useAppDispatch } from '@/redux/store'
+import { EditAccountResponse } from '@/redux/types'
+import api from '@/utils/axios'
 import {
   Avatar,
   Button,
   FileButton,
   Group,
-  Menu,
+  LoadingOverlay,
   Modal,
   PasswordInput,
   SimpleGrid,
-  Text,
   TextInput,
-  UnstyledButton,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useDisclosure, useMediaQuery } from '@mantine/hooks'
-import authSlice from '@store/slices/auth'
-import { RootState, useAppDispatch } from '@store/store'
-import { EditAccountResponse } from '@store/types'
-import axios from 'axios'
+import { useState } from 'react'
 import { useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
 
-export const UserModalButton = () => {
-  let user = useSelector((state: RootState) => state.auth.account)
-  const token = useSelector((state: RootState) => state.auth.token)
+export default function ModalUserEdit() {
+  const currentUser = useSelector((state: RootState) => state.auth.account)
   const dispatch = useAppDispatch()
-  const navigate = useNavigate()
   const [opened, { open, close }] = useDisclosure(false)
-  const { avatar, setFile } = useAvatar()
-
-  const isMobile = useMediaQuery('(max-width: 50em)')
+  const isMobile = useMediaQuery('(max-width: 768px)')
+  const { loading, avatar, setFile } = useAvatar(undefined)
+  const [updating, setUpdating] = useState<boolean>(false)
+  const isUpdating = loading || updating
 
   const initialValues = {
-    username: user?.username || '',
-    email: user?.email || '',
+    username: currentUser?.username || '',
+    email: currentUser?.email || '',
     newPassword: '',
     newPasswordConfirm: '',
     oldPassword: '',
@@ -51,114 +48,86 @@ export const UserModalButton = () => {
 
   const closeModal = () => {
     close()
-    setTimeout(() => {
-      form.reset()
-    }, 1000)
-    form.reset()
+    form.setInitialValues(initialValues)
+    form.setFieldValue('oldPassword', '')
   }
 
-  const handleLogout = () => {
-    dispatch(authSlice.actions.setLogout())
-    navigate('/singin')
-  }
-  const handleUpdate = (
+  const handleUpdate = async (
     username: string,
     email: string,
     password: string,
-    password1: string,
-    password2: string,
+    new_password: string,
+    new_password_confirm: string,
   ) => {
-    if ((password1 && password2) === '') {
-      axios
-        .put(
-          `/api/v1/user/${user?.id}/`,
-          {
-            username,
-            email,
-            password,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        )
+    setUpdating(true)
+    if (new_password === '' && new_password_confirm === '') {
+      await api
+        .put(`/api/v1/user/${currentUser?.id}/`, { username, email, password })
         .then(res => {
-          dispatch(authSlice.actions.setAccount(res.data))
+          dispatch(actions.setAccount(res.data))
+          setUpdating(false)
           closeModal()
         })
         .catch(err => {
+          setUpdating(false)
           console.log(err)
         })
     } else if (
-      (password1 && password2) !== '' &&
-      password1 === password2 &&
-      email === user?.email &&
-      username === user?.username
+      new_password !== '' &&
+      new_password === new_password_confirm &&
+      email === currentUser?.email &&
+      username === currentUser?.username
     ) {
-      const old_password = password
-      axios
-        .post(
-          '/api/v1/user/change_password/',
-          {
-            old_password,
-            password1,
-            password2,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        )
+      await api
+        .post('/api/v1/user/change_password/', {
+          password,
+          new_password,
+          new_password_confirm,
+        })
         .then(() => {
+          dispatch(
+            actions.setAuthTokens({
+              token: localStorage.getItem('token'),
+              refreshToken: localStorage.getItem('refreshToken'),
+            }),
+          )
+          setUpdating(false)
           closeModal()
         })
         .catch(err => {
+          setUpdating(false)
           console.log(err)
         })
     } else {
       const old_password = password
-      axios
-        .put(
-          `/api/v1/user/${user?.id}/`,
-          {
-            username,
-            email,
-            password,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        )
+      await api
+        .put(`/api/v1/user/${currentUser?.id}/`, { username, email, password })
         .then(res => {
-          dispatch(authSlice.actions.setAccount(res.data))
+          dispatch(actions.setAccount(res.data))
+          dispatch(
+            actions.setAuthTokens({
+              token: localStorage.getItem('token'),
+              refreshToken: localStorage.getItem('refreshToken'),
+            }),
+          )
+          return api.post('/api/v1/user/change_password/', {
+            old_password,
+            new_password,
+            new_password_confirm,
+          })
         })
         .then(() => {
-          axios
-            .post(
-              'api/v1/user/change_password/',
-              {
-                old_password,
-                password1,
-                password2,
-              },
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                },
-              },
-            )
-            .then(() => {
-              closeModal()
-            })
-            .catch(err => {
-              console.log(err)
-            })
+          dispatch(
+            actions.setAuthTokens({
+              token: localStorage.getItem('token'),
+              refreshToken: localStorage.getItem('refreshToken'),
+            }),
+          )
+          setUpdating(false)
+          closeModal()
         })
         .catch(err => {
+          setUpdating(false)
           console.log(err)
         })
     }
@@ -166,35 +135,6 @@ export const UserModalButton = () => {
 
   return (
     <>
-      <Menu shadow='sm' width={200}>
-        <Menu.Target>
-          <UnstyledButton>
-            <Group>
-              <Avatar src={avatar} variant='transparent' />
-              <div style={{ flex: 1 }}>
-                <Text size='sm' fw={500}>
-                  {user?.username}
-                </Text>
-
-                <Text c='dimmed' size='xs'>
-                  {user?.email}
-                </Text>
-              </div>
-            </Group>
-          </UnstyledButton>
-        </Menu.Target>
-
-        <Menu.Dropdown>
-          <Menu.Label>Application</Menu.Label>
-          <Menu.Item onClick={open}>Settings</Menu.Item>
-          <Menu.Divider />
-
-          <Menu.Label>Danger zone</Menu.Label>
-          <Menu.Item color='red' onClick={handleLogout}>
-            Выйти
-          </Menu.Item>
-        </Menu.Dropdown>
-      </Menu>
       <Modal
         opened={opened}
         onClose={closeModal}
@@ -202,8 +142,19 @@ export const UserModalButton = () => {
         centered
         fullScreen={isMobile}
         size={'xl'}
+        overlayProps={{
+          backgroundOpacity: 0.55,
+          blur: 3,
+        }}
       >
-        <form className='flex flex-row items-start justify-between gap-5'>
+        {isUpdating && (
+          <LoadingOverlay
+            visible={updating || loading}
+            zIndex={1000}
+            overlayProps={{ radius: 'sm', blur: 2 }}
+          />
+        )}
+        <div className='flex flex-col items-center justify-center gap-5 md:flex-row md:items-start md:justify-between'>
           <FileButton onChange={setFile}>
             {props => (
               <Avatar
@@ -223,7 +174,7 @@ export const UserModalButton = () => {
                 }
                 error={form.errors.username && 'Такое имя уже занято'}
                 label='Ваш логин'
-                placeholder={user?.username}
+                placeholder={currentUser?.username}
               />
               <TextInput
                 value={form.values.email}
@@ -232,7 +183,7 @@ export const UserModalButton = () => {
                 }
                 error={form.errors.email && 'Такая почта уже занята'}
                 label='Ваша почта'
-                placeholder={user?.email}
+                placeholder={currentUser?.email}
               />
             </SimpleGrid>
 
@@ -299,8 +250,15 @@ export const UserModalButton = () => {
               </Button>
             </Group>
           </div>
-        </form>
+        </div>
       </Modal>
+      <Button
+        onClick={open}
+        variant='outline'
+        className='my-5 border px-5 py-2 text-sm font-semibold'
+      >
+        Изменить данные
+      </Button>
     </>
   )
 }

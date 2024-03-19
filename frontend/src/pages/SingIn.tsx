@@ -3,14 +3,15 @@ import {
   Anchor,
   Button,
   Group,
+  LoadingOverlay,
   PasswordInput,
   Stack,
   TextInput,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import authSlice from '@store/slices/auth'
+import { actions } from '@store/slices/auth'
 import { useAppDispatch } from '@store/store'
-import { useState } from 'react'
+import { FunctionComponent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 interface IFormSingIn {
@@ -18,9 +19,13 @@ interface IFormSingIn {
   password: string
 }
 
-const SingIn = () => {
+interface SingInProps {
+  loading: boolean
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+const SingIn: FunctionComponent<SingInProps> = ({ loading, setLoading }) => {
   const navigate = useNavigate()
-  const [loading, setLoading] = useState<boolean>(false)
   const [message, setMessage] = useState<string>('')
   const dispatch = useAppDispatch()
 
@@ -37,13 +42,14 @@ const SingIn = () => {
   })
   const handleLogin = async (username: string, password: string) => {
     try {
+      setLoading(true)
       api
         .post('/api/v1/token/', { username, password })
         .then(res => {
           localStorage.setItem('token', res.data.access)
           localStorage.setItem('refreshToken', res.data.refresh)
           dispatch(
-            authSlice.actions.setAuthTokens({
+            actions.setAuthTokens({
               token: res.data.access,
               refreshToken: res.data.ref,
             }),
@@ -51,10 +57,14 @@ const SingIn = () => {
         })
         .then(() => {
           api.get('/api/v1/user/my/').then(res => {
-            dispatch(authSlice.actions.setAccount(res.data))
+            dispatch(actions.setAccount(res.data))
             setLoading(false)
-            navigate('/')
+            navigate('/all')
           })
+        })
+        .catch(err => {
+          setMessage((err as Error).message)
+          setLoading(false)
         })
     } catch (err) {
       setMessage((err as Error).message)
@@ -70,6 +80,11 @@ const SingIn = () => {
       </div>
 
       <div className=' sm:w-full sm:max-w-md sm:space-y-8'>
+        <LoadingOverlay
+          visible={loading}
+          zIndex={1000}
+          overlayProps={{ radius: 'sm', blur: 2 }}
+        />
         <div className='overflow-hidden rounded-lg bg-white shadow-lg'>
           <div className='my-8 max-sm:mx-5 sm:mx-auto sm:w-full sm:max-w-sm'>
             <div className='space-y-6'>

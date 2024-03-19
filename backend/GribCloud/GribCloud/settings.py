@@ -101,6 +101,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = [
+    "user.backends.AuthenticationBackend",
+]
+
 
 # Internationalization
 

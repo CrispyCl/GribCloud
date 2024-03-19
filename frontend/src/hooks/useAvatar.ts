@@ -1,34 +1,74 @@
 import { imgStorage } from '@/firebase/config'
+import { actions } from '@/redux/slices/auth'
 import { RootState } from '@/redux/store'
+import { UserResponse } from '@/redux/types'
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage'
 import { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
-export function useAvatar() {
-  const user = useSelector((state: RootState) => state.auth.account)
-  const [avatar, setAvatar] = useState<string | undefined>(user?.avatar)
+interface useAvatarProps {
+  user?: UserResponse
+}
+
+export function useAvatar(user: useAvatarProps['user']) {
+  const currentUser = useSelector((state: RootState) => state.auth.account)
+  const avatar = useSelector((state: RootState) => state.auth.avatar)
+  const dispatch = useDispatch()
   const [file, setFile] = useState<File | null>(null)
+  const [loading, setLoading] = useState<boolean>(false)
+  const [userAvatar, setUserAvatar] = useState<string | null>(null)
 
   const uploadAvatar = async (file: File | null) => {
     if (file) {
-      const storageRef = ref(imgStorage, `avatars/${user?.id}`)
+      setLoading(true)
+      const storageRef = ref(imgStorage, `avatars/${currentUser?.id}`)
       const uploadTask = uploadBytesResumable(storageRef, file)
+
       return uploadTask
         .then(() => getDownloadURL(storageRef))
         .then(url => {
           if (typeof url === 'string') {
-            setAvatar(url)
+            dispatch(actions.setAvatarUrl({ avatar: url }))
+            setLoading(false)
           }
+        })
+        .catch(error => {
+          console.error('Failed to upload avatar:', error)
+          setLoading(false)
         })
     }
   }
+
   useEffect(() => {
     const fetchExistingAvatar = async () => {
-      const url = await getDownloadURL(ref(imgStorage, `avatars/${user?.id}`))
-      setAvatar(url)
+      setLoading(true)
+      await getDownloadURL(ref(imgStorage, `avatars/${currentUser?.id}`))
+        .then(url => {
+          setLoading(false)
+          dispatch(actions.setAvatarUrl({ avatar: url }))
+        })
+        .catch(err => {
+          setLoading(false)
+        })
     }
-    fetchExistingAvatar()
+
     uploadAvatar(file)
+
+    if (user) {
+      setLoading(true)
+      getDownloadURL(ref(imgStorage, `avatars/${user?.id}`))
+        .then(url => {
+          setUserAvatar(url)
+          setLoading(false)
+        })
+        .catch(error => {
+          console.error('Failed to fetch user avatar:', error)
+          setLoading(false)
+        })
+    }
+
+    fetchExistingAvatar()
   }, [file])
-  return { avatar, setFile }
+
+  return { loading, avatar, userAvatar, setFile }
 }
