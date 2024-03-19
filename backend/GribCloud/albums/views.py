@@ -14,9 +14,15 @@ from user.models import User
 from user.serializers import UserSerializer
 
 
-class AlbumsPublicAPIView(generics.ListAPIView):
-    queryset = Album.objects.public()
+class AlbumsAPIView(generics.ListAPIView):
     serializer_class = AlbumSerializer
+
+    def get_queryset(self):
+        available_params = ["is_public", "author", "author__email", "author__username"]
+
+        params = list(filter(lambda param: param[0] in available_params, self.request.query_params.items()))
+
+        return Album.objects.by_user(self.request.user).filter(*params)
 
 
 class AlbumsMyAPIView(generics.ListCreateAPIView):

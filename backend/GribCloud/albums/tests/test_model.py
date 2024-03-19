@@ -1,3 +1,5 @@
+from django.contrib.auth.models import AnonymousUser
+from django.db import models
 from django.test import TestCase
 
 from albums.models import Album, AlbumMembership
@@ -38,6 +40,23 @@ class AlbumModelTestCase(TestCase):
         member = User.objects.get(username="memberuser")
         albums_by_member = list(Album.objects.by_member(member).all())
         self.assertEqual(albums_by_member, list(member.albums.all()))
+
+    def test_manager_method_by_user(self):
+        user = User.objects.get(username="authoruser")
+        albums_by_user = list(Album.objects.by_user(user).all())
+        self.assertEqual(
+            albums_by_user,
+            list(
+                Album.objects.filter(
+                    models.Q(author=user) | models.Q(membership__member=user) | models.Q(is_public=True),
+                ).all(),
+            ),
+        )
+
+    def test_manager_method_by_user_unauthorized(self):
+        user = AnonymousUser()
+        albums_by_user = list(Album.objects.by_user(user).all())
+        self.assertEqual(albums_by_user, list(Album.objects.public().all()))
 
     def test_method_is_member(self):
         user = User.objects.get(username="admin")
