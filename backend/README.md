@@ -113,7 +113,7 @@ venv\Scripts\activate
 ## Установите зависимостей
 
 ```bash
-pip install -r requirements/prod.txt
+pip install -r requirements/fast_app.txt
 ```
 
 ## Создайте в корневой папке файл ".env"
@@ -138,11 +138,11 @@ copy .env.template .env
 ## Перейдите в папку проекта
 
 ```bash
-cd GribCloud
+cd GribCloud/GribTags
 ```
 
 ## Запустите сервер
 
 ```bash
-python manage.py start_fastapi
+python server.py
 ```

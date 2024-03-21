@@ -1,2 +1,6 @@
+aiohttp==3.9.3
 fastapi==0.110.0
+python-dotenv==1.0.1
+torch==2.2.1
+torchvision==0.17.1
 uvicorn==0.29.0
