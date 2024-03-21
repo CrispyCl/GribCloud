@@ -4,3 +4,5 @@ django-debug-toolbar==4.3.0
 djangorestframework==3.14.0
 djangorestframework-simplejwt==5.3.1
 python-dotenv==1.0.1
+
+-r fast_app.txt
