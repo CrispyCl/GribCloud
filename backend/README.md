@@ -138,7 +138,7 @@ copy .env.template .env
 ## Перейдите в папку проекта
 
 ```bash
-cd GribCloud/GribTags
+cd GribTags
 ```
 
 ## Запустите сервер

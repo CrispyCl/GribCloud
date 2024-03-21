@@ -3,7 +3,7 @@ import sys
 
 
 def start_fastapi():
-    os.system("python GribTags/server.py")
+    os.system("python ../GribTags/server.py")
 
 
 def main():
