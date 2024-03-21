@@ -53,7 +53,7 @@ const ModalSettingAlbum: FunctionComponent<ModalSettingAlbumProps> = ({
     useDisclosure(false)
   const isMobile = useMediaQuery('(max-width: 768px)')
   const {
-    loading,
+    albumLoading,
     editAlbum,
     removeAlbum,
     addMemberToAlbum,
@@ -70,7 +70,7 @@ const ModalSettingAlbum: FunctionComponent<ModalSettingAlbumProps> = ({
   const [isRedactor, setIsRedactor] = useState<boolean>(false)
   const [loadingState, setLoadingState] = useState<boolean>(false)
   const currentUser = useSelector((state: RootState) => state.auth.account)
-  const loadingAll = loadingState || loading
+  const loadingAll = loadingState || albumLoading
   const navigate = useNavigate()
 
   const form = useForm({
@@ -143,12 +143,14 @@ const ModalSettingAlbum: FunctionComponent<ModalSettingAlbumProps> = ({
   }
 
   useEffect(() => {
-    fetchUsersInAlbum(album?.id).then((res: any) => {
-      setUsers(res)
-      res.forEach((user: UserResponse) => {
-        setMembersName(prev => [...prev, user.username])
+    if (album) {
+      fetchUsersInAlbum(album.id).then((res: any) => {
+        setUsers(res)
+        res.forEach((user: UserResponse) => {
+          setMembersName(prev => [...prev, user.username])
+        })
       })
-    })
+    }
   }, [album])
 
   useEffect(() => {
@@ -234,7 +236,7 @@ const ModalSettingAlbum: FunctionComponent<ModalSettingAlbumProps> = ({
       }}
     >
       <LoadingOverlay
-        visible={loading}
+        visible={loadingAll}
         zIndex={1000}
         overlayProps={{ radius: 'sm', blur: 2 }}
       />
@@ -368,7 +370,7 @@ const ModalSettingAlbum: FunctionComponent<ModalSettingAlbumProps> = ({
         }}
       >
         <LoadingOverlay
-          visible={loading}
+          visible={loadingAll}
           zIndex={1000}
           overlayProps={{ radius: 'sm', blur: 2 }}
         />
@@ -430,7 +432,7 @@ const ModalSettingAlbum: FunctionComponent<ModalSettingAlbumProps> = ({
         }}
       >
         <LoadingOverlay
-          visible={loading}
+          visible={loadingAll}
           zIndex={1000}
           overlayProps={{ radius: 'sm', blur: 2 }}
         />
@@ -445,7 +447,7 @@ const ModalSettingAlbum: FunctionComponent<ModalSettingAlbumProps> = ({
               leftSection={<TrashIcon className='h-5 w-5' />}
               onClick={() => {
                 removeAlbum(album)
-                if (!loading) {
+                if (!loadingAll) {
                   navigate('/albums')
                 }
               }}

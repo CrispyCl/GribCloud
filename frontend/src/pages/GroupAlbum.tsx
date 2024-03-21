@@ -1,5 +1,6 @@
 import Body from '@/components/Body/Body'
 import ImagesRender from '@/components/ImagesRednder/ImagesRender'
+import ModalAddTag from '@/components/Modal/ModalAddTag'
 import ModalImageEdit from '@/components/Modal/ModalImageEdit'
 import ModalMap from '@/components/Modal/ModalMap'
 import useAlbums from '@/hooks/useAlbums'
@@ -23,6 +24,9 @@ const GroupAlbum: FunctionComponent<GroupAlbumProps> = ({
   const [name, setName] = useState<string | undefined>(undefined)
   const [opened, { open, close }] = useDisclosure(false)
   const [openedMap, { open: openMap, close: closeMap }] = useDisclosure(false)
+  const [addTagOpened, { open: addTagOpen, close: addTagClose }] =
+    useDisclosure(false)
+  const [addTagId, setAddTagId] = useState<number | undefined>()
   const [latitude, setLatitude] = useState<number | undefined>(undefined)
   const [longitude, setLongitude] = useState<number | undefined>(undefined)
   const [key, setKey] = useState(0)
@@ -44,6 +48,8 @@ const GroupAlbum: FunctionComponent<GroupAlbumProps> = ({
   return (
     <Body key={key} loading={loading}>
       <ImagesRender
+        addTagOpen={addTagOpen}
+        setAddTagId={setAddTagId}
         handleRemoveImageFromAlbum={handleRemoveImageFromAlbum}
         album={currentPublicAlbum}
         openMap={openMap}
@@ -71,6 +77,13 @@ const GroupAlbum: FunctionComponent<GroupAlbumProps> = ({
           closeMap={closeMap}
           latitude={latitude}
           longitude={longitude}
+        />
+      )}
+      {addTagId && (
+        <ModalAddTag
+          addTagClose={addTagClose}
+          addTagOpened={addTagOpened}
+          id={addTagId}
         />
       )}
     </Body>

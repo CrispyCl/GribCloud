@@ -7,10 +7,12 @@ interface Fancybox {
   children: React.ReactNode
   open: () => void
   openMap: () => void
+  addTagOpen: () => void
   setUrl?: React.Dispatch<React.SetStateAction<string | undefined>>
   setName?: React.Dispatch<React.SetStateAction<string | undefined>>
   setLatitude?: React.Dispatch<React.SetStateAction<number | undefined>>
   setLongitude?: React.Dispatch<React.SetStateAction<number | undefined>>
+  setAddTagId?: React.Dispatch<React.SetStateAction<number | undefined>>
 }
 
 const Fancybox: FunctionComponent<Fancybox> = ({
@@ -19,6 +21,8 @@ const Fancybox: FunctionComponent<Fancybox> = ({
   setName,
   open,
   openMap,
+  addTagOpen,
+  setAddTagId,
   setLatitude,
   setLongitude,
 }) => {
@@ -68,6 +72,15 @@ const Fancybox: FunctionComponent<Fancybox> = ({
               openMap()
             },
           },
+          addTag: {
+            tpl: '<button data-fancybox-download data-fancybox-id data-fancybox-id="javascript:;" href="javascript:;" class="f-button" type="button" title="Добавить тэг"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8 12H16" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M12 16V8" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg></button>',
+            click: () => {
+              const current = NativeFancybox.getSlide()
+              // @ts-ignore
+              setAddTagId(current?.fancyboxId)
+              addTagOpen()
+            },
+          },
         },
         display: {
           left: ['infobar'],
@@ -80,7 +93,14 @@ const Fancybox: FunctionComponent<Fancybox> = ({
             'flipX',
             'flipY',
           ],
-          right: ['mapButton', 'edit', 'downloadBtn', 'thumbs', 'close'],
+          right: [
+            'mapButton',
+            'edit',
+            'addTag',
+            'downloadBtn',
+            'thumbs',
+            'close',
+          ],
         },
       },
     }

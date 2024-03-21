@@ -17,7 +17,6 @@ const ModalMap: FunctionComponent<ModalMapProps> = ({
   longitude,
 }) => {
   const isMobile = useMediaQuery('(max-width: 768px)')
-  console.log(latitude, longitude)
   return (
     <Modal
       fullScreen={isMobile}

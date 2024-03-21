@@ -30,7 +30,7 @@ const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
   setFiles,
   selectAll,
 }) => {
-  const { loading } = useAlbums()
+  const { albumLoading } = useAlbums()
   const [openedCreate, { open: openCreate, close: closeCreate }] =
     useDisclosure(false)
   const [openedSettings, { open: openSettings, close: closeSettings }] =
@@ -65,7 +65,11 @@ const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
       {currentUser && (
         <div className='flex gap-4 '>
           {((window.location.href.split('/').includes('album') &&
-            currentUser.id === album?.author.id) ||
+            (album?.memberships?.find(
+              item =>
+                item.member === currentUser.id && item.is_redactor === true,
+            ) ||
+              currentUser.id === album?.author.id)) ||
             window.location.href.split('/').includes('all')) && (
             <FileButton
               onChange={setFiles ? setFiles : () => {}}
@@ -129,7 +133,7 @@ const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
             closeSettings={closeSettings}
             openedSettings={openedSettings}
             album={album as AlbumResponse}
-            loading={loading}
+            loading={albumLoading}
           />
         </div>
       )}

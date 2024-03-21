@@ -17,61 +17,46 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 const useAlbums = (path?: string[]) => {
-  const [loading, setLoading] = useState(false)
+  const [albumLoading, setLoading] = useState(false)
   const dispatch = useDispatch()
   const currentUser = useSelector((state: RootState) => state.auth.account)
   const albums = useSelector((state: RootState) => state.albums.albums)
   const publicAlbums = useSelector(
     (state: RootState) => state.publicAlbums.albums,
   )
+
   // fetching albums
   const fetchAlbums = async () => {
-    setLoading(true)
     try {
+      dispatch(fetchAlbumsStart())
       const res = await api.get('/api/v1/albums/my/')
       dispatch(fetchAlbumsSuccess(res.data))
-      setLoading(false)
     } catch (err: any) {
       console.log(err)
       dispatch(fetchAlbumsFailure(err.toString()))
-      setTimeout(() => {
-        setLoading(false)
-      }, 500)
     }
   }
 
   const fetchPublicAlbums = async () => {
-    setLoading(true)
     try {
+      dispatch(fetchPublicAlbumsStart())
       const res = await api.get('/api/v1/albums/')
       dispatch(fetchPublicAlbumsSuccess(res.data))
-      setTimeout(() => {
-        setLoading(false)
-      }, 500)
     } catch (err: any) {
       console.log(err)
       dispatch(fetchPublicAlbumsFailure(err.toString()))
-      setTimeout(() => {
-        setLoading(false)
-      }, 500)
     }
   }
 
   // user albums
   const fetchUserAlbums = async (userId: number) => {
-    setLoading(true)
     try {
+      dispatch(fetchAlbumsStart())
       const res = await api.get(`/api/v1/albums/${userId}/`)
       dispatch(fetchAlbumsSuccess(res.data))
-      setTimeout(() => {
-        setLoading(false)
-      }, 500)
     } catch (err: any) {
       console.log(err)
       dispatch(fetchAlbumsFailure(err.toString()))
-      setTimeout(() => {
-        setLoading(false)
-      }, 500)
     }
   }
 
@@ -82,37 +67,17 @@ const useAlbums = (path?: string[]) => {
     is_public: boolean,
   ) => {
     try {
-      setLoading(true)
       if (is_public) dispatch(fetchPublicAlbumsStart())
       else dispatch(fetchAlbumsStart())
-      await api
-        .patch(`/api/v1/albums/${albumId}/`, {
-          title: title,
-          is_public: is_public,
-        })
-        .then(res => {
-          if (is_public) {
-            dispatch(fetchPublicAlbumsSuccess(res.data))
-            fetchPublicAlbums()
-            setTimeout(() => {
-              setLoading(false)
-            }, 500)
-          } else {
-            dispatch(fetchAlbumsSuccess(res.data))
-            fetchAlbums()
-            setTimeout(() => {
-              setLoading(false)
-            }, 500)
-          }
-        })
-        .catch(err => {
-          console.log(err)
-          if (is_public) dispatch(fetchPublicAlbumsFailure(err.toString()))
-          else dispatch(fetchAlbumsFailure(err.toString()))
-          setTimeout(() => {
-            setLoading(false)
-          }, 500)
-        })
+      await api.patch(`/api/v1/albums/${albumId}/`, {
+        title: title,
+        is_public: is_public,
+      })
+      if (is_public) {
+        await fetchPublicAlbums()
+      } else {
+        await fetchAlbums()
+      }
     } catch (error) {
       console.error(
         'Ошибка при редактировании альбома:',
@@ -121,9 +86,6 @@ const useAlbums = (path?: string[]) => {
       if (is_public)
         dispatch(fetchPublicAlbumsFailure((error as Error).message))
       else dispatch(fetchAlbumsFailure((error as Error).message))
-      setTimeout(() => {
-        setLoading(false)
-      }, 500)
     }
   }
 
@@ -135,99 +97,75 @@ const useAlbums = (path?: string[]) => {
   ) => {
     try {
       setLoading(true)
-      await api
-        .post('/api/v1/albums/my/', {
-          title: albumName,
-          is_public: _public,
-        })
-        .then(async res => {
-          console.log('created album', res.data)
-          const storageRef = ref(
-            imgStorage,
-            `albums/${currentUser.id}/${albumName}/.folder`,
-          )
-          await uploadString(storageRef, JSON.stringify({ isFolder: true }))
-          if (_public) fetchPublicAlbums()
-          else fetchAlbums()
-          setTimeout(() => {
-            setLoading(false)
-          }, 500)
-        })
-        .catch(err => {
-          console.log('error creating album', err)
-          setTimeout(() => {
-            setLoading(false)
-          }, 500)
-        })
+      const res = await api.post('/api/v1/albums/my/', {
+        title: albumName,
+        is_public: _public,
+      })
+      console.log('created album', res.data)
+      const storageRef = ref(
+        imgStorage,
+        `albums/${currentUser.id}/${albumName}/.folder`,
+      )
+      await uploadString(storageRef, JSON.stringify({ isFolder: true }))
+      if (_public) await fetchPublicAlbums()
+      else await fetchAlbums()
     } catch (error) {
       console.error('Ошибка при создании альбома:', (error as Error).message)
-      setTimeout(() => {
-        setLoading(false)
-      }, 500)
+    } finally {
+      setLoading(false)
     }
   }
 
   // fetch users in album
   const fetchUsersInAlbum = async (albumId: number) => {
-    setLoading(true)
     try {
+      setLoading(true)
       const res = await api.get(`/api/v1/albums/${albumId}/`)
+      console.log('memberships', res)
       const users = await Promise.all(
         res.data.memberships.map(async (member: any) => {
           const response = await api.get(`/api/v1/user/${member.member}/`)
           return response.data
         }),
       )
-      setTimeout(() => {
-        setLoading(false)
-      }, 500)
       return users
     } catch (err: any) {
       console.log(err)
-      setTimeout(() => {
-        setLoading(false)
-      }, 500)
+    } finally {
+      setLoading(false)
     }
   }
 
   // Add member to album
   const addMemberToAlbum = async (userId: number, is_redactor: boolean) => {
-    setLoading(true)
-    return api
-      .post(`/api/v1/albums/${path && path[2]}/members/${userId}/`, {
+    try {
+      setLoading(true)
+      await api.post(`/api/v1/albums/${path && path[2]}/members/${userId}/`, {
         is_redactor: is_redactor,
       })
-      .then(res => {
-        console.log('added member to album', res.data)
-        setTimeout(() => {
-          setLoading(false)
-        }, 500)
-      })
-      .catch(err => {
-        console.log('error adding member to album', err)
-        setTimeout(() => {
-          setLoading(false)
-        }, 500)
-      })
+    } catch (error) {
+      console.error(
+        'Ошибка при добавлении участника в альбом:',
+        (error as Error).message,
+      )
+    } finally {
+      setLoading(false)
+    }
   }
 
   // Remove member from album
   const removeMemberFromAlbum = async (userId: number) => {
-    setLoading(true)
-    return api
-      .delete(`/api/v1/albums/${path && path[2]}/members/${userId}/`)
-      .then(res => {
-        console.log('removed member from album', res.data)
-        setTimeout(() => {
-          setLoading(false)
-        }, 500)
-      })
-      .catch(err => {
-        console.log('error removing member from album', err)
-        setTimeout(() => {
-          setLoading(false)
-        }, 500)
-      })
+    try {
+      setLoading(true)
+      await api.delete(`/api/v1/albums/${path && path[2]}/members/${userId}/`)
+    } catch (error) {
+      console.error(
+        'Ошибка при удалении участника из альбома:',
+        (error as Error).message,
+      )
+    } finally {
+      setLoading(false)
+    }
   }
 
   // Remove image from album
@@ -238,25 +176,17 @@ const useAlbums = (path?: string[]) => {
   ) => {
     try {
       setLoading(true)
-      const res = await api.delete(`/api/v1/albums/${album.id}/files/${image}/`)
-      deleteObject(ref(imgStorage, path))
-      if (album.is_public) {
-        fetchPublicAlbums()
-      } else {
-        fetchAlbums()
-      }
-      setTimeout(() => {
-        setLoading(false)
-      }, 500)
-      return res.data
+      await api.delete(`/api/v1/albums/${album.id}/files/${image}/`)
+      await deleteObject(ref(imgStorage, path))
+      if (album.is_public) await fetchPublicAlbums()
+      else await fetchAlbums()
     } catch (error) {
       console.error(
         'Ошибка при удалении изображения из альбома:',
         (error as Error).message,
       )
-      setTimeout(() => {
-        setLoading(false)
-      }, 500)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -264,36 +194,41 @@ const useAlbums = (path?: string[]) => {
   const removeAlbum = async (album: AlbumResponse) => {
     try {
       setLoading(true)
-      album.files.forEach(async file => {
-        await api.delete(`/api/v1/files/${file.id}/`)
-      })
+      await Promise.all(
+        album.files.map(async file => {
+          await api.delete(`/api/v1/files/${file.id}/`)
+        }),
+      )
       await api.delete(`/api/v1/albums/${album.id}/`)
       await deleteObject(
         ref(imgStorage, `albums/${currentUser?.id}/${album.title}/.folder`),
-      ).then(() => {
-        if (album.is_public) {
-          fetchPublicAlbums()
-        } else {
-          fetchAlbums()
-        }
-        setTimeout(() => {
-          setLoading(false)
-        }, 500)
-      })
+      )
+      if (album.is_public) await fetchPublicAlbums()
+      else await fetchAlbums()
     } catch (error) {
       console.error('Ошибка при удалении альбома:', (error as Error).message)
-      setTimeout(() => {
-        setLoading(false)
-      }, 500)
+    } finally {
+      setLoading(false)
     }
   }
+
   useEffect(() => {
-    fetchAlbums()
-    fetchPublicAlbums()
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        await Promise.all([fetchAlbums(), fetchPublicAlbums()])
+      } catch (error) {
+        console.error('Ошибка при загрузке альбомов:', (error as Error).message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
   }, [currentUser])
 
   return {
-    loading,
+    albumLoading,
     albums,
     publicAlbums,
     createAlbum,
@@ -305,4 +240,5 @@ const useAlbums = (path?: string[]) => {
     removeAlbum,
   }
 }
+
 export default useAlbums

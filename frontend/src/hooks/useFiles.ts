@@ -65,7 +65,6 @@ export function useFiles(path: string[], title?: string) {
   }
 
   const uploadMultipleImages = async (files: File[]): Promise<void> => {
-    setLoading(true)
     const uploadTasks = files.map(async file => {
       getHref(path)
       const storageRef = ref(
@@ -75,12 +74,17 @@ export function useFiles(path: string[], title?: string) {
 
       // Get metadata
       const getMetadata = async (file: File) => {
-        const exif = await exifr.parse(file)
-        latitude.current = exif?.latitude || 0
-        longitude.current = exif?.longitude || 0
-        return latitude && longitude
+        try {
+          const exif = await exifr.parse(file)
+          latitude.current = exif?.latitude || 0
+          longitude.current = exif?.longitude || 0
+          console.log(exif)
+          return latitude && longitude
+        } catch (error) {
+          console.error('Error getting metadata:', error)
+        }
       }
-      if (!VideoType.includes(file.type)) {
+      if (!VideoType.includes(file.type) && file.type !== 'image/gif') {
         const preview = await compressImage(file)
 
         getMetadata(file).then(async () => {
@@ -366,8 +370,8 @@ export function useFiles(path: string[], title?: string) {
     }
 
     try {
+      setLoading(true)
       const downloadUrls = await Promise.all(uploadTasks.filter(Boolean))
-
       if (apiHrefRef.current === '/api/v1/files/') {
         // @ts-ignore
         processFiles(downloadUrls)
@@ -388,11 +392,12 @@ export function useFiles(path: string[], title?: string) {
         processFiles(newFiles)
       }
       setUploadProgress(undefined)
+    } catch (error) {
+      console.error(error)
       setTimeout(() => {
         setLoading(false)
       }, 500)
-    } catch (error) {
-      console.error(error)
+    } finally {
       setTimeout(() => {
         setLoading(false)
       }, 500)
@@ -427,6 +432,7 @@ export function useFiles(path: string[], title?: string) {
             id: item.id,
             url: url,
             preview: item.preview,
+            tags: item.tags,
           }
         })
         existPromise.current = existingImagesPromises
@@ -434,19 +440,24 @@ export function useFiles(path: string[], title?: string) {
 
         setUploadedImages([])
         setUploadedImages(prevImages => [...existingImages, ...prevImages])
-        setTimeout(() => {
-          setLoading(false)
-        }, 500)
       } catch (error) {
         console.error('Error fetching existing images:', error)
-        setTimeout(() => {
-          setLoading(false)
-        }, 500)
       }
     }
+
+    const uploadAndFetchImages = async () => {
+      try {
+        await uploadMultipleImages(files)
+        await fetchExistingImages()
+      } catch (error) {
+        console.error('Error uploading or fetching images:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     getHref(path)
-    uploadMultipleImages(files)
-    fetchExistingImages()
+    uploadAndFetchImages()
   }, [files])
 
   // Remove file
@@ -455,12 +466,13 @@ export function useFiles(path: string[], title?: string) {
       setLoading(true)
       const res = await api.delete(`/api/v1/files/${id}/`)
       deleteObject(ref(imgStorage, path))
-      setTimeout(() => {
-        setLoading(false)
-      }, 500)
       return res.data
     } catch (error) {
       console.error('Error removing file:', error)
+      setTimeout(() => {
+        setLoading(false)
+      }, 500)
+    } finally {
       setTimeout(() => {
         setLoading(false)
       }, 500)

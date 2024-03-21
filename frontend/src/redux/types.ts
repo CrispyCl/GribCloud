@@ -51,6 +51,10 @@ export interface UploadImageResponse {
   url: string
   created_at: Date
   preview: string
+  tags: {
+    id: number
+    title: string
+  }[]
 }
 
 export interface GroupedImages {
