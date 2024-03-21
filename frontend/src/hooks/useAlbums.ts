@@ -31,6 +31,7 @@ const useAlbums = (path?: string[]) => {
       dispatch(fetchAlbumsStart())
       const res = await api.get('/api/v1/albums/my/')
       dispatch(fetchAlbumsSuccess(res.data))
+      return res
     } catch (err: any) {
       console.log(err)
       dispatch(fetchAlbumsFailure(err.toString()))
@@ -42,18 +43,20 @@ const useAlbums = (path?: string[]) => {
       dispatch(fetchPublicAlbumsStart())
       const res = await api.get('/api/v1/albums/')
       dispatch(fetchPublicAlbumsSuccess(res.data))
+      return res
     } catch (err: any) {
       console.log(err)
       dispatch(fetchPublicAlbumsFailure(err.toString()))
     }
   }
 
-  // user albums
-  const fetchUserAlbums = async (userId: number) => {
+  // Available albums
+  const fetchUserAlbums = async () => {
     try {
       dispatch(fetchAlbumsStart())
-      const res = await api.get(`/api/v1/albums/${userId}/`)
+      const res = await api.get(`api/v1/albums/available/`)
       dispatch(fetchAlbumsSuccess(res.data))
+      return res
     } catch (err: any) {
       console.log(err)
       dispatch(fetchAlbumsFailure(err.toString()))
@@ -101,7 +104,6 @@ const useAlbums = (path?: string[]) => {
         title: albumName,
         is_public: _public,
       })
-      console.log('created album', res.data)
       const storageRef = ref(
         imgStorage,
         `albums/${currentUser.id}/${albumName}/.folder`,
@@ -121,7 +123,6 @@ const useAlbums = (path?: string[]) => {
     try {
       setLoading(true)
       const res = await api.get(`/api/v1/albums/${albumId}/`)
-      console.log('memberships', res)
       const users = await Promise.all(
         res.data.memberships.map(async (member: any) => {
           const response = await api.get(`/api/v1/user/${member.member}/`)
@@ -238,6 +239,9 @@ const useAlbums = (path?: string[]) => {
     removeMemberFromAlbum,
     removeImageFromAlbum,
     removeAlbum,
+    fetchUserAlbums,
+    fetchAlbums,
+    fetchPublicAlbums,
   }
 }
 

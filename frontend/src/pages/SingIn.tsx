@@ -34,12 +34,12 @@ const SingIn: FunctionComponent<SingInProps> = ({ loading, setLoading }) => {
       username: '',
       password: '',
     },
-
     validate: {
-      password: (val: string) =>
-        val.length < 6 ? 'Password should include at least 6 characters' : null,
+      password: value =>
+        value.length < 6 ? 'Пароль должен содержать не менее 6 символов' : null,
     },
   })
+
   const handleLogin = async (username: string, password: string) => {
     try {
       setLoading(true)
@@ -63,11 +63,18 @@ const SingIn: FunctionComponent<SingInProps> = ({ loading, setLoading }) => {
           })
         })
         .catch(err => {
-          setMessage((err as Error).message)
+          if (err) {
+            setMessage('Неправильный логин или пароль')
+          }
           setLoading(false)
         })
     } catch (err) {
-      setMessage((err as Error).message)
+      setLoading(false)
+      if (err) {
+        setMessage('Неправильный логин или пароль')
+      }
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -98,11 +105,7 @@ const SingIn: FunctionComponent<SingInProps> = ({ loading, setLoading }) => {
                     required
                     label='Логин'
                     placeholder='gribСloud'
-                    value={form.values.username}
-                    onChange={event =>
-                      form.setFieldValue('username', event.currentTarget.value)
-                    }
-                    error={form.errors.username && 'Неправильная почта'}
+                    {...form.getInputProps('username')}
                     radius='md'
                   />
 
@@ -110,23 +113,21 @@ const SingIn: FunctionComponent<SingInProps> = ({ loading, setLoading }) => {
                     required
                     label='Пароль'
                     placeholder='Ваш пароль'
-                    value={form.values.password}
-                    onChange={event =>
-                      form.setFieldValue('password', event.currentTarget.value)
-                    }
-                    error={form.errors.password && 'Неправильный пароль'}
+                    {...form.getInputProps('password')}
                     radius='md'
                   />
                 </Stack>
-                <div className='text-danger my-2 text-center' hidden={false}>
+                <div
+                  className='text-danger mb-2 mt-4 text-center'
+                  hidden={false}
+                >
                   {message}
                 </div>
-
-                <Group justify='space-between' mt='xl'>
+                <Group justify='space-between '>
                   <Button
                     disabled={loading}
                     type='submit'
-                    className='flex w-full items-center justify-center rounded-md bg-blue-500 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500'
+                    className='mt-2 flex w-full items-center justify-center rounded-md bg-blue-500 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500'
                     radius='xl'
                   >
                     Войти

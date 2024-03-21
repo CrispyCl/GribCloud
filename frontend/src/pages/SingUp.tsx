@@ -34,9 +34,16 @@ const SingUp: FunctionComponent<SingUpProps> = ({ loading, setLoading }) => {
     },
 
     validate: {
-      email: (val: string) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
+      email: (val: string) =>
+        /^\S+@\S+$/.test(val) ? null : 'Такой почты не существует',
       password: (val: string) =>
-        val.length < 6 ? 'Password should include at least 6 characters' : null,
+        val.length < 6 ? 'Пароль должен содержать не менее 6 символов' : null,
+      passwordConfirm: (val: string) => {
+        if (val !== form.values.password) {
+          return 'Пароли не совпадают'
+        }
+        return null
+      },
     },
   })
 
@@ -106,22 +113,14 @@ const SingUp: FunctionComponent<SingUpProps> = ({ loading, setLoading }) => {
                     required
                     label='Логин'
                     placeholder='gribCloud'
-                    value={form.values.username}
-                    onChange={event =>
-                      form.setFieldValue('username', event.currentTarget.value)
-                    }
-                    error={form.errors.username && 'Такое имя уже занято'}
+                    {...form.getInputProps('username')}
                     radius='md'
                   />
                   <TextInput
                     required
                     label='Почта'
                     placeholder='gribCloud@gribCloud.dev'
-                    value={form.values.email}
-                    onChange={event =>
-                      form.setFieldValue('email', event.currentTarget.value)
-                    }
-                    error={form.errors.email && 'Такая почта уже занята'}
+                    {...form.getInputProps('email')}
                     radius='md'
                   />
 
@@ -130,45 +129,28 @@ const SingUp: FunctionComponent<SingUpProps> = ({ loading, setLoading }) => {
                     label='Пароль'
                     placeholder='Ваш пароль'
                     value={form.values.password}
-                    onChange={event =>
-                      form.setFieldValue('password', event.currentTarget.value)
-                    }
-                    error={
-                      (form.errors.password &&
-                        'Пароль должен содержать не менее 6 символов') ||
-                      (form.values.password !== form.values.passwordConfirm &&
-                        'Пароли не совпадают')
-                    }
+                    {...form.getInputProps('password')}
                     radius='md'
                   />
                   <PasswordInput
                     required
                     label='Повторите пароль'
                     placeholder='Повторите ваш пароль'
-                    value={form.values.passwordConfirm}
-                    onChange={event =>
-                      form.setFieldValue(
-                        'passwordConfirm',
-                        event.currentTarget.value,
-                      )
-                    }
-                    error={
-                      (form.errors.passwordConfirm &&
-                        'Пароль должен содержать не менее 6 символов') ||
-                      (form.values.password !== form.values.passwordConfirm &&
-                        'Пароли не совпадают')
-                    }
+                    {...form.getInputProps('passwordConfirm')}
                     radius='md'
                   />
                 </Stack>
-                <div className='text-danger my-2 text-center' hidden={false}>
+                <div
+                  className='text-danger mb-2 mt-4 text-center'
+                  hidden={false}
+                >
                   {message}
                 </div>
                 <Group justify='space-between' mt='xl'>
                   <Button
                     type='submit'
                     disabled={loading}
-                    className='flex w-full items-center justify-center rounded-md bg-blue-500 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500'
+                    className='mt-2 flex w-full items-center justify-center rounded-md bg-blue-500 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500'
                     radius='xl'
                   >
                     Зарегистрироваться

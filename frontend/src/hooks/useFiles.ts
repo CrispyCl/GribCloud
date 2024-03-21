@@ -13,7 +13,7 @@ import {
 } from 'firebase/storage'
 import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
-export function useFiles(path: string[], title?: string) {
+export function useFiles(path: string[], title?: string, tagKey?: number) {
   const [files, setFiles] = useState<File[]>([])
   const [uploadedImages, setUploadedImages] = useState<UploadImageResponse[]>(
     [],
@@ -24,6 +24,8 @@ export function useFiles(path: string[], title?: string) {
   const [loading, setLoading] = useState<boolean>(false)
   const latitude = useRef<number>(0)
   const longitude = useRef<number>(0)
+  const countryRef = useRef<string>('')
+  const cityRef = useRef<string>('')
   const multiUpload = useRef<UploadImageResponse[]>([])
   const currentUser = useSelector((state: RootState) => state.auth.account)
   const responseRef = useRef<UploadImageResponse | null>(null)
@@ -64,6 +66,31 @@ export function useFiles(path: string[], title?: string) {
     })
   }
 
+  const getCityAndCountryFromCoordinates = async (
+    latitude: number,
+    longitude: number,
+  ): Promise<{ city: string; country: string }> => {
+    const url = `https://geocode-maps.yandex.ru/1.x/?apikey=${import.meta.env.VITE_GEOCODER_KEY}&format=json&geocode=${longitude},${latitude}`
+    try {
+      const response = await fetch(url)
+      if (!response.ok) {
+        throw new Error('Failed to fetch data')
+      }
+      const data = await response.json()
+      const featureMember = data.response.GeoObjectCollection.featureMember[0]
+
+      const addressDetails =
+        featureMember.GeoObject.metaDataProperty.GeocoderMetaData.AddressDetails
+      const country = addressDetails.Country.CountryName
+      const city =
+        addressDetails.Country.AdministrativeArea.AdministrativeAreaName
+      return { city, country }
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      return { city: '', country: '' }
+    }
+  }
+
   const uploadMultipleImages = async (files: File[]): Promise<void> => {
     const uploadTasks = files.map(async file => {
       getHref(path)
@@ -78,7 +105,6 @@ export function useFiles(path: string[], title?: string) {
           const exif = await exifr.parse(file)
           latitude.current = exif?.latitude || 0
           longitude.current = exif?.longitude || 0
-          console.log(exif)
           return latitude && longitude
         } catch (error) {
           console.error('Error getting metadata:', error)
@@ -86,48 +112,55 @@ export function useFiles(path: string[], title?: string) {
       }
       if (!VideoType.includes(file.type) && file.type !== 'image/gif') {
         const preview = await compressImage(file)
-
         getMetadata(file).then(async () => {
-          console.log('aaaaa', preview)
           if (latitude.current !== 0 && longitude.current !== 0) {
-            await api
-              .post('/api/v1/files/', {
-                files: [
-                  {
-                    file: `images/${currentUser?.id}/${file.name}`,
-                    preview: preview,
-                    geodata: {
-                      latitude: latitude.current,
-                      longitude: longitude.current,
-                    },
-                  },
-                ],
-              })
-              .then(res => {
-                console.log(res.data)
-                res.data.forEach(
-                  (item: UploadImageResponse) => (responseRef.current = item),
-                )
-              })
-              .then(async () => {
-                if (apiHrefRef.current === `/api/v1/albums/${path[4]}/`) {
-                  await api
-                    .post(
-                      `/api/v1/albums/${path[4]}/files/${responseRef.current?.id}/`,
-                      {
-                        files: [
-                          {
-                            file: `albums/${currentUser?.id}/${title}/${file.name}`,
-                            preview: preview,
-                          },
-                        ],
+            getCityAndCountryFromCoordinates(
+              latitude.current,
+              longitude.current,
+            ).then(async ({ city, country }) => {
+              console.log(city, country)
+              countryRef.current = country
+              cityRef.current = city
+              await api
+                .post('/api/v1/files/', {
+                  files: [
+                    {
+                      file: `images/${currentUser?.id}/${file.name}`,
+                      preview: preview,
+                      geodata: {
+                        latitude: latitude.current,
+                        longitude: longitude.current,
+                        country: country,
+                        city: city,
                       },
-                    )
-                    .then(res => {
-                      AlbumResponse.current = res.data
-                    })
-                }
-              })
+                    },
+                  ],
+                })
+                .then(res => {
+                  res.data.forEach(
+                    (item: UploadImageResponse) => (responseRef.current = item),
+                  )
+                })
+                .then(async () => {
+                  if (apiHrefRef.current === `/api/v1/albums/${path[4]}/`) {
+                    await api
+                      .post(
+                        `/api/v1/albums/${path[4]}/files/${responseRef.current?.id}/`,
+                        {
+                          files: [
+                            {
+                              file: `albums/${currentUser?.id}/${title}/${file.name}`,
+                              preview: preview,
+                            },
+                          ],
+                        },
+                      )
+                      .then(res => {
+                        AlbumResponse.current = res.data
+                      })
+                  }
+                })
+            })
           } else {
             await api
               .post('/api/v1/files/', {
@@ -179,7 +212,6 @@ export function useFiles(path: string[], title?: string) {
         const snapshot = await uploadTask
         const url = await getDownloadURL(snapshot.ref)
         if (apiHrefRef.current === '/api/v1/files/') {
-          console.log(responseRef.current)
           return {
             name: file.name,
             author: currentUser?.id,
@@ -190,6 +222,8 @@ export function useFiles(path: string[], title?: string) {
             geoData: {
               latitude: latitude.current,
               longitude: longitude.current,
+              country: countryRef.current,
+              city: cityRef.current,
             },
             id: responseRef.current?.id,
             url: url,
@@ -215,6 +249,8 @@ export function useFiles(path: string[], title?: string) {
                 geoData: {
                   latitude: latitude.current,
                   longitude: longitude.current,
+                  country: countryRef.current,
+                  city: cityRef.current,
                 },
                 id: responseRef.current?.id,
                 url: url,
@@ -235,12 +271,13 @@ export function useFiles(path: string[], title?: string) {
                   geodata: {
                     latitude: latitude.current,
                     longitude: longitude.current,
+                    country: countryRef.current,
+                    city: cityRef.current,
                   },
                 },
               ],
             })
             .then(res => {
-              console.log(res.data)
               res.data.forEach(
                 (item: UploadImageResponse) => (responseRef.current = item),
               )
@@ -324,6 +361,8 @@ export function useFiles(path: string[], title?: string) {
             geoData: {
               latitude: latitude.current,
               longitude: longitude.current,
+              country: countryRef.current,
+              city: cityRef.current,
             },
             id: responseRef.current?.id,
             url: url,
@@ -349,6 +388,8 @@ export function useFiles(path: string[], title?: string) {
                 geoData: {
                   latitude: latitude.current,
                   longitude: longitude.current,
+                  country: countryRef.current,
+                  city: cityRef.current,
                 },
                 id: responseRef.current?.id,
                 url: url,
@@ -405,9 +446,9 @@ export function useFiles(path: string[], title?: string) {
   }
 
   useEffect(() => {
-    setLoading(true)
     const fetchExistingImages = async () => {
       try {
+        setLoading(true)
         const response = await api.get(
           currentUser
             ? apiHrefRef.current === '/api/v1/files/'
@@ -458,7 +499,7 @@ export function useFiles(path: string[], title?: string) {
 
     getHref(path)
     uploadAndFetchImages()
-  }, [files])
+  }, [files, tagKey])
 
   // Remove file
   const removeFile = async (id: number, path: string) => {

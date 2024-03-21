@@ -1,6 +1,5 @@
 import Body from '@/components/Body/Body'
 import ImagesRender from '@/components/ImagesRednder/ImagesRender'
-import ModalAddTag from '@/components/Modal/ModalAddTag'
 import ModalImageEdit from '@/components/Modal/ModalImageEdit'
 import ModalMap from '@/components/Modal/ModalMap'
 import useAlbums from '@/hooks/useAlbums'
@@ -14,7 +13,7 @@ interface AlbumProps {
 }
 
 const Album: FunctionComponent<AlbumProps> = ({ currentAlbum }) => {
-  const { loading, uploadProgress, uploadedImages, setFiles } = useFiles(
+  const { loading, uploadedImages, setFiles } = useFiles(
     window.location.href.split('/'),
     currentAlbum.title,
   )
@@ -22,12 +21,10 @@ const Album: FunctionComponent<AlbumProps> = ({ currentAlbum }) => {
   const [name, setName] = useState<string | undefined>(undefined)
   const [opened, { open, close }] = useDisclosure(false)
   const [openedMap, { open: openMap, close: closeMap }] = useDisclosure(false)
-  const [addTagOpened, { open: addTagOpen, close: addTagClose }] =
-    useDisclosure(false)
-  const [addTagId, setAddTagId] = useState<number | undefined>()
   const [latitude, setLatitude] = useState<number | undefined>(undefined)
   const [longitude, setLongitude] = useState<number | undefined>(undefined)
   const [key, setKey] = useState(0)
+  const [tagKey, setTagKey] = useState(0)
   const { removeImageFromAlbum, albumLoading } = useAlbums()
   const [userImages, setUserImages] = useState<UploadImageResponse[]>([])
 
@@ -49,8 +46,8 @@ const Album: FunctionComponent<AlbumProps> = ({ currentAlbum }) => {
   return (
     <Body key={key} loading={allLoading}>
       <ImagesRender
-        addTagOpen={addTagOpen}
-        setAddTagId={setAddTagId}
+        setTagKey={setTagKey}
+        tagKey={tagKey}
         handleRemoveImageFromAlbum={handleRemoveImageFromAlbum}
         album={currentAlbum}
         openMap={openMap}
@@ -61,7 +58,6 @@ const Album: FunctionComponent<AlbumProps> = ({ currentAlbum }) => {
         setFiles={setFiles}
         setUrl={setUrl}
         userImages={userImages}
-        uploadProgress={uploadProgress}
       />
       {url && name && (
         <ModalImageEdit
@@ -78,13 +74,6 @@ const Album: FunctionComponent<AlbumProps> = ({ currentAlbum }) => {
           closeMap={closeMap}
           latitude={latitude}
           longitude={longitude}
-        />
-      )}
-      {addTagId && (
-        <ModalAddTag
-          addTagClose={addTagClose}
-          addTagOpened={addTagOpened}
-          id={addTagId}
         />
       )}
     </Body>

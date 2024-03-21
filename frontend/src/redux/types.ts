@@ -82,3 +82,8 @@ export interface AlbumResponse {
   }[]
   title: string
 }
+
+export interface Tag {
+  id: number
+  title: string
+}

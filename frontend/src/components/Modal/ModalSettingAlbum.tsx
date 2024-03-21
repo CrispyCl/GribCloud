@@ -135,8 +135,11 @@ const ModalSettingAlbum: FunctionComponent<ModalSettingAlbumProps> = ({
         form.values.title as string,
         form.values.is_public as boolean,
       )
-      setKey(prev => prev + 1)
-      setLoadingState(false)
+      closeSettings()
+      setTimeout(() => {
+        setLoadingState(false)
+        setKey(prev => prev + 1)
+      }, 500)
     } else {
       setLoadingState(false)
     }

@@ -26,7 +26,7 @@ const ModalCreateAlbum: FunctionComponent<ModalCreateAlbumProps> = ({
 }) => {
   const currentUser = useSelector((state: RootState) => state.auth.account)
   const isMobile = useMediaQuery('(max-width: 768px)')
-  const { loading, createAlbum } = useAlbums()
+  const { albumLoading, createAlbum } = useAlbums()
 
   const form = useForm({
     initialValues: {
@@ -55,7 +55,7 @@ const ModalCreateAlbum: FunctionComponent<ModalCreateAlbumProps> = ({
       }}
     >
       <LoadingOverlay
-        visible={loading}
+        visible={albumLoading}
         zIndex={1000}
         overlayProps={{ radius: 'sm', blur: 2 }}
       />
@@ -85,7 +85,7 @@ const ModalCreateAlbum: FunctionComponent<ModalCreateAlbumProps> = ({
               currentUser as AccountResponse,
               form.values.isPublic,
             )
-            if (!loading) {
+            if (!albumLoading) {
               handleClose()
             }
           }}

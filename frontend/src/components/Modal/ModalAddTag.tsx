@@ -1,4 +1,4 @@
-import { UploadImageResponse } from '@/redux/types'
+import { Tag, UploadImageResponse } from '@/redux/types'
 import api from '@/utils/axios'
 import { Button, Input, LoadingOverlay, Modal, TagsInput } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
@@ -8,21 +8,12 @@ interface ModalAddTagProps {
   addTagClose: () => void
   addTagOpened: boolean
   id: number
-  setImageKey: (key: number) => void
-  userImages: UploadImageResponse[]
-  setUserImages: (images: UploadImageResponse[]) => void
-}
-
-interface Tag {
-  id: number
-  title: string
+  setTagKey: React.Dispatch<React.SetStateAction<number>>
 }
 
 const ModalAddTag: FunctionComponent<ModalAddTagProps> = ({
-  userImages,
-  setUserImages,
   addTagClose,
-  setImageKey,
+  setTagKey,
   addTagOpened,
   id,
 }) => {
@@ -35,129 +26,96 @@ const ModalAddTag: FunctionComponent<ModalAddTagProps> = ({
   const [key, setKey] = useState(0)
 
   //  fetch all tags
-  useEffect(() => {
-    const fetchAllTags = async () => {
-      try {
-        const res = await api.get(`api/v1/files/`)
-        const newTags: Tag[] = []
-        res.data.forEach((image: UploadImageResponse) => {
-          image.tags.forEach((tag: Tag) => {
-            if (!newTags.find(t => t.id === tag.id)) {
-              newTags.push(tag)
-            }
-          })
+  const fetchAllTags = async () => {
+    try {
+      const res = await api.get(`api/v1/files/`)
+      const newTags: Tag[] = []
+      res.data.forEach((image: UploadImageResponse) => {
+        image.tags.forEach((tag: Tag) => {
+          if (!newTags.find(t => t.id === tag.id)) {
+            newTags.push(tag)
+          }
         })
-        setTags(newTags)
-      } catch (err) {
-        console.log(err)
-      }
+      })
+      setTags(newTags)
+    } catch (err) {
+      console.log(err)
     }
-
+  }
+  useEffect(() => {
     fetchAllTags()
   }, [key])
 
   // fetch current tags
-  useEffect(() => {
-    const fetchCurrentTags = async () => {
-      try {
-        const res = await api.get(`api/v1/files/${id}/`)
-        const currentTags: Tag[] = res.data.tags
-        setInitialTags(currentTags)
-        setCurrentTags(currentTags)
-      } catch (err) {
-        console.log(err)
-      }
+  const fetchCurrentTags = async () => {
+    try {
+      const res = await api.get(`api/v1/files/${id}/`)
+      const currentTags: Tag[] = res.data.tags
+      setInitialTags(currentTags)
+      setCurrentTags(currentTags)
+    } catch (err) {
+      console.log(err)
     }
+  }
+  useEffect(() => {
     fetchCurrentTags()
   }, [id, key])
 
   const addTag = async () => {
     try {
       setLoading(true)
+      if (newTag !== '') {
+        api
+          .post(`api/v1/files/${id}/tags/${newTag}/`)
+          .then(res => {
+            console.log(res.data.tags.find((t: Tag) => t.title === newTag))
+            setCurrentTags([
+              ...currentTags,
+              res.data.tags.find((t: Tag) => t.title === newTag),
+            ])
+          })
+          .then(() => {
+            setNewTag('')
+            setKey(key + 1)
+          })
+      }
 
-      // определить, какие теги были удалены
       const deletedTags = initialTags.filter(
         tag => !currentTags.find(t => t.id === tag.id),
       )
 
-      // определить, какие теги были добавлены
       const addedTags = currentTags.filter(
-        tag =>
-          !initialTags.find(t => t.id === tag.id) &&
-          !tags.find(t => t.title === tag.title),
+        tag => !initialTags.find(t => t.id === tag.id),
       )
 
-      // удалить удаленные теги
       const deletePromises = deletedTags.map(tag =>
         api.delete(`api/v1/files/${id}/tags/${tag.title}/`).then(() => {
-          const newUserImages = [...userImages]
-          newUserImages.forEach((image, index) => {
-            if (image.id === id) {
-              newUserImages[index].tags = newUserImages[index].tags.filter(
-                t => t.id !== tag.id,
-              )
-            }
-          })
-          setUserImages(newUserImages)
-          setTags(tags.filter(t => t.id !== tag.id))
+          setCurrentTags(currentTags.filter(t => t.id !== tag.id))
         }),
       )
-      // добавить новые теги
+
       const addPromises = addedTags.map(tag => {
-        return api.post(`api/v1/files/${id}/tags/${tag.title}/`).then(res => {
-          const newUserImages = [...userImages]
-          newUserImages.forEach((image, index) => {
-            if (image.id === id) {
-              newUserImages[index].tags = [
-                ...newUserImages[index].tags,
-                res.data.tags.find((tag: Tag) => tag.title === tag.title),
-              ]
-            }
-          })
-          setUserImages(newUserImages)
-          setTags([
-            ...tags,
-            res.data.tags.find((tag: Tag) => tag.title === tag.title),
+        api.post(`api/v1/files/${id}/tags/${tag.title}/`).then(res => {
+          setCurrentTags([
+            ...currentTags,
+            res.data.tags.find((t: Tag) => t.title === tag.title),
           ])
         })
       })
 
-      // дождаться выполнения всех запросов
       await Promise.all([...deletePromises, ...addPromises])
       setTimeout(() => {
-        setKey(key + 1)
+        setTagKey(k => k + 1)
+        setKey(k => k + 1)
       }, 1000)
-      setImageKey(key + 1)
     } catch (err) {
       console.log(err)
     } finally {
       setLoading(false)
-      addTagClose()
+      if (newTag === '') addTagClose()
     }
   }
 
-  const addNewTag = async () => {
-    try {
-      const res = await api.post(`api/v1/files/${id}/tags/${newTag}/`)
-      setCurrentTags([
-        ...currentTags,
-        res.data.tags.find((tag: Tag) => tag.title === newTag),
-      ])
-      setTags([...tags, res.data.tags.find((tag: Tag) => tag.title === newTag)])
-      userImages.forEach((image, index) => {
-        if (image.id === id) {
-          userImages[index].tags = [
-            ...userImages[index].tags,
-            res.data.tags.find((tag: Tag) => tag.title === newTag),
-          ]
-        }
-      })
-
-      setNewTag('')
-    } catch (err) {
-      console.log(err)
-    }
-  }
   return (
     <Modal
       key={key}
@@ -194,7 +152,7 @@ const ModalAddTag: FunctionComponent<ModalAddTagProps> = ({
               placeholder='Новый тег'
               className='w-3/4'
             />
-            <Button className='w-1/4' variant='default' onClick={addNewTag}>
+            <Button className='w-1/4' variant='default' onClick={addTag}>
               Добавить
             </Button>
           </div>

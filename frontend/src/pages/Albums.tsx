@@ -8,9 +8,9 @@ import { Link } from 'react-router-dom'
 interface AlbumsProps {}
 
 const Albums: FunctionComponent<AlbumsProps> = () => {
-  const { loading, albums } = useAlbums()
+  const { albumLoading, albums } = useAlbums()
   return (
-    <Body loading={loading}>
+    <Body loading={albumLoading}>
       <BodyHeader />
       {!albums.length && (
         <div className='flex flex-col items-center justify-center'>
