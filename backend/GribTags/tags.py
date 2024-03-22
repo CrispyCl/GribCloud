@@ -1,5 +1,7 @@
+import asyncio
 from collections import Counter
 
+import torch
 import torchvision
 from torchvision import transforms
 
@@ -12,13 +14,14 @@ class Identificator:
     def __init__(self):
         self.model = torchvision.models.detection.fasterrcnn_resnet50_fpn(weights=True)
 
-    def identify(self, pre_img):
+    async def identify(self, pre_img):
         self.model.eval()
         k = transforms.Compose([transforms.ToTensor()])
         img = k(pre_img)
         img = img.unsqueeze(dim=0)
 
-        pred = self.model(img)
+        with torch.inference_mode():
+            pred = await asyncio.to_thread(self.model, img)
 
         items = zip(pred[0]["boxes"], pred[0]["labels"], pred[0]["scores"])
         items = non_maximum_suppression(items)
