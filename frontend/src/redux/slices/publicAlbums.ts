@@ -30,6 +30,11 @@ const publicAlbumsSlice = createSlice({
       state.loading = false
       state.error = action.payload
     },
+    logOutPublic(state) {
+      state.albums = []
+      state.loading = false
+      state.error = null
+    },
   },
 })
 
@@ -40,3 +45,4 @@ export const {
 } = publicAlbumsSlice.actions
 
 export const publicAlbumsSliceReducer = publicAlbumsSlice.reducer
+export const { logOutPublic } = publicAlbumsSlice.actions

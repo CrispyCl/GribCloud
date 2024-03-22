@@ -20,14 +20,14 @@ import ModalSettingAlbum from '../Modal/ModalSettingAlbum'
 interface BodyHeaderProps {
   check?: { id: number; checked: boolean }[]
   album?: AlbumResponse
-  openedCreate: boolean
-  openCreate: () => void
-  closeCreate: () => void
-  openedSettings: boolean
-  closeSettings: () => void
+  openedCreate?: boolean
+  openCreate?: () => void
+  closeCreate?: () => void
+  openedSettings?: boolean
+  closeSettings?: () => void
   setFiles?: React.Dispatch<React.SetStateAction<File[]>>
   selectAll?: () => void
-  openSettings: () => void
+  openSettings?: () => void
 }
 
 const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
@@ -139,14 +139,17 @@ const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
             </>
           )}
 
-          <ModalCreateAlbum close={closeCreate} opened={openedCreate} />
+          <ModalCreateAlbum
+            close={closeCreate as () => void}
+            opened={openedCreate as boolean}
+          />
           <ModalSettingAlbum
             setKey={setKey}
             openedAddMember={openedAddMember}
             openAddMember={openAddMember}
             closeAddMember={closeAddMember}
-            closeSettings={closeSettings}
-            openedSettings={openedSettings}
+            closeSettings={closeSettings as () => void}
+            openedSettings={openedSettings as boolean}
             album={album as AlbumResponse}
             loading={albumLoading}
           />

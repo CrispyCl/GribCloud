@@ -42,7 +42,6 @@ const Album: FunctionComponent<AlbumProps> = ({ currentAlbum }) => {
       setUserImages(uploadedImages)
     }
   }, [uploadedImages])
-
   return (
     <Body key={key} loading={allLoading}>
       <ImagesRender

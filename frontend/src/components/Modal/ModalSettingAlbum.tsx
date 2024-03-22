@@ -1,7 +1,5 @@
 import { imgStorage } from '@/firebase/config'
 import useAlbums from '@/hooks/useAlbums'
-import { fetchAlbumsSuccess } from '@/redux/slices/albums'
-import { fetchPublicAlbumsSuccess } from '@/redux/slices/publicAlbums'
 import { RootState } from '@/redux/store'
 import { AlbumResponse, UserResponse } from '@/redux/types'
 import api from '@/utils/axios'
@@ -85,61 +83,19 @@ const ModalSettingAlbum: FunctionComponent<ModalSettingAlbumProps> = ({
   const handleSubmit = () => {
     setLoadingState(true)
     if (album) {
-      if (!form.values.is_public) {
-        // @ts-ignore
-        fetchAlbumsSuccess((prev: AlbumResponse[]) => {
-          return prev.map(item => {
-            if (item.id === album.id && !item.is_public) {
-              return { ...item, is_public: true }
-            } else if (item.id === album.id && item.title !== album.title) {
-              return { ...item, title: form.values.title as string }
-            } else if (
-              item.id === album.id &&
-              !item.is_public &&
-              item.title !== album.title
-            ) {
-              return {
-                ...item,
-                title: form.values.title as string,
-                is_public: true,
-              }
-            }
-            return item
-          })
+      editAlbum(album.id, form.values.title, form.values.is_public)
+        .then(() => {
+          setLoadingState(false)
+          closeSettings()
         })
-      } else if (!form.values.is_public) {
-        // @ts-ignore
-        fetchPublicAlbumsSuccess((prev: AlbumResponse[]) => {
-          return prev.map(item => {
-            if (item.id === album.id && !item.is_public) {
-              return { ...item, is_public: false }
-            } else if (item.id === album.id && item.title !== album.title) {
-              return { ...item, title: form.values.title as string }
-            } else if (
-              item.id === album.id &&
-              !item.is_public &&
-              item.title !== album.title
-            ) {
-              return {
-                ...item,
-                title: form.values.title as string,
-                is_public: false,
-              }
-            }
-            return item
-          })
+        .catch(error => {
+          setLoadingState(false)
+          console.error(error)
         })
-      }
-      editAlbum(
-        album.id,
-        form.values.title as string,
-        form.values.is_public as boolean,
-      )
-      closeSettings()
-      setTimeout(() => {
-        setLoadingState(false)
-        setKey(prev => prev + 1)
-      }, 500)
+        .finally(() => {
+          setKey(k => k + 1)
+          setLoadingState(false)
+        })
     } else {
       setLoadingState(false)
     }
@@ -205,24 +161,26 @@ const ModalSettingAlbum: FunctionComponent<ModalSettingAlbumProps> = ({
   const renderAutocompleteOption: AutocompleteProps['renderOption'] = ({
     option,
   }) => {
-    if (
-      !membersName.includes(option.value) &&
-      option.value !== currentUser?.username
-    ) {
-      return (
-        <Group gap='sm'>
-          <Avatar src={usersData[option.value].avatar} size={36} radius='xl' />
-          <div>
-            <Text size='sm'>{option.value}</Text>
-            <Text size='xs' opacity={0.5}>
-              {usersData[option.value].email}
-            </Text>
-          </div>
-        </Group>
-      )
-    } else {
-      return null
-    }
+    return (
+      <>
+        {!membersName.includes(option.value) &&
+          option.value !== currentUser?.username && (
+            <Group gap='sm'>
+              <Avatar
+                src={usersData[option.value].avatar}
+                size={36}
+                radius='xl'
+              />
+              <div>
+                <Text size='sm'>{option.value}</Text>
+                <Text size='xs' opacity={0.5}>
+                  {usersData[option.value].email}
+                </Text>
+              </div>
+            </Group>
+          )}
+      </>
+    )
   }
 
   return (
@@ -295,6 +253,32 @@ const ModalSettingAlbum: FunctionComponent<ModalSettingAlbumProps> = ({
                             {user.email}
                           </Text>
                         </div>
+                      </Group>
+                    </Table.Td>
+
+                    <Table.Td>
+                      <Group gap='sm'>
+                        <Checkbox
+                          checked={
+                            album?.memberships.find(
+                              item => item.member === user.id,
+                            )?.is_redactor
+                          }
+                          label='Редактор'
+                          onChange={() => {
+                            const userId = user.id
+                            const isRedactor = !album?.memberships.find(
+                              item => item.member === user.id,
+                            )?.is_redactor
+                            if (userId) {
+                              addMemberToAlbum(userId, isRedactor)
+                                .then(() => fetchUsersInAlbum(album.id))
+                                .then(() => {
+                                  setKey(prev => prev + 1)
+                                })
+                            }
+                          }}
+                        />
                       </Group>
                     </Table.Td>
 

@@ -126,6 +126,32 @@ const SideNavigationMobile: FunctionComponent<SideNavigationMobileProps> = ({
                     <Button
                       onClick={() => {
                         if (
+                          '/groupalbums' ===
+                          '/' + window.location.pathname.split('/')[1]
+                        ) {
+                          setOpen(false)
+                        } else {
+                          navigate('/groupalbums')
+                        }
+                      }}
+                      className='-m-2 block border-none p-2 font-medium text-gray-900'
+                      leftSection={
+                        <img
+                          src='/svg/UserGroup.svg'
+                          alt='folderIcon'
+                          className='h-5 w-5'
+                        />
+                      }
+                      variant='default'
+                      fullWidth
+                      justify='space-between'
+                      rightSection={<span />}
+                    >
+                      Общие альбомы
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        if (
                           '/singin' ===
                           '/' + window.location.pathname.split('/')[1]
                         ) {

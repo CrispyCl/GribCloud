@@ -1,4 +1,9 @@
 import { imgStorage } from '@/firebase/config'
+import {
+  fetchAvailableAlbumsFailure,
+  fetchAvailableAlbumsStart,
+  fetchAvailableAlbumsSuccess,
+} from '@/redux/slices/availableAlbums'
 import { RootState } from '@/redux/store'
 import { AccountResponse, AlbumResponse } from '@/redux/types'
 import api from '@/utils/axios' // Импортируйте actions
@@ -24,9 +29,13 @@ const useAlbums = (path?: string[]) => {
   const publicAlbums = useSelector(
     (state: RootState) => state.publicAlbums.albums,
   )
+  const available = useSelector(
+    (state: RootState) => state.availableAlbums.albums,
+  )
 
   // fetching albums
   const fetchAlbums = async () => {
+    if (!currentUser) return
     try {
       dispatch(fetchAlbumsStart())
       const res = await api.get('/api/v1/albums/my/')
@@ -42,6 +51,7 @@ const useAlbums = (path?: string[]) => {
     try {
       dispatch(fetchPublicAlbumsStart())
       const res = await api.get('/api/v1/albums/')
+      res.data = res.data.filter((album: AlbumResponse) => album.is_public)
       dispatch(fetchPublicAlbumsSuccess(res.data))
       return res
     } catch (err: any) {
@@ -52,14 +62,15 @@ const useAlbums = (path?: string[]) => {
 
   // Available albums
   const fetchUserAlbums = async () => {
+    if (!currentUser) return
     try {
-      dispatch(fetchAlbumsStart())
+      dispatch(fetchAvailableAlbumsStart())
       const res = await api.get(`api/v1/albums/available/`)
-      dispatch(fetchAlbumsSuccess(res.data))
+      dispatch(fetchAvailableAlbumsSuccess(res.data))
       return res
     } catch (err: any) {
       console.log(err)
-      dispatch(fetchAlbumsFailure(err.toString()))
+      dispatch(fetchAvailableAlbumsFailure(err.toString()))
     }
   }
 
@@ -217,7 +228,11 @@ const useAlbums = (path?: string[]) => {
     const fetchData = async () => {
       try {
         setLoading(true)
-        await Promise.all([fetchAlbums(), fetchPublicAlbums()])
+        await Promise.all([
+          fetchAlbums(),
+          fetchPublicAlbums(),
+          fetchUserAlbums(),
+        ])
       } catch (error) {
         console.error('Ошибка при загрузке альбомов:', (error as Error).message)
       } finally {
@@ -231,6 +246,7 @@ const useAlbums = (path?: string[]) => {
   return {
     albumLoading,
     albums,
+    available,
     publicAlbums,
     createAlbum,
     editAlbum,

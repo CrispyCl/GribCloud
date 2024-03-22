@@ -5,14 +5,27 @@ export const TopLinks = [
     icon: '/svg/FolderOpen.svg',
   },
   {
-    name: 'Доступные альбомы',
+    name: 'Общие альбомы',
     route: '/groupalbums',
     icon: '/svg/UserGroup.svg',
+  },
+  {
+    name: 'Доступные альбомы',
+    route: '/available',
+    icon: '/svg/LockOpen.svg',
   },
   {
     name: 'Мои альбомы',
     route: '/albums',
     icon: '/svg/Photo.svg',
+  },
+]
+
+export const noAuth = [
+  {
+    name: 'Общие альбомы',
+    route: '/groupalbums',
+    icon: '/svg/UserGroup.svg',
   },
 ]
 export const VideoType = ['video/mp4', 'video/mov', 'video/webm']

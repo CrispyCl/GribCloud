@@ -1,15 +1,18 @@
-import { TopLinks } from '@/constants'
+import { TopLinks, noAuth } from '@/constants'
+import { RootState } from '@/redux/store'
 import { Button } from '@mantine/core'
 import { FunctionComponent } from 'react'
+import { useSelector } from 'react-redux'
 import { NavLink } from 'react-router-dom'
 
 interface SideNavigationProps {}
 
 const SideNavigation: FunctionComponent<SideNavigationProps> = () => {
+  const currentUser = useSelector((state: RootState) => state.auth.account)
   return (
     <aside className='hidden h-auto flex-col border-r border-gray-100 pt-2 md:flex'>
       <div className='px-4 pb-3 pt-1'>
-        {TopLinks.map(link => {
+        {(currentUser ? TopLinks : noAuth).map(link => {
           return (
             <NavLink
               to={link.route}

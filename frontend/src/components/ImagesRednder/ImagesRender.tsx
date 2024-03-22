@@ -96,16 +96,31 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
   // fetch all tags
   const fetchAllTags = async () => {
     try {
-      const res = await api.get(`api/v1/files/`)
-      const newTags: Tag[] = []
-      res.data.forEach((image: UploadImageResponse) => {
-        image.tags.forEach((tag: Tag) => {
-          if (!newTags.find(t => t.id === tag.id)) {
-            newTags.push(tag)
-          }
+      if (window.location.href.split('/').includes('all')) {
+        const res = await api.get(`api/v1/files/`)
+        const newTags: Tag[] = []
+        res.data.forEach((image: UploadImageResponse) => {
+          image.tags.forEach((tag: Tag) => {
+            if (!newTags.find(t => t.id === tag.id)) {
+              newTags.push(tag)
+            }
+          })
         })
-      })
-      setTags(newTags.map(tag => tag.title))
+        setTags(newTags.map(tag => tag.title))
+      } else if (window.location.href.split('/').includes('album')) {
+        const res = await api.get(`api/v1/albums/`)
+        const newTags: Tag[] = []
+        res.data.flatMap((album: AlbumResponse) => {
+          album.files.map((image: UploadImageResponse) => {
+            image.tags.forEach((tag: Tag) => {
+              if (!newTags.find(t => t.id === tag.id)) {
+                newTags.push(tag)
+              }
+            })
+          })
+        })
+        setTags(newTags.map(tag => tag.title))
+      }
     } catch (err) {
       console.log(err)
     }
@@ -233,14 +248,19 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
   }
 
   useEffect(() => {
+    if (userImages.length > 0) {
+      setCheck(
+        userImages
+          .filter(image => image !== undefined)
+          .map(image => ({ id: image.id, checked: false })),
+      )
+    }
+  }, [userImages, files, tagKey])
+
+  useEffect(() => {
     setAllLoading(loading || albumLoading)
   }, [loading, albumLoading])
 
-  useEffect(() => {
-    if (userImages.length > 0) {
-      setCheck(userImages.map(image => ({ id: image.id, checked: false })))
-    }
-  }, [userImages, files, tagKey])
   return (
     <Fragment key={tagKey}>
       <ModalAddTag
@@ -276,16 +296,37 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
           zIndex={1000}
           overlayProps={{ radius: 'sm', blur: 2 }}
         />
+        <div className='flex items-center justify-end'>
+          <div className='flex items-center gap-5'>
+            {(window.location.href.split('/').includes('album') ||
+              window.location.href.split('/').includes('all')) &&
+              !isMobile && (
+                <>
+                  <InputWithButton setSearchValue={setSearchValue} />
+                  {tags && tags.length !== 0 && (
+                    <Select data={tags} value={sortBy} onChange={setSortBy} />
+                  )}
+                </>
+              )}
+          </div>
+        </div>
+        {isMobile && (
+          <div className='m-auto mb-5 flex w-3/4 flex-col justify-center gap-5'>
+            {(window.location.href.split('/').includes('album') ||
+              window.location.href.split('/').includes('all')) && (
+              <>
+                <InputWithButton setSearchValue={setSearchValue} />
+                {tags && tags.length !== 0 && (
+                  <Select data={tags} value={sortBy} onChange={setSortBy} />
+                )}
+              </>
+            )}
+          </div>
+        )}
+        {}
         {(!userImages || !userImages.length) && allLoading === false && (
           <>
-            {!currentUser ? (
-              <div className='flex h-full flex-col items-center justify-center'>
-                <EllipsisHorizontalIcon className='h-16 w-16 text-gray-400' />
-                <span className='text-gray-500'>
-                  Войдите или зарегистрируйтесь
-                </span>
-              </div>
-            ) : (
+            {(!userImages || !userImages.length) && searchValue === '' && (
               <div className='flex h-full flex-col items-center justify-center'>
                 <EllipsisHorizontalIcon className='h-16 w-16 text-gray-400' />
                 <span className='text-gray-500'>
@@ -296,7 +337,7 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
           </>
         )}
         {groupedImages.length === 0 &&
-          allLoading === true &&
+          allLoading === false &&
           searchValue !== '' && (
             <div className='flex h-full flex-col items-center justify-center'>
               <EllipsisHorizontalIcon className='h-16 w-16 text-gray-400' />
@@ -375,41 +416,9 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
                     )}
                 </div>
               )}
-              {isMobile && (
-                <div className='m-auto mb-5 flex w-3/4 flex-col justify-center gap-5'>
-                  {(window.location.href.split('/').includes('album') ||
-                    window.location.href.split('/').includes('all')) && (
-                    <>
-                      <InputWithButton setSearchValue={setSearchValue} />
-                      {tags && tags.length !== 0 && (
-                        <Select
-                          data={tags}
-                          value={sortBy}
-                          onChange={setSortBy}
-                        />
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
+
               <div className='flex items-center justify-between'>
                 <span className='text-gray-500'>{group.date}</span>
-                <div className='flex items-center gap-5'>
-                  {(window.location.href.split('/').includes('album') ||
-                    window.location.href.split('/').includes('all')) &&
-                    !isMobile && (
-                      <>
-                        <InputWithButton setSearchValue={setSearchValue} />
-                        {tags && tags.length !== 0 && (
-                          <Select
-                            data={tags}
-                            value={sortBy}
-                            onChange={setSortBy}
-                          />
-                        )}
-                      </>
-                    )}
-                </div>
               </div>
               <div className='grid grid-cols-1 gap-5 p-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'>
                 {group.images.map((image, imageIndex) => {

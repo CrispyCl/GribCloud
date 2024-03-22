@@ -1,11 +1,14 @@
+import { RootState } from '@/redux/store'
 import { Illustration } from '@assets/Illustration'
 import classes from '@components/module_css/NotFound.module.css'
 import { Button, Container, Group, Text, Title } from '@mantine/core'
 import { FunctionComponent } from 'react'
+import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 interface NotFoundProps {}
 
 const NotFound: FunctionComponent<NotFoundProps> = () => {
+  const currentUser = useSelector((state: RootState) => state.auth.account)
   return (
     <Container className={classes.root}>
       <div className={classes.inner}>
@@ -22,7 +25,7 @@ const NotFound: FunctionComponent<NotFoundProps> = () => {
             неправильно ввели адрес или страница была удаленна.
           </Text>
           <Group justify='center'>
-            <Link to='/all'>
+            <Link to={currentUser ? '/all' : '/groupalbums'}>
               <Button
                 className='bg-blue-500 text-white hover:bg-blue-600'
                 size='md'

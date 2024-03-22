@@ -1,8 +1,10 @@
+import { RootState } from '@/redux/store'
 import { Tag, UploadImageResponse } from '@/redux/types'
 import api from '@/utils/axios'
 import { Button, Input, LoadingOverlay, Modal, TagsInput } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 import { FunctionComponent, useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 
 interface ModalAddTagProps {
   addTagClose: () => void
@@ -24,9 +26,11 @@ const ModalAddTag: FunctionComponent<ModalAddTagProps> = ({
   const [currentTags, setCurrentTags] = useState<Tag[]>([])
   const [newTag, setNewTag] = useState('')
   const [key, setKey] = useState(0)
+  const currentUser = useSelector((state: RootState) => state.auth.account)
 
   //  fetch all tags
   const fetchAllTags = async () => {
+    if (!currentUser) return
     try {
       const res = await api.get(`api/v1/files/`)
       const newTags: Tag[] = []
@@ -48,6 +52,7 @@ const ModalAddTag: FunctionComponent<ModalAddTagProps> = ({
 
   // fetch current tags
   const fetchCurrentTags = async () => {
+    if (!currentUser) return
     try {
       const res = await api.get(`api/v1/files/${id}/`)
       const currentTags: Tag[] = res.data.tags
@@ -62,6 +67,7 @@ const ModalAddTag: FunctionComponent<ModalAddTagProps> = ({
   }, [id, key])
 
   const addTag = async () => {
+    if (!currentUser) return
     try {
       setLoading(true)
       if (newTag !== '') {

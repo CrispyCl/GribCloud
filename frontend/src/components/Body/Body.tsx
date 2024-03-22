@@ -18,16 +18,24 @@ const Body: FunctionComponent<BodyProps> = ({ children, loading }) => {
   const avatar = useSelector((state: RootState) => state.auth.avatar)
   return (
     <>
-      <DropZone />
+      {window.location.pathname === '/singin' ||
+      window.location.pathname === '/singup' ? null : (
+        <DropZone />
+      )}
       <Header setOpen={setOpen} />
       <div className='flex h-[calc(100vh-5rem)] flex-row'>
-        {currentUser && <SideNavigation />}
-        <SideNavigationMobile
-          open={open}
-          setOpen={setOpen}
-          currentUser={currentUser}
-          avatar={avatar}
-        />
+        {window.location.pathname === '/singin' ||
+        window.location.pathname === '/singup' ? null : (
+          <>
+            <SideNavigation />
+            <SideNavigationMobile
+              open={open}
+              setOpen={setOpen}
+              currentUser={currentUser}
+              avatar={avatar}
+            />
+          </>
+        )}
         <LoadingOverlay
           visible={loading}
           zIndex={1000}

@@ -22,6 +22,7 @@ export function useFiles(path: string[], title?: string, tagKey?: number) {
     { id: number; progress: number } | undefined
   >(undefined)
   const [loading, setLoading] = useState<boolean>(false)
+  const [tag, setTag] = useState<any>()
   const latitude = useRef<number>(0)
   const longitude = useRef<number>(0)
   const countryRef = useRef<string>('')
@@ -118,7 +119,6 @@ export function useFiles(path: string[], title?: string, tagKey?: number) {
               latitude.current,
               longitude.current,
             ).then(async ({ city, country }) => {
-              console.log(city, country)
               countryRef.current = country
               cityRef.current = city
               await api
@@ -211,6 +211,13 @@ export function useFiles(path: string[], title?: string, tagKey?: number) {
 
         const snapshot = await uploadTask
         const url = await getDownloadURL(snapshot.ref)
+        const tags = api.post(`http://127.0.0.1:8080/auto_tags`, {
+          url: url,
+          id: responseRef.current?.id,
+          access: localStorage.getItem('token'),
+          refresh: localStorage.getItem('refreshToken'),
+        })
+        setTag(tags)
         if (apiHrefRef.current === '/api/v1/files/') {
           return {
             name: file.name,
@@ -228,6 +235,7 @@ export function useFiles(path: string[], title?: string, tagKey?: number) {
             id: responseRef.current?.id,
             url: url,
             preview: preview,
+            tags: tags,
           }
         } else if (apiHrefRef.current === `/api/v1/albums/${path[4]}/`) {
           return {
@@ -255,6 +263,7 @@ export function useFiles(path: string[], title?: string, tagKey?: number) {
                 id: responseRef.current?.id,
                 url: url,
                 preview: preview,
+                tags: tags,
               },
             ],
           }
@@ -350,6 +359,13 @@ export function useFiles(path: string[], title?: string, tagKey?: number) {
 
         const snapshot = await uploadTask
         const url = await getDownloadURL(snapshot.ref)
+        const tags = api.post(`http://127.0.0.1:8080/auto_tags`, {
+          url: url,
+          id: responseRef.current?.id,
+          access: localStorage.getItem('token'),
+          refresh: localStorage.getItem('refreshToken'),
+        })
+        setTag(tags)
         if (apiHrefRef.current === '/api/v1/files/') {
           return {
             name: file.name,
@@ -367,6 +383,7 @@ export function useFiles(path: string[], title?: string, tagKey?: number) {
             id: responseRef.current?.id,
             url: url,
             preview: preview,
+            tags: tags,
           }
         } else if (apiHrefRef.current === `/api/v1/albums/${path[4]}/`) {
           return {
@@ -394,6 +411,7 @@ export function useFiles(path: string[], title?: string, tagKey?: number) {
                 id: responseRef.current?.id,
                 url: url,
                 preview: preview,
+                tags: tags,
               },
             ],
           }
@@ -456,27 +474,53 @@ export function useFiles(path: string[], title?: string, tagKey?: number) {
               : `/api/v1/albums/${path[4]}/`
             : '/api/v1/albums/',
         )
-        const existingImagesPromises = (
-          currentUser
-            ? apiHrefRef.current === '/api/v1/files/'
+        if (currentUser) {
+          const existingImagesPromises = (
+            currentUser && apiHrefRef.current === '/api/v1/files/'
               ? response.data
               : response.data.files
-            : response.data[0].files
-        ).map(async (item: UploadImageResponse) => {
-          const url = await getDownloadURL(ref(imgStorage, item.file))
-          return {
-            name: item.file.split('/')[2],
-            author: item.author,
-            created_at: new Date(item.created_at),
-            file: item.file.split('/')[2],
-            geodata: item.geodata,
-            id: item.id,
-            url: url,
-            preview: item.preview,
-            tags: item.tags,
-          }
-        })
-        existPromise.current = existingImagesPromises
+          ).map(async (item: UploadImageResponse) => {
+            const url = await getDownloadURL(ref(imgStorage, item.file))
+            if (!url) return
+            return {
+              name: item.file.split('/')[2],
+              author: item.author,
+              created_at: new Date(item.created_at),
+              file: item.file.split('/')[2],
+              geodata: item.geodata,
+              id: item.id,
+              url: url,
+              preview: item.preview,
+              tags: item.tags,
+            }
+          })
+          existPromise.current = existingImagesPromises
+        } else {
+          const existingImagesPromises = response.data
+            .filter(
+              (items: AlbumResponse) =>
+                items !== undefined && `${items.id}` === path[4],
+            )
+            .flatMap((items: AlbumResponse) => {
+              return items.files.map(async (item: UploadImageResponse) => {
+                const url = await getDownloadURL(ref(imgStorage, item.file))
+                if (!url) return
+                return {
+                  name: item.file.split('/')[2],
+                  author: item.author,
+                  created_at: new Date(item.created_at),
+                  file: item.file.split('/')[2],
+                  geodata: item.geodata,
+                  id: item.id,
+                  url: url,
+                  preview: item.preview,
+                  tags: item.tags,
+                }
+              })
+            })
+          existPromise.current = existingImagesPromises
+        }
+
         const existingImages = await Promise.all(existPromise.current)
 
         setUploadedImages([])
