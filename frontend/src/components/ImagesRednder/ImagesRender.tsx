@@ -1,5 +1,6 @@
 import Fancybox from '@/components/LightGallery/Fancybox'
 import { uploadAccept } from '@/constants'
+import { imgStorage } from '@/firebase/config'
 import useAlbums from '@/hooks/useAlbums'
 import { useFiles } from '@/hooks/useFiles'
 import { RootState } from '@/redux/store'
@@ -17,6 +18,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline'
 import {
+  Avatar,
   Button,
   CheckIcon,
   Checkbox,
@@ -27,10 +29,12 @@ import {
   Select,
 } from '@mantine/core'
 import { useDisclosure, useMediaQuery } from '@mantine/hooks'
+import { getDownloadURL, ref } from 'firebase/storage'
 import JSZip from 'jszip'
 import React, { Fragment, FunctionComponent, useEffect, useState } from 'react'
 import 'react-circular-progressbar/dist/styles.css'
 import { useSelector } from 'react-redux'
+import { Link } from 'react-router-dom'
 import BodyHeader from '../Header/BodyHeader'
 import InputWithButton from '../Header/TextInput'
 import ModalAddTag from '../Modal/ModalAddTag'
@@ -80,6 +84,7 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
   const [addTagOpen, { open: openAddTag, close: closeAddTag }] =
     useDisclosure(false)
   const [addTagId, setAddTagId] = useState<number | undefined>(undefined)
+  const [avatar, setAvatar] = useState<string | undefined>('')
 
   const [openedCreate, { open: openCreate, close: closeCreate }] =
     useDisclosure(false)
@@ -110,14 +115,18 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
       } else if (window.location.href.split('/').includes('album')) {
         const res = await api.get(`api/v1/albums/`)
         const newTags: Tag[] = []
-        res.data.flatMap((album: AlbumResponse) => {
-          album.files.map((image: UploadImageResponse) => {
-            image.tags.forEach((tag: Tag) => {
-              if (!newTags.find(t => t.id === tag.id)) {
-                newTags.push(tag)
-              }
+        res.data.flatMap((albumRes: AlbumResponse) => {
+          if (album?.id === albumRes.id) {
+            albumRes.files.map((image: UploadImageResponse) => {
+              image.tags.forEach((tag: Tag) => {
+                if (!newTags.find(t => t.id === tag.id)) {
+                  newTags.push(tag)
+                }
+              })
             })
-          })
+          } else {
+            return []
+          }
         })
         setTags(newTags.map(tag => tag.title))
       }
@@ -261,6 +270,18 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
     setAllLoading(loading || albumLoading)
   }, [loading, albumLoading])
 
+  useEffect(() => {
+    if (album) {
+      const getAvatar = async () => {
+        const res = await getDownloadURL(
+          ref(imgStorage, `avatars/${album.author.id}`),
+        )
+        setAvatar(res)
+      }
+      getAvatar()
+    }
+  }, [album])
+
   return (
     <Fragment key={tagKey}>
       <ModalAddTag
@@ -296,7 +317,89 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
           zIndex={1000}
           overlayProps={{ radius: 'sm', blur: 2 }}
         />
-        <div className='flex items-center justify-end'>
+        {w960 && currentUser !== null && (
+          <div className=' mb-8 flex flex-col gap-2'>
+            {((window.location.href.split('/').includes('album') &&
+              (album?.memberships?.find(
+                item =>
+                  item.member === currentUser.id && item.is_redactor === true,
+              ) ||
+                currentUser.id === album?.author.id)) ||
+              window.location.href.split('/').includes('all')) && (
+              <FileButton
+                onChange={setFiles ? setFiles : () => {}}
+                accept={`${uploadAccept.map(item => item).join(',')}`}
+                multiple
+              >
+                {props => (
+                  <Button
+                    variant='outline'
+                    {...props}
+                    leftSection={<CloudArrowUpIcon className='h-5 w-5' />}
+                  >
+                    Загрузить
+                  </Button>
+                )}
+              </FileButton>
+            )}
+            {(window.location.href.split('/').includes('album') ||
+              window.location.href.split('/').includes('all')) &&
+              check?.length !== 0 && (
+                <Button
+                  variant='outline'
+                  onClick={selectAll}
+                  leftSection={
+                    check?.every(item => item.checked) ? (
+                      <XMarkIcon className='h-5 w-5' />
+                    ) : (
+                      <CheckIcon className='h-5 w-5' />
+                    )
+                  }
+                >
+                  {check?.every(item => item.checked)
+                    ? 'Убрать выделение'
+                    : 'Выбрать все файлы'}
+                </Button>
+              )}
+            {window.location.href.split('/').includes('album') &&
+              currentUser.id === album?.author.id && (
+                <Button
+                  variant='outline'
+                  onClick={openSettings}
+                  leftSection={<Cog6ToothIcon className='h-5 w-5' />}
+                >
+                  Настройки
+                </Button>
+              )}
+            {(window.location.href.split('/').includes('groupalbums') ||
+              window.location.href.split('/').includes('albums')) &&
+              currentUser && (
+                <Button onClick={openCreate} variant='outline'>
+                  Создать альбом
+                </Button>
+              )}
+          </div>
+        )}
+        <div
+          className={`mb-5 flex items-center ${window.location.href.split('/').includes('album') ? 'justify-between' : 'justify-end'}`}
+        >
+          {window.location.href.split('/').includes('album') && (
+            <>
+              <Link to={`/user/${album?.author.id}`} className=' rounded-full'>
+                <div className='flex min-h-16 min-w-48 flex-row items-center rounded-md border border-[#228be6] p-2 px-5'>
+                  <Avatar src={avatar} />
+                  <div className='ml-2 flex flex-col'>
+                    <span className='text-gray-500'>
+                      {album?.author.username}
+                    </span>
+                    <span className='text-sm text-gray-500'>
+                      {album?.author.email}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            </>
+          )}
           <div className='flex items-center gap-5'>
             {(window.location.href.split('/').includes('album') ||
               window.location.href.split('/').includes('all')) &&
@@ -352,71 +455,6 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
           )
           .map((group, index) => (
             <div key={index} className='flex flex-col'>
-              {w960 && currentUser !== null && (
-                <div className=' mb-8 flex flex-col gap-2'>
-                  {((window.location.href.split('/').includes('album') &&
-                    (album?.memberships?.find(
-                      item =>
-                        item.member === currentUser.id &&
-                        item.is_redactor === true,
-                    ) ||
-                      currentUser.id === album?.author.id)) ||
-                    window.location.href.split('/').includes('all')) && (
-                    <FileButton
-                      onChange={setFiles ? setFiles : () => {}}
-                      accept={`${uploadAccept.map(item => item).join(',')}`}
-                      multiple
-                    >
-                      {props => (
-                        <Button
-                          variant='outline'
-                          {...props}
-                          leftSection={<CloudArrowUpIcon className='h-5 w-5' />}
-                        >
-                          Загрузить
-                        </Button>
-                      )}
-                    </FileButton>
-                  )}
-                  {(window.location.href.split('/').includes('album') ||
-                    window.location.href.split('/').includes('all')) &&
-                    check?.length !== 0 && (
-                      <Button
-                        variant='outline'
-                        onClick={selectAll}
-                        leftSection={
-                          check?.every(item => item.checked) ? (
-                            <XMarkIcon className='h-5 w-5' />
-                          ) : (
-                            <CheckIcon className='h-5 w-5' />
-                          )
-                        }
-                      >
-                        {check?.every(item => item.checked)
-                          ? 'Убрать выделение'
-                          : 'Выбрать все файлы'}
-                      </Button>
-                    )}
-                  {window.location.href.split('/').includes('album') &&
-                    currentUser.id === album?.author.id && (
-                      <Button
-                        variant='outline'
-                        onClick={openSettings}
-                        leftSection={<Cog6ToothIcon className='h-5 w-5' />}
-                      >
-                        Настройки
-                      </Button>
-                    )}
-                  {(window.location.href.split('/').includes('groupalbums') ||
-                    window.location.href.split('/').includes('albums')) &&
-                    currentUser && (
-                      <Button onClick={openCreate} variant='outline'>
-                        Создать альбом
-                      </Button>
-                    )}
-                </div>
-              )}
-
               <div className='flex items-center justify-between'>
                 <span className='text-gray-500'>{group.date}</span>
               </div>

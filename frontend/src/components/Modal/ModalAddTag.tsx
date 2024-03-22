@@ -30,7 +30,7 @@ const ModalAddTag: FunctionComponent<ModalAddTagProps> = ({
 
   //  fetch all tags
   const fetchAllTags = async () => {
-    if (!currentUser) return
+    if (!currentUser || !addTagOpened) return
     try {
       const res = await api.get(`api/v1/files/`)
       const newTags: Tag[] = []
@@ -52,7 +52,7 @@ const ModalAddTag: FunctionComponent<ModalAddTagProps> = ({
 
   // fetch current tags
   const fetchCurrentTags = async () => {
-    if (!currentUser) return
+    if (!currentUser || !addTagOpened) return
     try {
       const res = await api.get(`api/v1/files/${id}/`)
       const currentTags: Tag[] = res.data.tags
@@ -67,7 +67,7 @@ const ModalAddTag: FunctionComponent<ModalAddTagProps> = ({
   }, [id, key])
 
   const addTag = async () => {
-    if (!currentUser) return
+    if (!currentUser || !addTagOpened) return
     try {
       setLoading(true)
       if (newTag !== '') {

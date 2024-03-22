@@ -1,15 +1,11 @@
 import BodyHeader from '@/components/Header/BodyHeader'
-import { imgStorage } from '@/firebase/config'
 import useAlbums from '@/hooks/useAlbums'
 import { RootState } from '@/redux/store'
-import { UserResponse } from '@/redux/types'
-import api from '@/utils/axios'
 import Body from '@components/Body/Body'
 import { EllipsisHorizontalIcon, FolderIcon } from '@heroicons/react/24/outline'
-import { Avatar, Button } from '@mantine/core'
+import { Button } from '@mantine/core'
 import { useDisclosure, useMediaQuery } from '@mantine/hooks'
-import { getDownloadURL, ref } from 'firebase/storage'
-import { FunctionComponent, useEffect, useState } from 'react'
+import { FunctionComponent } from 'react'
 import { useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -21,37 +17,7 @@ const GroupAlbums: FunctionComponent<GroupAlbumsProps> = () => {
     useDisclosure(false)
   const w960 = useMediaQuery('(max-width: 960px)')
   const currentUser = useSelector((state: RootState) => state.auth.account)
-  const [usersData, setUsersData] = useState<Record<string, UserResponse>>({})
-  const [avatars, setAvatars] = useState<Record<number, string>>({})
   const navigate = useNavigate()
-
-  useEffect(() => {
-    const fetchAvatars = async () => {
-      const usersData: Record<string, UserResponse> = {}
-      const avatars: Record<number, string> = {}
-
-      // Для каждого альбома получите информацию об авторе
-      for (const album of publicAlbums) {
-        const authorId = album.author.id
-        if (!usersData[authorId]) {
-          const userData = await api.get(
-            `api/v1/user/?username=${album.author.username}`,
-          )
-          // @ts-ignore
-          usersData[authorId] = userData
-          const avatarUrl = await getDownloadURL(
-            ref(imgStorage, `avatars/${authorId}`),
-          )
-          avatars[album.id] = avatarUrl
-        }
-      }
-
-      setUsersData(usersData)
-      setAvatars(avatars)
-    }
-
-    fetchAvatars()
-  }, [publicAlbums])
 
   return (
     <Body loading={albumLoading}>
@@ -87,18 +53,6 @@ const GroupAlbums: FunctionComponent<GroupAlbumsProps> = () => {
                 <FolderIcon className='h-16 w-16' />
                 <div className='flex flex-1 flex-col'>
                   <p>{item.title}</p>
-                </div>
-
-                <div className='absolute bottom-2 right-2 z-50 rounded-full'>
-                  <button
-                    onClick={event => {
-                      event.preventDefault()
-                      event.stopPropagation()
-                      navigate(`/user/${item.author.id}`)
-                    }}
-                  >
-                    <Avatar src={avatars[item.id]} />
-                  </button>
                 </div>
               </div>
             </Link>

@@ -31,7 +31,6 @@ const UserProfile: FunctionComponent<UserProfileProps> = ({
       .get(`/api/v1/albums/?author=${user.id}`)
       .then(res => {
         setAvailable(res.data)
-        console.log(res.data)
       })
       .catch(err => {
         console.log(err)

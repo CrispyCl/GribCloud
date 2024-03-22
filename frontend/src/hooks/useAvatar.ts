@@ -42,32 +42,24 @@ export function useAvatar(user: useAvatarProps['user']) {
   useEffect(() => {
     const fetchExistingAvatar = async () => {
       setLoading(true)
-      await getDownloadURL(ref(imgStorage, `avatars/${currentUser?.id}`))
-        .then(url => {
-          setLoading(false)
-          dispatch(actions.setAvatarUrl({ avatar: url }))
-        })
-        .catch(err => {
-          setLoading(false)
-        })
+      const res = await getDownloadURL(
+        ref(imgStorage, `avatars/${currentUser?.id}`),
+      )
+      dispatch(actions.setAvatarUrl({ avatar: res }))
+    }
+    const fetchAvatar = async () => {
+      setLoading(true)
+      const res = await getDownloadURL(ref(imgStorage, `avatars/${user?.id}`))
+      setUserAvatar(res)
     }
 
     uploadAvatar(file)
-
-    if (user) {
-      setLoading(true)
-      getDownloadURL(ref(imgStorage, `avatars/${user?.id}`))
-        .then(url => {
-          setUserAvatar(url)
-          setLoading(false)
-        })
-        .catch(error => {
-          console.error('Failed to fetch user avatar:', error)
-          setLoading(false)
-        })
+    if (currentUser) {
+      fetchExistingAvatar()
     }
-
-    fetchExistingAvatar()
+    if (user) {
+      fetchAvatar()
+    }
   }, [file])
 
   return { loading, avatar, userAvatar, setFile }
