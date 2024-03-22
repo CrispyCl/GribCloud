@@ -49,7 +49,7 @@ class AlbumModelTestCase(TestCase):
             list(
                 Album.objects.filter(
                     models.Q(author=user) | models.Q(membership__member=user) | models.Q(is_public=True),
-                ).all(),
+                ).distinct(),
             ),
         )
 
