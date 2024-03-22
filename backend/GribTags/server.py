@@ -53,7 +53,7 @@ async def read_image(url):
 
 
 @app.post("/auto_tags", status_code=status.HTTP_201_CREATED)
-async def upload_image(file: File):
+async def auto_tags(file: File):
     headers = {"Authorization": f"Bearer {file.access}"}
     if not await file_access(file.id, headers):
         async with aiohttp.ClientSession() as session:
@@ -70,7 +70,7 @@ async def upload_image(file: File):
     if not image:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unable to open url")
 
-    tags = tag_identifier.identify(image)
+    tags = await tag_identifier.identify(image)
 
     if not await file_access(file.id, headers):
         async with aiohttp.ClientSession() as session:
