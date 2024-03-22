@@ -6,8 +6,13 @@ import '@fancyapps/ui/dist/fancybox/fancybox.css'
 interface Fancybox {
   children: React.ReactNode
   open: () => void
+  openMap: () => void
+  addTagOpen: () => void
   setUrl?: React.Dispatch<React.SetStateAction<string | undefined>>
   setName?: React.Dispatch<React.SetStateAction<string | undefined>>
+  setLatitude?: React.Dispatch<React.SetStateAction<number | undefined>>
+  setLongitude?: React.Dispatch<React.SetStateAction<number | undefined>>
+  setAddTagId?: React.Dispatch<React.SetStateAction<number | undefined>>
 }
 
 const Fancybox: FunctionComponent<Fancybox> = ({
@@ -15,6 +20,11 @@ const Fancybox: FunctionComponent<Fancybox> = ({
   setUrl,
   setName,
   open,
+  openMap,
+  addTagOpen,
+  setAddTagId,
+  setLatitude,
+  setLongitude,
 }) => {
   const containerRef = useRef(null)
 
@@ -39,7 +49,7 @@ const Fancybox: FunctionComponent<Fancybox> = ({
             },
           },
           downloadBtn: {
-            tpl: '<button data-fancybox-download href="javascript:;" class="f-button" type="button" title="Скачать"><svg data-slot="icon" fill="none" stroke-width="1.5" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"></path></svg></button>',
+            tpl: '<button href="javascript:;" class="f-button" type="button" title="Скачать"><svg data-slot="icon" fill="none" stroke-width="1.5" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"></path></svg></button>',
             click: async () => {
               const link = document.createElement('a')
               const current = NativeFancybox.getSlide()
@@ -49,6 +59,26 @@ const Fancybox: FunctionComponent<Fancybox> = ({
               link.href = url
               link.download = current?.triggerEl?.id as string
               link.click()
+            },
+          },
+          mapButton: {
+            tpl: '<button data-fancybox-map="javascript:;" class="f-button" type="button" title="Показать на карте"><svg data-slot="icon" fill="none" stroke-width="1.5" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 22s-6-4.5-6-10.5a6 6 0 0 1 12 0c0 6-6 10.5-6 10.5Zm0 0V18m0 0-3-3m3 3 3-3m-3 3V6m0 0a3 3 0 0 0-3 3c0 3 3 7.5 3 7.5Z"></path></svg></button>',
+            click: async () => {
+              const current = NativeFancybox.getSlide()
+              // @ts-ignore
+              setLatitude(current?.fancyboxMap.split(',')[0])
+              // @ts-ignore
+              setLongitude(current?.fancyboxMap.split(',')[1])
+              openMap()
+            },
+          },
+          addTag: {
+            tpl: '<button data-fancybox-id data-fancybox-id="javascript:;" href="javascript:;" onclick="console.log" class="f-button" type="button" title="Добавить тэг"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M8 12H16" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M12 16V8" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M9 22H15C20 22 22 20 22 15V9C22 4 20 2 15 2H9C4 2 2 4 2 9V15C2 20 4 22 9 22Z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg></button>',
+            click: () => {
+              const current = NativeFancybox.getSlide()
+              // @ts-ignore
+              setAddTagId(current?.fancyboxId)
+              addTagOpen()
             },
           },
         },
@@ -63,7 +93,14 @@ const Fancybox: FunctionComponent<Fancybox> = ({
             'flipX',
             'flipY',
           ],
-          right: ['edit', 'downloadBtn', 'thumbs', 'close'],
+          right: [
+            'mapButton',
+            'edit',
+            'addTag',
+            'downloadBtn',
+            'thumbs',
+            'close',
+          ],
         },
       },
     }

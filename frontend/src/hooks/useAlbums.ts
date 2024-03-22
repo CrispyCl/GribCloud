@@ -1,4 +1,9 @@
 import { imgStorage } from '@/firebase/config'
+import {
+  fetchAvailableAlbumsFailure,
+  fetchAvailableAlbumsStart,
+  fetchAvailableAlbumsSuccess,
+} from '@/redux/slices/availableAlbums'
 import { RootState } from '@/redux/store'
 import { AccountResponse, AlbumResponse } from '@/redux/types'
 import api from '@/utils/axios' // Импортируйте actions
@@ -12,24 +17,30 @@ import {
   fetchPublicAlbumsStart,
   fetchPublicAlbumsSuccess,
 } from '@store/slices/publicAlbums'
-import { ref, uploadString } from 'firebase/storage'
+import { deleteObject, ref, uploadString } from 'firebase/storage'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 const useAlbums = (path?: string[]) => {
-  const [loading, setLoading] = useState(false)
+  const [albumLoading, setLoading] = useState(false)
   const dispatch = useDispatch()
   const currentUser = useSelector((state: RootState) => state.auth.account)
   const albums = useSelector((state: RootState) => state.albums.albums)
   const publicAlbums = useSelector(
     (state: RootState) => state.publicAlbums.albums,
   )
+  const available = useSelector(
+    (state: RootState) => state.availableAlbums.albums,
+  )
+
   // fetching albums
   const fetchAlbums = async () => {
-    dispatch(fetchAlbumsStart())
+    if (!currentUser) return
     try {
+      dispatch(fetchAlbumsStart())
       const res = await api.get('/api/v1/albums/my/')
       dispatch(fetchAlbumsSuccess(res.data))
+      return res
     } catch (err: any) {
       console.log(err)
       dispatch(fetchAlbumsFailure(err.toString()))
@@ -37,13 +48,29 @@ const useAlbums = (path?: string[]) => {
   }
 
   const fetchPublicAlbums = async () => {
-    dispatch(fetchPublicAlbumsStart())
     try {
+      dispatch(fetchPublicAlbumsStart())
       const res = await api.get('/api/v1/albums/')
+      res.data = res.data.filter((album: AlbumResponse) => album.is_public)
       dispatch(fetchPublicAlbumsSuccess(res.data))
+      return res
     } catch (err: any) {
       console.log(err)
       dispatch(fetchPublicAlbumsFailure(err.toString()))
+    }
+  }
+
+  // Available albums
+  const fetchUserAlbums = async () => {
+    if (!currentUser) return
+    try {
+      dispatch(fetchAvailableAlbumsStart())
+      const res = await api.get(`api/v1/albums/available/`)
+      dispatch(fetchAvailableAlbumsSuccess(res.data))
+      return res
+    } catch (err: any) {
+      console.log(err)
+      dispatch(fetchAvailableAlbumsFailure(err.toString()))
     }
   }
 
@@ -56,25 +83,15 @@ const useAlbums = (path?: string[]) => {
     try {
       if (is_public) dispatch(fetchPublicAlbumsStart())
       else dispatch(fetchAlbumsStart())
-      await api
-        .patch(`/api/v1/albums/${albumId}/`, {
-          title: title,
-          is_public: is_public,
-        })
-        .then(res => {
-          if (is_public) {
-            dispatch(fetchPublicAlbumsSuccess(res.data))
-            fetchPublicAlbums()
-          } else {
-            dispatch(fetchAlbumsSuccess(res.data))
-            fetchAlbums()
-          }
-        })
-        .catch(err => {
-          console.log(err)
-          if (is_public) dispatch(fetchPublicAlbumsFailure(err.toString()))
-          else dispatch(fetchAlbumsFailure(err.toString()))
-        })
+      await api.patch(`/api/v1/albums/${albumId}/`, {
+        title: title,
+        is_public: is_public,
+      })
+      if (is_public) {
+        await fetchPublicAlbums()
+      } else {
+        await fetchAlbums()
+      }
     } catch (error) {
       console.error(
         'Ошибка при редактировании альбома:',
@@ -86,21 +103,6 @@ const useAlbums = (path?: string[]) => {
     }
   }
 
-  // Fetch members of album
-  const fetchMembers = async (albumId: number) => {
-    dispatch(fetchAlbumsStart())
-    await api
-      .get(`/api/v1/albums/${albumId}/members/${currentUser?.id}`)
-      .then(res => {
-        console.log('members', res.data)
-        setLoading(false)
-      })
-      .catch(err => {
-        console.log(err)
-        setLoading(false)
-      })
-  }
-
   // Create album
   const createAlbum = async (
     albumName: string,
@@ -109,28 +111,39 @@ const useAlbums = (path?: string[]) => {
   ) => {
     try {
       setLoading(true)
-      await api
-        .post('/api/v1/albums/my/', {
-          title: albumName,
-          is_public: _public,
-        })
-        .then(async res => {
-          console.log('created album', res.data)
-          const storageRef = ref(
-            imgStorage,
-            `albums/${currentUser.id}/${albumName}/.folder`,
-          )
-          await uploadString(storageRef, JSON.stringify({ isFolder: true }))
-          setLoading(false)
-          if (_public) fetchPublicAlbums()
-          else fetchAlbums()
-        })
-        .catch(err => {
-          console.log('error creating album', err)
-          setLoading(false)
-        })
+      const res = await api.post('/api/v1/albums/my/', {
+        title: albumName,
+        is_public: _public,
+      })
+      const storageRef = ref(
+        imgStorage,
+        `albums/${currentUser.id}/${albumName}/.folder`,
+      )
+      await uploadString(storageRef, JSON.stringify({ isFolder: true }))
+      if (_public) await fetchPublicAlbums()
+      else await fetchAlbums()
     } catch (error) {
       console.error('Ошибка при создании альбома:', (error as Error).message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // fetch users in album
+  const fetchUsersInAlbum = async (albumId: number) => {
+    try {
+      setLoading(true)
+      const res = await api.get(`/api/v1/albums/${albumId}/`)
+      const users = await Promise.all(
+        res.data.memberships.map(async (member: any) => {
+          const response = await api.get(`/api/v1/user/${member.member}/`)
+          return response.data
+        }),
+      )
+      return users
+    } catch (err: any) {
+      console.log(err)
+    } finally {
       setLoading(false)
     }
   }
@@ -139,23 +152,15 @@ const useAlbums = (path?: string[]) => {
   const addMemberToAlbum = async (userId: number, is_redactor: boolean) => {
     try {
       setLoading(true)
-      await api
-        .post(`/api/v1/albums/${path && path[4]}/members/${userId}/`, {
-          is_redactor: is_redactor,
-        })
-        .then(res => {
-          console.log('added member to album', res.data)
-          setLoading(false)
-        })
-        .catch(err => {
-          console.log('error adding member to album', err)
-          setLoading(false)
-        })
+      await api.post(`/api/v1/albums/${path && path[2]}/members/${userId}/`, {
+        is_redactor: is_redactor,
+      })
     } catch (error) {
       console.error(
         'Ошибка при добавлении участника в альбом:',
         (error as Error).message,
       )
+    } finally {
       setLoading(false)
     }
   }
@@ -164,43 +169,35 @@ const useAlbums = (path?: string[]) => {
   const removeMemberFromAlbum = async (userId: number) => {
     try {
       setLoading(true)
-      await api
-        .delete(`/api/v1/albums/${path && path[4]}/members/${userId}/`)
-        .then(res => {
-          console.log('removed member from album', res.data)
-          setLoading(false)
-        })
-        .catch(err => {
-          console.log('error removing member from album', err)
-          setLoading(false)
-        })
+      await api.delete(`/api/v1/albums/${path && path[2]}/members/${userId}/`)
     } catch (error) {
       console.error(
         'Ошибка при удалении участника из альбома:',
         (error as Error).message,
       )
+    } finally {
       setLoading(false)
     }
   }
 
   // Remove image from album
-  const removeImageFromAlbum = async (album: AlbumResponse, image: number) => {
+  const removeImageFromAlbum = async (
+    album: AlbumResponse,
+    image: number,
+    path: string,
+  ) => {
     try {
       setLoading(true)
-      const res = await api.delete(`/api/v1/albums/${album.id}/files/${image}/`)
-      setLoading(false)
-      if (album.is_public) {
-        fetchPublicAlbums()
-      } else {
-        fetchAlbums()
-      }
-      // Return the new list of images
-      return res.data
+      await api.delete(`/api/v1/albums/${album.id}/files/${image}/`)
+      await deleteObject(ref(imgStorage, path))
+      if (album.is_public) await fetchPublicAlbums()
+      else await fetchAlbums()
     } catch (error) {
       console.error(
         'Ошибка при удалении изображения из альбома:',
         (error as Error).message,
       )
+    } finally {
       setLoading(false)
     }
   }
@@ -209,37 +206,59 @@ const useAlbums = (path?: string[]) => {
   const removeAlbum = async (album: AlbumResponse) => {
     try {
       setLoading(true)
-      album.files.forEach(async file => {
-        await api.delete(`/api/v1/files/${file.id}/`)
-      })
+      await Promise.all(
+        album.files.map(async file => {
+          await api.delete(`/api/v1/files/${file.id}/`)
+        }),
+      )
       await api.delete(`/api/v1/albums/${album.id}/`)
-      setLoading(false)
-      if (album.is_public) {
-        fetchPublicAlbums()
-      } else {
-        fetchAlbums()
-      }
+      await deleteObject(
+        ref(imgStorage, `albums/${currentUser?.id}/${album.title}/.folder`),
+      )
+      if (album.is_public) await fetchPublicAlbums()
+      else await fetchAlbums()
     } catch (error) {
       console.error('Ошибка при удалении альбома:', (error as Error).message)
+    } finally {
       setLoading(false)
     }
   }
+
   useEffect(() => {
-    fetchAlbums()
-    fetchPublicAlbums()
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        await Promise.all([
+          fetchAlbums(),
+          fetchPublicAlbums(),
+          fetchUserAlbums(),
+        ])
+      } catch (error) {
+        console.error('Ошибка при загрузке альбомов:', (error as Error).message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
   }, [currentUser])
 
   return {
-    loading,
+    albumLoading,
     albums,
+    available,
     publicAlbums,
     createAlbum,
     editAlbum,
+    fetchUsersInAlbum,
     addMemberToAlbum,
-    fetchMembers,
     removeMemberFromAlbum,
     removeImageFromAlbum,
     removeAlbum,
+    fetchUserAlbums,
+    fetchAlbums,
+    fetchPublicAlbums,
   }
 }
+
 export default useAlbums

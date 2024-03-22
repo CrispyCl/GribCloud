@@ -6,7 +6,7 @@ import { ref, uploadString } from 'firebase/storage'
 import React, { FunctionComponent } from 'react'
 import FilerobotImageEditor, { TABS, TOOLS } from 'react-filerobot-image-editor'
 import { useSelector } from 'react-redux'
-import Translation_RU from './Translation_RU'
+import Translation_RU from '../../constants/Translation_RU'
 
 interface ModalImageEditProps {
   name: string

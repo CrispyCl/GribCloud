@@ -9,10 +9,10 @@ import { FunctionComponent } from 'react'
 import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 
-interface AlbumsProps {}
+interface AvailableAlbumsProps {}
 
-const Albums: FunctionComponent<AlbumsProps> = () => {
-  const { albumLoading, albums } = useAlbums()
+const AvailableAlbums: FunctionComponent<AvailableAlbumsProps> = () => {
+  const { available, albumLoading } = useAlbums()
   const [openedCreate, { open: openCreate, close: closeCreate }] =
     useDisclosure(false)
   const w960 = useMediaQuery('(max-width: 960px)')
@@ -26,7 +26,7 @@ const Albums: FunctionComponent<AlbumsProps> = () => {
       />
       {w960 && currentUser !== null && (
         <div className=' mx-10 mb-8 flex flex-col'>
-          {(window.location.href.split('/').includes('groupalbums') ||
+          {(window.location.href.split('/').includes('availablealbums') ||
             window.location.href.split('/').includes('albums')) &&
             currentUser && (
               <Button onClick={openCreate} variant='outline'>
@@ -35,17 +35,19 @@ const Albums: FunctionComponent<AlbumsProps> = () => {
             )}
         </div>
       )}
-      {!albums.length && (
+      {!available.length && (
         <div className='flex flex-col items-center justify-center'>
           <EllipsisHorizontalIcon className='h-16 w-16 text-gray-400' />
-          <span className='text-gray-500'>Нет созданных альбомов</span>
+          <span className='text-gray-500'>
+            Нет созданных/доступных альбомов
+          </span>
         </div>
       )}
-      <div className='m-10 grid grid-cols-1 items-stretch gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'>
-        {albums.map((item, index) => {
+      <div className='m-10 grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6'>
+        {available.map((item, index) => {
           return (
             <Link to={`/album/${item.id}`} key={index}>
-              <div className='flex min-h-max flex-col items-center gap-4 rounded-xl border border-slate-200 p-4'>
+              <div className='flex flex-col items-center gap-4 rounded-xl border border-slate-200 p-4'>
                 <FolderIcon className='h-16 w-16' />
                 <div className='flex flex-1 flex-col'>
                   <p>{item.title}</p>
@@ -59,4 +61,4 @@ const Albums: FunctionComponent<AlbumsProps> = () => {
   )
 }
 
-export default Albums
+export default AvailableAlbums

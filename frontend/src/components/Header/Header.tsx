@@ -13,7 +13,7 @@ const Header: FunctionComponent<HeaderProps> = ({ setOpen }) => {
   const currentUser = useSelector((state: RootState) => state.auth.account)
   return (
     <header className='flex items-center justify-between border-b border-gray-100 px-7 py-4'>
-      <Link to='/all' className='self-center'>
+      <Link to={currentUser ? '/all' : '/groupalbums'} className='self-center'>
         <img src='/svg/GribCloud.svg' alt='logo' />
       </Link>
       <Burger className='md:hidden' onClick={() => setOpen(true)} />
@@ -23,16 +23,21 @@ const Header: FunctionComponent<HeaderProps> = ({ setOpen }) => {
         </div>
       ) : (
         <div className='hidden items-center gap-4 md:flex'>
-          <Link to='/singin'>
-            <Button variant='light' className='w-20 p-2 text-black'>
-              Войти
-            </Button>
-          </Link>
-          <Link to='/singup'>
-            <Button variant='light' className='w-32 p-2 text-black'>
-              Регистрация
-            </Button>
-          </Link>
+          {window.location.pathname === '/singin' ||
+          window.location.pathname === '/singup' ? null : (
+            <>
+              <Link to='/singin'>
+                <Button variant='light' className='w-20 p-2 text-black'>
+                  Войти
+                </Button>
+              </Link>
+              <Link to='/singup'>
+                <Button variant='light' className='w-32 p-2 text-black'>
+                  Регистрация
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       )}
     </header>

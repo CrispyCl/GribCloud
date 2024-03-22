@@ -29,6 +29,7 @@ export interface UserResponse {
   username: string
   email: string
   date_joined: string
+  avatar: string
 }
 
 export interface UploadImage {
@@ -41,9 +42,19 @@ export interface UploadImageResponse {
   author: number
   name: string
   file: string
+  geodata: {
+    city: string
+    country: string
+    latitude: number
+    longitude: number
+  }
   url: string
   created_at: Date
   preview: string
+  tags: {
+    id: number
+    title: string
+  }[]
 }
 
 export interface GroupedImages {
@@ -65,6 +76,14 @@ export interface AlbumResponse {
   files: UploadImageResponse[]
   id: number
   is_public: boolean
-  memberships: AccountResponse[]
+  memberships: {
+    is_redactor: boolean
+    member: number
+  }[]
+  title: string
+}
+
+export interface Tag {
+  id: number
   title: string
 }

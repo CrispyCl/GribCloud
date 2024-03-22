@@ -30,9 +30,15 @@ const albumsSlice = createSlice({
       state.loading = false
       state.error = action.payload
     },
+    logOut(state) {
+      state.albums = []
+      state.loading = false
+      state.error = null
+    },
   },
 })
 
 export const { fetchAlbumsStart, fetchAlbumsSuccess, fetchAlbumsFailure } =
   albumsSlice.actions
 export const albumsReducer = albumsSlice.reducer
+export const { logOut } = albumsSlice.actions

@@ -1,126 +1,240 @@
-import ContextMenu from '@/components/ContextMenu/ContextMenu'
 import Fancybox from '@/components/LightGallery/Fancybox'
-import { VideoType } from '@/constants'
+import { uploadAccept } from '@/constants'
+import { imgStorage } from '@/firebase/config'
+import useAlbums from '@/hooks/useAlbums'
 import { useFiles } from '@/hooks/useFiles'
 import { RootState } from '@/redux/store'
 import {
   AlbumResponse,
   GroupedImages,
+  Tag,
   UploadImageResponse,
 } from '@/redux/types'
-import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
-import { Button, Checkbox, Group, LoadingOverlay } from '@mantine/core'
+import api from '@/utils/axios'
+import {
+  CloudArrowUpIcon,
+  Cog6ToothIcon,
+  EllipsisHorizontalIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
+import {
+  Avatar,
+  Button,
+  CheckIcon,
+  Checkbox,
+  FileButton,
+  Group,
+  LoadingOverlay,
+  Pill,
+  Select,
+} from '@mantine/core'
+import { useDisclosure, useMediaQuery } from '@mantine/hooks'
+import { getDownloadURL, ref } from 'firebase/storage'
 import JSZip from 'jszip'
-import React, { FunctionComponent, useEffect, useState } from 'react'
+import React, { Fragment, FunctionComponent, useEffect, useState } from 'react'
 import 'react-circular-progressbar/dist/styles.css'
 import { useSelector } from 'react-redux'
+import { Link } from 'react-router-dom'
 import BodyHeader from '../Header/BodyHeader'
+import InputWithButton from '../Header/TextInput'
+import ModalAddTag from '../Modal/ModalAddTag'
 
 interface ImagesRenderProps {
   userImages: UploadImageResponse[]
   open: () => void
-  uploadProgress?: { id: number; progress: number } | undefined
+  openMap: () => void
   album?: AlbumResponse
   setFiles?: React.Dispatch<React.SetStateAction<File[]>>
   setUrl?: React.Dispatch<React.SetStateAction<string | undefined>>
   setName?: React.Dispatch<React.SetStateAction<string | undefined>>
-  handleRemoveImageFromAlbum?: (album: AlbumResponse, image: number) => void
-  handleRemoveImage?: (image: number) => void
-}
-
-const initialContextMenu = {
-  show: false,
-  x: 0,
-  y: 0,
-  image: undefined as UploadImageResponse | undefined,
+  setLatitude?: React.Dispatch<React.SetStateAction<number | undefined>>
+  setLongitude?: React.Dispatch<React.SetStateAction<number | undefined>>
+  handleRemoveImageFromAlbum?: (
+    album: AlbumResponse,
+    image: number,
+    path: string,
+  ) => void
+  handleRemoveImage?: (image: number, path: string) => void
+  tagKey: number
+  setTagKey: React.Dispatch<React.SetStateAction<number>>
 }
 
 const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
+  tagKey,
+  setTagKey,
   album,
   userImages,
-  uploadProgress,
   handleRemoveImageFromAlbum,
   handleRemoveImage,
   setUrl,
   setFiles,
   setName,
+  setLatitude,
+  setLongitude,
   open,
+  openMap,
 }) => {
   const groupedImages: GroupedImages[] = []
-  const [contextMenu, setContextMenu] = useState(initialContextMenu)
   const [check, setCheck] = useState<{ id: number; checked: boolean }[]>([])
-  const [loading, setLoading] = useState(false)
+  const [allLoading, setAllLoading] = useState(false)
   const [checkedUrls, setCheckedUrls] = useState<string[]>([])
+  const [searchValue, setSearchValue] = useState('')
+  const [sortBy, setSortBy] = useState<string | null>('')
+  const [tags, setTags] = useState<string[]>([])
+  const [addTagOpen, { open: openAddTag, close: closeAddTag }] =
+    useDisclosure(false)
+  const [addTagId, setAddTagId] = useState<number | undefined>(undefined)
+  const [avatar, setAvatar] = useState<string | undefined>('')
+
+  const [openedCreate, { open: openCreate, close: closeCreate }] =
+    useDisclosure(false)
+  const [openedSettings, { open: openSettings, close: closeSettings }] =
+    useDisclosure(false)
+
   const { files } = useFiles(window.location.href.split('/'))
   const currentUser = useSelector((state: RootState) => state.auth.account)
+  const { loading } = useFiles(window.location.href.split('/'))
+  const { albumLoading } = useAlbums()
+  const isMobile = useMediaQuery('(max-width: 768px)')
+  const w960 = useMediaQuery('(max-width: 960px)')
 
-  userImages.forEach(image => {
-    const date = new Date(image.created_at).toLocaleDateString()
-    const group = groupedImages.find(group => group.date === date)
-    if (group) {
-      group.images.push(image)
-    } else {
-      groupedImages.push({ date, images: [image] })
-    }
-  })
-
-  // custom right click on image menu
-  const handleContextMenu = (
-    e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
-    image: UploadImageResponse,
-  ) => {
-    if (currentUser) {
-      e.preventDefault()
-      const { clientX, clientY } = e
-      setContextMenu({ show: true, x: clientX, y: clientY, image })
+  // fetch all tags
+  const fetchAllTags = async () => {
+    try {
+      if (window.location.href.split('/').includes('all')) {
+        const res = await api.get(`api/v1/files/`)
+        const newTags: Tag[] = []
+        res.data.forEach((image: UploadImageResponse) => {
+          image.tags.forEach((tag: Tag) => {
+            if (!newTags.find(t => t.id === tag.id)) {
+              newTags.push(tag)
+            }
+          })
+        })
+        setTags(newTags.map(tag => tag.title))
+      } else if (window.location.href.split('/').includes('album')) {
+        const res = await api.get(`api/v1/albums/`)
+        const newTags: Tag[] = []
+        res.data.flatMap((albumRes: AlbumResponse) => {
+          if (album?.id === albumRes.id) {
+            albumRes.files.map((image: UploadImageResponse) => {
+              image.tags.forEach((tag: Tag) => {
+                if (!newTags.find(t => t.id === tag.id)) {
+                  newTags.push(tag)
+                }
+              })
+            })
+          } else {
+            return []
+          }
+        })
+        setTags(newTags.map(tag => tag.title))
+      }
+    } catch (err) {
+      console.log(err)
     }
   }
+  useEffect(() => {
+    fetchAllTags()
+  }, [tagKey])
 
-  // close context menu
-  const closeContextMenu = () => {
-    setContextMenu(initialContextMenu)
+  // Sort images by tag
+  const sortImages = (images: UploadImageResponse[]) => {
+    if (sortBy) {
+      return images
+        .filter(image => {
+          const tag = image.tags.find(tag => tag.title === sortBy)
+          return tag !== undefined
+        })
+        .sort((a, b) => {
+          const aTag = a.tags.find(tag => tag.title === sortBy)!
+          const bTag = b.tags.find(tag => tag.title === sortBy)!
+          return aTag.id - bTag.id
+        })
+    }
+    return images
+  }
+
+  let sortedImages = sortImages(userImages)
+
+  if (searchValue !== '') {
+    const filteredImages = sortedImages.filter(image => {
+      const city = image.geodata?.city || ''
+      const country = image.geodata?.country || ''
+      return (
+        city.toLowerCase().includes(searchValue.toLowerCase()) ||
+        country.toLowerCase().includes(searchValue.toLowerCase())
+      )
+    })
+
+    filteredImages.forEach(image => {
+      const date = new Date(image.created_at).toLocaleDateString()
+      const group = groupedImages.find(group => group.date === date)
+      if (group) {
+        group.images.push(image)
+      } else {
+        groupedImages.push({ date, images: [image] })
+      }
+    })
+  } else {
+    sortedImages.forEach(image => {
+      const date = new Date(image.created_at).toLocaleDateString()
+      const group = groupedImages.find(group => group.date === date)
+      if (group) {
+        group.images.push(image)
+      } else {
+        groupedImages.push({ date, images: [image] })
+      }
+    })
   }
 
   // download checked images in zip
   const downloadImages = async () => {
-    setLoading(true)
-    const checkedImages = userImages.filter(image =>
-      check.find(item => item.id === image.id && item.checked === true),
-    )
-    const newCheckedUrls = [...checkedUrls]
-    checkedImages.forEach(image => {
-      newCheckedUrls.push(image.url)
-    })
-    setCheckedUrls(newCheckedUrls)
-
-    if (checkedImages.length === 1) {
-      const current = checkedImages[0]
-      const link = document.createElement('a')
-      const res = await fetch(current.url)
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      link.href = url
-      link.download = current.name
-      link.click()
-      setLoading(false)
-    } else {
-      const zip = new JSZip()
-      const folder = zip.folder('images')
-
-      await Promise.all(
-        checkedImages.map(async image => {
-          const response = await fetch(image.url)
-          const blob = await response.blob()
-          folder?.file(image.name, blob)
-        }),
+    try {
+      setAllLoading(true)
+      const checkedImages = userImages.filter(image =>
+        check.find(item => item.id === image.id && item.checked === true),
       )
+      const newCheckedUrls = [...checkedUrls]
+      checkedImages.forEach(image => {
+        newCheckedUrls.push(image.url)
+      })
+      setCheckedUrls(newCheckedUrls)
 
-      const blob = await zip.generateAsync({ type: 'blob' })
-      const link = document.createElement('a')
-      link.href = URL.createObjectURL(blob)
-      link.download = 'images.zip'
-      link.click()
-      setLoading(false)
+      if (checkedImages.length === 1) {
+        const current = checkedImages[0]
+        const link = document.createElement('a')
+        const res = await fetch(current.url)
+        const blob = await res.blob()
+        const url = URL.createObjectURL(blob)
+        link.href = url
+        link.download = current.name
+        link.click()
+      } else {
+        const zip = new JSZip()
+        const folder = zip.folder('GribCloud_download')
+
+        await Promise.all(
+          checkedImages.map(async image => {
+            const response = await fetch(image.url)
+            const blob = await response.blob()
+            folder?.file(image.name, blob)
+          }),
+        )
+
+        const blob = await zip.generateAsync({ type: 'blob' })
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(blob)
+        link.download = 'images.zip'
+        link.click()
+      }
+    } catch (error) {
+      console.error(
+        'Ошибка при скачивании изображений:',
+        (error as Error).message,
+      )
+    } finally {
+      setAllLoading(false)
     }
   }
 
@@ -144,45 +258,178 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
 
   useEffect(() => {
     if (userImages.length > 0) {
-      setCheck(userImages.map(image => ({ id: image.id, checked: false })))
+      setCheck(
+        userImages
+          .filter(image => image !== undefined)
+          .map(image => ({ id: image.id, checked: false })),
+      )
     }
-  }, [userImages, files])
+  }, [userImages, files, tagKey])
+
+  useEffect(() => {
+    setAllLoading(loading || albumLoading)
+  }, [loading, albumLoading])
+
+  useEffect(() => {
+    if (album) {
+      const getAvatar = async () => {
+        const res = await getDownloadURL(
+          ref(imgStorage, `avatars/${album.author.id}`),
+        )
+        setAvatar(res)
+      }
+      getAvatar()
+    }
+  }, [album])
+
   return (
-    <>
+    <Fragment key={tagKey}>
+      <ModalAddTag
+        setTagKey={setTagKey}
+        addTagClose={closeAddTag}
+        addTagOpened={addTagOpen}
+        id={addTagId as number}
+      />
       <BodyHeader
+        openSettings={openSettings}
+        openCreate={openCreate}
+        openedCreate={openedCreate}
+        closeCreate={closeCreate}
+        openedSettings={openedSettings}
+        closeSettings={closeSettings}
         setFiles={setFiles}
         album={album}
         selectAll={selectAll}
         check={check}
       />
-      <Fancybox setUrl={setUrl} setName={setName} open={open}>
-        {contextMenu.show && currentUser && (
-          <ContextMenu
-            handleRemoveImage={handleRemoveImage as (image: number) => void}
-            handleRemoveImageFromAlbum={
-              handleRemoveImageFromAlbum as (
-                album: AlbumResponse,
-                image: number,
-              ) => void
-            }
-            album={album as AlbumResponse}
-            x={contextMenu.x}
-            y={contextMenu.y}
-            image={contextMenu.image}
-            closeContextMenu={closeContextMenu}
-          />
+      <Fancybox
+        setUrl={setUrl}
+        setName={setName}
+        open={open}
+        openMap={openMap}
+        setLatitude={setLatitude}
+        setLongitude={setLongitude}
+        addTagOpen={openAddTag}
+        setAddTagId={setAddTagId}
+      >
+        <LoadingOverlay
+          visible={allLoading}
+          zIndex={1000}
+          overlayProps={{ radius: 'sm', blur: 2 }}
+        />
+        {w960 && currentUser !== null && (
+          <div className=' mb-8 flex flex-col gap-2'>
+            {((window.location.href.split('/').includes('album') &&
+              (album?.memberships?.find(
+                item =>
+                  item.member === currentUser.id && item.is_redactor === true,
+              ) ||
+                currentUser.id === album?.author.id)) ||
+              window.location.href.split('/').includes('all')) && (
+              <FileButton
+                onChange={setFiles ? setFiles : () => {}}
+                accept={`${uploadAccept.map(item => item).join(',')}`}
+                multiple
+              >
+                {props => (
+                  <Button
+                    variant='outline'
+                    {...props}
+                    leftSection={<CloudArrowUpIcon className='h-5 w-5' />}
+                  >
+                    Загрузить
+                  </Button>
+                )}
+              </FileButton>
+            )}
+            {(window.location.href.split('/').includes('album') ||
+              window.location.href.split('/').includes('all')) &&
+              check?.length !== 0 && (
+                <Button
+                  variant='outline'
+                  onClick={selectAll}
+                  leftSection={
+                    check?.every(item => item.checked) ? (
+                      <XMarkIcon className='h-5 w-5' />
+                    ) : (
+                      <CheckIcon className='h-5 w-5' />
+                    )
+                  }
+                >
+                  {check?.every(item => item.checked)
+                    ? 'Убрать выделение'
+                    : 'Выбрать все файлы'}
+                </Button>
+              )}
+            {window.location.href.split('/').includes('album') &&
+              currentUser.id === album?.author.id && (
+                <Button
+                  variant='outline'
+                  onClick={openSettings}
+                  leftSection={<Cog6ToothIcon className='h-5 w-5' />}
+                >
+                  Настройки
+                </Button>
+              )}
+            {(window.location.href.split('/').includes('groupalbums') ||
+              window.location.href.split('/').includes('albums')) &&
+              currentUser && (
+                <Button onClick={openCreate} variant='outline'>
+                  Создать альбом
+                </Button>
+              )}
+          </div>
         )}
-
-        {(!userImages || !userImages.length) && (
+        <div
+          className={`mb-5 flex items-center ${window.location.href.split('/').includes('album') ? 'justify-between' : 'justify-end'}`}
+        >
+          {window.location.href.split('/').includes('album') && (
+            <>
+              <Link to={`/user/${album?.author.id}`} className=' rounded-full'>
+                <div className='flex min-h-16 min-w-48 flex-row items-center rounded-md border border-[#228be6] p-2 px-5'>
+                  <Avatar src={avatar} />
+                  <div className='ml-2 flex flex-col'>
+                    <span className='text-gray-500'>
+                      {album?.author.username}
+                    </span>
+                    <span className='text-sm text-gray-500'>
+                      {album?.author.email}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            </>
+          )}
+          <div className='flex items-center gap-5'>
+            {(window.location.href.split('/').includes('album') ||
+              window.location.href.split('/').includes('all')) &&
+              !isMobile && (
+                <>
+                  <InputWithButton setSearchValue={setSearchValue} />
+                  {tags && tags.length !== 0 && (
+                    <Select data={tags} value={sortBy} onChange={setSortBy} />
+                  )}
+                </>
+              )}
+          </div>
+        </div>
+        {isMobile && (
+          <div className='m-auto mb-5 flex w-3/4 flex-col justify-center gap-5'>
+            {(window.location.href.split('/').includes('album') ||
+              window.location.href.split('/').includes('all')) && (
+              <>
+                <InputWithButton setSearchValue={setSearchValue} />
+                {tags && tags.length !== 0 && (
+                  <Select data={tags} value={sortBy} onChange={setSortBy} />
+                )}
+              </>
+            )}
+          </div>
+        )}
+        {}
+        {(!userImages || !userImages.length) && allLoading === false && (
           <>
-            {!currentUser ? (
-              <div className='flex h-full flex-col items-center justify-center'>
-                <EllipsisHorizontalIcon className='h-16 w-16 text-gray-400' />
-                <span className='text-gray-500'>
-                  Войдите или зарегистрируйтесь
-                </span>
-              </div>
-            ) : (
+            {(!userImages || !userImages.length) && searchValue === '' && (
               <div className='flex h-full flex-col items-center justify-center'>
                 <EllipsisHorizontalIcon className='h-16 w-16 text-gray-400' />
                 <span className='text-gray-500'>
@@ -192,133 +439,151 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
             )}
           </>
         )}
+        {groupedImages.length === 0 &&
+          allLoading === false &&
+          searchValue !== '' && (
+            <div className='flex h-full flex-col items-center justify-center'>
+              <EllipsisHorizontalIcon className='h-16 w-16 text-gray-400' />
+              <span className='text-gray-500'>
+                Нет загруженных изображений сделанных в этом городе/стране
+              </span>
+            </div>
+          )}
         {groupedImages
           .sort(
             (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
           )
           .map((group, index) => (
             <div key={index} className='flex flex-col'>
-              <span className='text-gray-500'>{group.date}</span>
+              <div className='flex items-center justify-between'>
+                <span className='text-gray-500'>{group.date}</span>
+              </div>
               <div className='grid grid-cols-1 gap-5 p-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'>
                 {group.images.map((image, imageIndex) => {
-                  if (uploadProgress) {
-                    return (
-                      <LoadingOverlay
-                        key={imageIndex}
-                        visible={
-                          (uploadProgress.progress !== 100 &&
-                            uploadProgress.id === image.id) ||
-                          loading
-                        }
-                        zIndex={1000}
-                        overlayProps={{ radius: 'sm', blur: 2 }}
-                      />
-                    )
-                  }
                   return (
-                    <div key={imageIndex} className='group relative'>
-                      <a
-                        className='cursor-pointer'
-                        data-fancybox='gallery'
-                        id={image.name}
-                        href={image.url}
-                        onContextMenu={e => handleContextMenu(e, image)}
-                      >
-                        {image.name &&
-                        VideoType.includes(
-                          ('video/' + image.name.split('.').pop()) as string,
-                        ) ? (
-                          <>
-                            <img
-                              loading='lazy'
-                              id={image.name}
-                              className={`${check.find(item => item.id === image.id)?.checked === true ? 'scale-95' : ''} h-full w-full transform rounded-lg object-cover transition-transform sm:h-80`}
-                              src={image.preview}
-                            />
-                            <div
-                              className={`${check.find(item => item.id === image.id)?.checked === true ? 'scale-95' : ''} group-hover:bg-fade-top absolute inset-0 transform rounded-lg transition-all duration-300`}
-                            ></div>
-                          </>
-                        ) : (
-                          <>
-                            <img
-                              loading='lazy'
-                              id={image.name}
-                              className={`${check.find(item => item.id === image.id)?.checked === true ? 'scale-95' : ''} h-full w-full transform rounded-lg object-cover transition-transform sm:h-80`}
-                              src={image.url}
-                            />
-                            <div
-                              className={`${check.find(item => item.id === image.id)?.checked === true ? 'scale-95' : ''} group-hover:bg-fade-top absolute inset-0 transform rounded-lg transition-all duration-300`}
-                            ></div>
-                          </>
-                        )}
-                      </a>
-                      <Checkbox
-                        className={`${check.find(item => item.id === image.id)?.checked === true ? 'left-3 top-3 block' : 'hidden'} absolute left-1 top-1 transform bg-transparent transition-transform group-hover:block`}
-                        variant='filled'
-                        onChange={() => {
-                          setCheck(prev =>
-                            prev.map(item =>
-                              item.id === image.id
-                                ? { id: item.id, checked: !item.checked }
-                                : item,
-                            ),
-                          )
-                        }}
-                        checked={
-                          check.find(item => item.id === image.id)?.checked ||
-                          false
-                        }
-                      />
-                    </div>
+                    <Fragment key={imageIndex}>
+                      <div className='group relative overflow-hidden'>
+                        <a
+                          className='cursor-pointer'
+                          data-fancybox='gallery'
+                          data-fancybox-map={[
+                            `${image.geodata?.latitude}`,
+                            `${image.geodata?.longitude}`,
+                          ]}
+                          data-fancybox-id={image.id}
+                          id={image.name}
+                          href={image.url}
+                        >
+                          <img
+                            loading='lazy'
+                            id={image.name}
+                            className={`${check.find(item => item.id === image.id)?.checked === true ? 'scale-95' : ''} h-full w-full transform rounded-lg object-cover transition-transform sm:h-80`}
+                            src={image.preview}
+                          />
+                          <div
+                            className={`${check.find(item => item.id === image.id)?.checked === true ? 'scale-95' : ''} absolute inset-0 transform rounded-lg transition-all duration-300 group-hover:bg-fade-top`}
+                          ></div>
+                          <div
+                            className={` ${check.find(item => item.id === image.id)?.checked === true ? 'bottom-5 left-5' : ''} absolute bottom-3 left-3 flex max-h-20 transform flex-wrap gap-1 pr-3 transition-all duration-300`}
+                          >
+                            {image.tags && image.tags.length > 0 ? (
+                              image.tags.map((tag, index) => (
+                                <Pill key={index} className='bg-blue-100'>
+                                  {tag.title}
+                                </Pill>
+                              ))
+                            ) : (
+                              <Pill key={index} className='bg-red-100'>
+                                Нет тегов
+                              </Pill>
+                            )}
+                          </div>
+                        </a>
+                        <Checkbox
+                          className={`${check.find(item => item.id === image.id)?.checked === true ? 'left-3 top-3 block' : 'hidden'} absolute left-1 top-1 transform bg-transparent transition-all group-hover:block`}
+                          variant='filled'
+                          onChange={() => {
+                            setCheck(prev =>
+                              prev.map(item =>
+                                item.id === image.id
+                                  ? { id: item.id, checked: !item.checked }
+                                  : item,
+                              ),
+                            )
+                          }}
+                          checked={
+                            check.find(item => item.id === image.id)?.checked ||
+                            false
+                          }
+                        />
+                      </div>
+                    </Fragment>
                   )
                 })}
               </div>
             </div>
           ))}
       </Fancybox>
-      <div className='absolute bottom-0 w-full'>
+      <div
+        className={`absolute bottom-0 w-full ${check.some(item => item.checked === true) ? 'block opacity-100' : 'hidden'} 
+         opacity-0 transition-opacity duration-300 ease-in-out `}
+      >
         <div
-          className={`${check.some(item => item.checked === true) && 'opacity-100'} delay-10 fixed bottom-0 flex h-32 w-full border-t border-gray-100 bg-gray-100 px-5 opacity-0 transition-opacity duration-300 ease-in-out`}
+          className={`delay-10 fixed bottom-0 flex h-32 w-full border-t border-gray-100 bg-gray-100 px-5 `}
         >
           <Group>
-            <Button variant='outline' onClick={downloadImages}>
-              <span>Скачать</span>
-            </Button>
             <Button
               variant='outline'
-              color='red'
               onClick={() => {
-                if (window.location.href.includes('album')) {
-                  const checkedImages = userImages.filter(image =>
-                    check.find(
-                      item => item.id === image.id && item.checked === true,
-                    ),
-                  )
-                  checkedImages.forEach(image => {
-                    handleRemoveImageFromAlbum?.(
-                      album as AlbumResponse,
-                      image.id,
-                    )
-                  })
-                } else {
-                  const checkedImages = userImages.filter(image =>
-                    check.find(
-                      item => item.id === image.id && item.checked === true,
-                    ),
-                  )
-                  checkedImages.forEach(image => {
-                    handleRemoveImage?.(image.id)
-                  })
-                }
+                downloadImages()
+                setCheck([])
               }}
             >
-              <span>Удалить выбранные файлы</span>
+              <span>Скачать</span>
             </Button>
+            {(album?.author.id === currentUser?.id ||
+              album?.memberships?.find(
+                item =>
+                  item.member === currentUser?.id && item.is_redactor === true,
+              ) ||
+              window.location.href.includes('all')) && (
+              <Button
+                variant='outline'
+                color='red'
+                onClick={() => {
+                  if (window.location.href.includes('album')) {
+                    const checkedImages = userImages.filter(image =>
+                      check.find(
+                        item => item.id === image.id && item.checked === true,
+                      ),
+                    )
+                    checkedImages.forEach(image => {
+                      handleRemoveImageFromAlbum?.(
+                        album as AlbumResponse,
+                        image.id,
+                        image.file,
+                      )
+                    })
+                  } else {
+                    const checkedImages = userImages.filter(image =>
+                      check.find(
+                        item => item.id === image.id && item.checked === true,
+                      ),
+                    )
+                    checkedImages.forEach(image => {
+                      handleRemoveImage?.(image.id, image.file)
+                    })
+                  }
+                  setCheck([])
+                }}
+              >
+                <span>Удалить выбранные файлы</span>
+              </Button>
+            )}
           </Group>
         </div>
       </div>
-    </>
+    </Fragment>
   )
 }
 

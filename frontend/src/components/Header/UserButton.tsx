@@ -1,4 +1,7 @@
 import { useAvatar } from '@/hooks/useAvatar'
+import { logOut } from '@/redux/slices/albums'
+import { logOutAvailable } from '@/redux/slices/availableAlbums'
+import { logOutPublic } from '@/redux/slices/publicAlbums'
 import { Avatar, Group, Menu, Text, UnstyledButton } from '@mantine/core'
 import { actions } from '@store/slices/auth'
 import { RootState, useAppDispatch } from '@store/store'
@@ -13,6 +16,9 @@ export const UserButton = () => {
 
   const handleLogout = () => {
     dispatch(actions.setLogout())
+    dispatch(logOut())
+    dispatch(logOutAvailable())
+    dispatch(logOutPublic())
     navigate('/singin')
   }
 
