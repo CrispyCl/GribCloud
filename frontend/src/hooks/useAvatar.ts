@@ -60,6 +60,7 @@ export function useAvatar(user: useAvatarProps['user']) {
     if (user) {
       fetchAvatar()
     }
+    setLoading(false)
   }, [file])
 
   return { loading, avatar, userAvatar, setFile }

@@ -52,8 +52,10 @@ class AlbumManager(models.Manager):
 
     def by_user(self, user):
         if user.is_authenticated:
-            return self.get_queryset().filter(
-                models.Q(author=user) | models.Q(membership__member=user) | models.Q(is_public=True),
+            return (
+                self.get_queryset()
+                .filter(models.Q(author=user) | models.Q(membership__member=user) | models.Q(is_public=True))
+                .distinct()
             )
         return self.public()
 

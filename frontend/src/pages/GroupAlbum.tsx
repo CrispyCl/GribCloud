@@ -41,7 +41,7 @@ const GroupAlbum: FunctionComponent<GroupAlbumProps> = ({
     if (uploadedImages) {
       setUserImages(uploadedImages)
     }
-  }, [uploadedImages])
+  }, [uploadedImages, tagKey, key])
   return (
     <Body key={key} loading={loading}>
       <ImagesRender

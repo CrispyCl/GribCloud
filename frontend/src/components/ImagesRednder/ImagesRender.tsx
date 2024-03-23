@@ -235,6 +235,7 @@ const ImagesRender: FunctionComponent<ImagesRenderProps> = ({
       )
     } finally {
       setAllLoading(false)
+      window.location.reload()
     }
   }
 

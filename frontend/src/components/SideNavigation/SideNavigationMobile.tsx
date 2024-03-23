@@ -188,21 +188,23 @@ const SideNavigationMobile: FunctionComponent<SideNavigationMobileProps> = ({
                   </div>
                 )}
               </div>
-              <div className='border-t border-gray-200 p-4'>
-                <Button
-                  onClick={() => handleLogout()}
-                  className='-m-2 -mt-2 block border-none p-2 pt-0 font-medium text-gray-900'
-                  variant='default'
-                  fullWidth
-                  justify='space-between'
-                  leftSection={
-                    <ArrowLeftStartOnRectangleIcon className='h-5 w-5' />
-                  }
-                  rightSection={<span />}
-                >
-                  Выйти
-                </Button>
-              </div>
+              {currentUser && (
+                <div className='border-t border-gray-200 p-4'>
+                  <Button
+                    onClick={() => handleLogout()}
+                    className='-m-2 -mt-2 block border-none p-2 pt-0 font-medium text-gray-900'
+                    variant='default'
+                    fullWidth
+                    justify='space-between'
+                    leftSection={
+                      <ArrowLeftStartOnRectangleIcon className='h-5 w-5' />
+                    }
+                    rightSection={<span />}
+                  >
+                    Выйти
+                  </Button>
+                </div>
+              )}
             </Dialog.Panel>
           </Transition.Child>
         </div>

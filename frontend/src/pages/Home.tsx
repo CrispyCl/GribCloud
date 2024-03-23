@@ -32,7 +32,7 @@ const Home: FunctionComponent<HomeProps> = () => {
     if (uploadedImages) {
       setUserImages(uploadedImages)
     }
-  }, [uploadedImages, tagKey])
+  }, [uploadedImages, tagKey, key])
   return (
     <Body loading={loading} key={key}>
       <ImagesRender

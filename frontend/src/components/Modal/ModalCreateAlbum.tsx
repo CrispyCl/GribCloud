@@ -18,11 +18,13 @@ import { useSelector } from 'react-redux'
 interface ModalCreateAlbumProps {
   opened: boolean
   close: () => void
+  setBodyKey: React.Dispatch<React.SetStateAction<number>>
 }
 
 const ModalCreateAlbum: FunctionComponent<ModalCreateAlbumProps> = ({
   opened,
   close,
+  setBodyKey,
 }) => {
   const currentUser = useSelector((state: RootState) => state.auth.account)
   const isMobile = useMediaQuery('(max-width: 768px)')
@@ -40,6 +42,9 @@ const ModalCreateAlbum: FunctionComponent<ModalCreateAlbumProps> = ({
   const handleClose = () => {
     close()
     form.reset()
+    setTimeout(() => {
+      setBodyKey(k => k + 1)
+    })
   }
   return (
     <Modal
