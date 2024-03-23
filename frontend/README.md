@@ -23,7 +23,7 @@ copy .env.template .env
 1. VITE_APP_API_URL - адрес backend api (по стандарту: http://localhost:8000/)
 2. VITE_GEOCODER_KEY - ключ для геокодера от Яндекса
 
-## Ниже перечислены данные, которые даются при создании firebase проекта
+#### Ниже перечислены данные, которые выдаются при создании firebase проекта
 
 3. VITE_FIREBASE_API_KEY
 4. VITE_FIREBASE_AUTH_DOMAIN
