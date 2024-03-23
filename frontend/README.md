@@ -34,4 +34,6 @@ copy .env.template .env
 
 ## Запустите сервер
 
+```bash
 yarn dev
+```
