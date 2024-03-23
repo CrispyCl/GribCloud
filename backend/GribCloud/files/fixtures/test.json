@@ -1,0 +1,108 @@
+[
+    {
+        "model": "user.user",
+        "pk": 1,
+        "fields": {
+            "username": "admin",
+            "email": "admin@example.com",
+            "password": "111",
+            "is_superuser": true
+        }
+    },
+    {
+        "model": "user.user",
+        "pk": 2,
+        "fields": {
+            "username": "testuser",
+            "email": "teseuser@mail.ru",
+            "password": "111"
+        }
+    },
+    {
+        "model": "user.user",
+        "pk": 3,
+        "fields": {
+            "username": "authoruser",
+            "email": "authoruser@mail.ru",
+            "password": "111"
+        }
+    },
+    {
+        "model": "files.file",
+        "pk": 1,
+        "fields": {
+            "author": 3,
+            "file": "images/file.jpg",
+            "preview": "previews/file.jpg",
+            "created_at": "2024-03-09T07:15:23.489Z"
+        }
+    },
+    {
+        "model": "files.file",
+        "pk": 2,
+        "fields": {
+            "author": 3,
+            "file": "images/file_with_tags.jpg",
+            "preview": "previews/file_with_tags.jpg",
+            "created_at": "2024-03-09T07:15:23.489Z"
+        }
+    },
+    {
+        "model": "files.file",
+        "pk": 3,
+        "fields": {
+            "author": 3,
+            "file": "images/yellow_file.jpg",
+            "preview": "previews/yellow_file.jpg",
+            "created_at": "2024-03-09T07:15:23.489Z"
+        }
+    },
+    {
+        "model": "files.tag",
+        "pk": 1,
+        "fields": {
+            "title": "Red",
+            "slug": "red"
+        }
+    },
+    {
+        "model": "files.tag",
+        "pk": 2,
+        "fields": {
+            "title": "Yellow",
+            "slug": "yellow"
+        }
+    },
+    {
+        "model": "files.tag",
+        "pk": 3,
+        "fields": {
+            "title": "testtag",
+            "slug": "testtag"
+        }
+    },
+    {
+        "model": "files.tag_files",
+        "pk": 1,
+        "fields": {
+            "tag": 1,
+            "file": 2
+        }
+    },
+    {
+        "model": "files.tag_files",
+        "pk": 2,
+        "fields": {
+            "tag": 2,
+            "file": 2
+        }
+    },
+    {
+        "model": "files.tag_files",
+        "pk": 3,
+        "fields": {
+            "tag": 2,
+            "file": 3
+        }
+    }
+]

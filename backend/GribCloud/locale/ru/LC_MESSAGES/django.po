@@ -1,0 +1,279 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-03-17 04:05+0400\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n"
+"%100>=11 && n%100<=14)? 2 : 3);\n"
+
+#: .\GribCloud\settings.py:109
+msgid "English"
+msgstr "Английский"
+
+#: .\GribCloud\settings.py:110
+msgid "Russian"
+msgstr "Русский"
+
+#: .\albums\apps.py:8
+msgctxt "app name"
+msgid "albums"
+msgstr "альбомы"
+
+#: .\albums\models.py:58 .\files\models.py:85
+msgctxt "title field name"
+msgid "title"
+msgstr "заголовок"
+
+#: .\albums\models.py:63 .\files\models.py:56
+msgctxt "author field name"
+msgid "author"
+msgstr "автор"
+
+#: .\albums\models.py:70 .\files\models.py:95
+#, fuzzy
+#| msgctxt "app name"
+#| msgid "files"
+msgctxt "files field name"
+msgid "files"
+msgstr "файлы"
+
+#: .\albums\models.py:76
+msgctxt "members field name"
+msgid "members"
+msgstr "участники"
+
+#: .\albums\models.py:82
+msgctxt "is_public field name"
+msgid "is public"
+msgstr "публичный"
+
+#: .\albums\models.py:86 .\files\models.py:71
+msgctxt "created_at field name"
+msgid "created at"
+msgstr "дата создания"
+
+#: .\albums\models.py:91
+msgctxt "Album model verbose name"
+msgid "album"
+msgstr "альбом"
+
+#: .\albums\models.py:92
+msgctxt "Album model verbose name plural"
+msgid "albums"
+msgstr "альбомы"
+
+#: .\albums\models.py:107
+msgctxt "member field name"
+msgid "member"
+msgstr "участник"
+
+#: .\albums\models.py:114
+#, fuzzy
+#| msgctxt "Album model verbose name"
+#| msgid "album"
+msgctxt "album field name"
+msgid "album"
+msgstr "альбом"
+
+#: .\albums\models.py:122
+msgctxt "AlbumMembership model verbose name"
+msgid "album membership"
+msgstr "членство в альбоме"
+
+#: .\albums\models.py:123
+msgctxt "AlbumMembership model verbose name plural"
+msgid "album memberships"
+msgstr "членства в альбомах"
+
+#: .\albums\views.py:57 .\albums\views.py:67 .\albums\views.py:84
+#: .\albums\views.py:94 .\albums\views.py:120 .\albums\views.py:151
+#: .\albums\views.py:170 .\albums\views.py:204 .\files\views.py:77
+#: .\files\views.py:97 .\files\views.py:125
+msgid "You do not have permission to perform this action."
+msgstr ""
+
+#: .\albums\views.py:103
+msgid "File already added to the album"
+msgstr "Файл уже добавлен в альбом"
+
+#: .\albums\views.py:130
+msgid "File is not in the album"
+msgstr "Файл отсутствует в альбоме"
+
+#: .\albums\views.py:182 .\files\views.py:52
+msgid "This field is required."
+msgstr ""
+
+#: .\albums\views.py:214
+msgid "User is not in the album."
+msgstr "Пользователь отсутствует в альбоме."
+
+#: .\core\apps.py:8
+msgctxt "app name"
+msgid "core"
+msgstr "ядро"
+
+#: .\files\apps.py:8
+msgctxt "app name"
+msgid "files"
+msgstr "файлы"
+
+#: .\files\models.py:62
+msgctxt "file field name"
+msgid "file"
+msgstr "файл"
+
+#: .\files\models.py:66
+msgctxt "preview field name"
+msgid "file preview"
+msgstr "превью файла"
+
+#: .\files\models.py:76
+msgctxt "File model verbose name"
+msgid "file"
+msgstr "файл"
+
+#: .\files\models.py:77
+msgctxt "File model verbose name plural"
+msgid "files"
+msgstr "файлы"
+
+#: .\files\models.py:101
+msgctxt "Tag model verbose name"
+msgid "tag"
+msgstr "тег"
+
+#: .\files\models.py:102
+msgctxt "Tag model verbose name plural"
+msgid "tags"
+msgstr "теги"
+
+#: .\files\models.py:119
+#, fuzzy
+#| msgctxt "file field name"
+#| msgid "file"
+msgid "file"
+msgstr "файл"
+
+#: .\files\models.py:121
+msgid "latitude"
+msgstr "широта"
+
+#: .\files\models.py:122
+msgid "longitude"
+msgstr "долгота"
+
+#: .\files\models.py:123
+msgid "country"
+msgstr "страна"
+
+#: .\files\models.py:124
+msgid "city"
+msgstr "город"
+
+#: .\files\models.py:127
+msgctxt "GeoData model verbose name"
+msgid "File Geodata"
+msgstr "Геоданные файла"
+
+#: .\files\models.py:128
+msgctxt "GeoData model verbose name plural"
+msgid "Files Geodata"
+msgstr "Геоданные файлов"
+
+#: .\files\serializers.py:35 .\files\serializers.py:48
+msgctxt "File Create Serializer validation error no author"
+msgid "Author not provided"
+msgstr "Автор не предоставлен"
+
+#: .\files\serializers.py:58
+msgctxt "File Create Serializer validation error no files"
+msgid "No files provided"
+msgstr "Файлы не предоставлены"
+
+#: .\files\serializers.py:66 .\files\serializers.py:76
+#: .\files\serializers.py:83 .\files\serializers.py:95
+msgid "The file should be an object: "
+msgstr "Файл должен быть объектом: "
+
+#: .\files\views.py:106
+msgid "Tag already added to the file."
+msgstr "Тег уже указан в файле."
+
+#: .\files\views.py:134
+msgid "Tag is not in the file."
+msgstr "Тег не указан в файле."
+
+#: .\user\admin.py:21
+msgid "Personal info"
+msgstr ""
+
+#: .\user\admin.py:23
+msgid "Permissions"
+msgstr ""
+
+#: .\user\admin.py:33
+msgid "Important dates"
+msgstr ""
+
+#: .\user\apps.py:8
+msgctxt "app name"
+msgid "users"
+msgstr "пользователи"
+
+#: .\user\models.py:27
+msgid "username"
+msgstr ""
+
+#: .\user\models.py:29
+msgid "email address"
+msgstr ""
+
+#: .\user\models.py:33
+msgid "staff status"
+msgstr ""
+
+#: .\user\models.py:35
+msgid "Designates whether the user can log into this admin site."
+msgstr ""
+
+#: .\user\models.py:37
+msgid "date joined"
+msgstr ""
+
+#: .\user\models.py:43
+msgid "user"
+msgstr "пользователь"
+
+#: .\user\models.py:44
+msgid "users"
+msgstr "пользователи"
+
+#: .\user\serializers.py:48
+msgctxt "Change password serializer validation error"
+msgid "Password fields didn't match"
+msgstr "Пароли не совпадают"
+
+#: .\user\views.py:48
+msgctxt "Change password validation error"
+msgid "Old password is not correct"
+msgstr "Неверный старый пароль"
+
+#: .\user\views.py:61
+msgctxt "Change password success"
+msgid "Password changed successfully"
+msgstr "Пароль успешно изменён"
