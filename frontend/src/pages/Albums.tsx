@@ -5,7 +5,7 @@ import Body from '@components/Body/Body'
 import { EllipsisHorizontalIcon, FolderIcon } from '@heroicons/react/24/outline'
 import { Button } from '@mantine/core'
 import { useDisclosure, useMediaQuery } from '@mantine/hooks'
-import { FunctionComponent } from 'react'
+import { FunctionComponent, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 
@@ -17,9 +17,11 @@ const Albums: FunctionComponent<AlbumsProps> = () => {
     useDisclosure(false)
   const w960 = useMediaQuery('(max-width: 960px)')
   const currentUser = useSelector((state: RootState) => state.auth.account)
+  const [bodyKey, setBodyKey] = useState(0)
   return (
-    <Body loading={albumLoading}>
+    <Body loading={albumLoading} key={bodyKey}>
       <BodyHeader
+        setBodyKey={setBodyKey}
         openCreate={openCreate}
         closeCreate={closeCreate}
         openedCreate={openedCreate}

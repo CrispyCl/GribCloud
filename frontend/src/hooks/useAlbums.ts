@@ -111,7 +111,7 @@ const useAlbums = (path?: string[]) => {
   ) => {
     try {
       setLoading(true)
-      const res = await api.post('/api/v1/albums/my/', {
+      await api.post('/api/v1/albums/my/', {
         title: albumName,
         is_public: _public,
       })

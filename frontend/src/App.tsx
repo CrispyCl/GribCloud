@@ -24,15 +24,17 @@ function App() {
   const currentUser = useSelector((state: RootState) => state.auth.account)
   const fetchUsers = async () => {
     setUserLoading(true)
-    await api.get('/api/v1/user/').then(res => {
-      setUsers(res.data)
+    const res = await api.get('/api/v1/user/')
+    setUsers(res.data)
+  }
+  useEffect(() => {
+    try {
+      fetchUsers()
+    } finally {
       setTimeout(() => {
         setUserLoading(false)
       }, 500)
-    })
-  }
-  useEffect(() => {
-    fetchUsers()
+    }
   }, [])
   return (
     <Routes>
@@ -113,7 +115,7 @@ function App() {
                 />
               )
             })}
-          <Route path='*' element={<NotFound />} />
+          {!loading && <Route path='*' element={<NotFound />} />}
         </>
       )}
     </Routes>

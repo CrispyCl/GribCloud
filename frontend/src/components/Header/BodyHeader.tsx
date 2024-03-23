@@ -11,7 +11,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { Button, FileButton } from '@mantine/core'
 import { useDisclosure, useMediaQuery } from '@mantine/hooks'
-import React, { FunctionComponent } from 'react'
+import React, { FunctionComponent, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import ModalCreateAlbum from '../Modal/ModalCreateAlbum'
@@ -28,6 +28,7 @@ interface BodyHeaderProps {
   setFiles?: React.Dispatch<React.SetStateAction<File[]>>
   selectAll?: () => void
   openSettings?: () => void
+  setBodyKey?: React.Dispatch<React.SetStateAction<number>>
 }
 
 const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
@@ -41,6 +42,7 @@ const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
   album,
   setFiles,
   selectAll,
+  setBodyKey,
 }) => {
   const { albumLoading } = useAlbums()
   const [openedAddMember, { open: openAddMember, close: closeAddMember }] =
@@ -49,7 +51,7 @@ const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
   const isMobile = useMediaQuery('(max-width: 768px)')
   const w960 = useMediaQuery('(max-width: 960px)')
   const navigate = useNavigate()
-  const [key, setKey] = React.useState(0)
+  const [key, setKey] = useState(0)
   return (
     <header
       key={key}
@@ -142,6 +144,9 @@ const BodyHeader: FunctionComponent<BodyHeaderProps> = ({
           <ModalCreateAlbum
             close={closeCreate as () => void}
             opened={openedCreate as boolean}
+            setBodyKey={
+              setBodyKey as React.Dispatch<React.SetStateAction<number>>
+            }
           />
           <ModalSettingAlbum
             setKey={setKey}

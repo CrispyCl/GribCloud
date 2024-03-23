@@ -25,7 +25,7 @@ const MapComponent: React.FC<MapProps> = ({ center }) => {
     new Style({
       image: new Icon({
         crossOrigin: 'anonymous',
-        src: 'svg/MapPoint.svg',
+        src: '/svg/MapPoint.svg',
         scale: 0.05,
       }),
     }),

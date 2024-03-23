@@ -16,7 +16,10 @@ const Header: FunctionComponent<HeaderProps> = ({ setOpen }) => {
       <Link to={currentUser ? '/all' : '/groupalbums'} className='self-center'>
         <img src='/svg/GribCloud.svg' alt='logo' />
       </Link>
-      <Burger className='md:hidden' onClick={() => setOpen(true)} />
+      {(!window.location.href.split('/').includes('/singin') ||
+        !window.location.href.split('/').includes('/singup')) && (
+        <Burger className='md:hidden' onClick={() => setOpen(true)} />
+      )}
       {currentUser ? (
         <div className='hidden items-center gap-4 md:flex'>
           <UserButton />

@@ -1,9 +1,15 @@
 import { imgStorage } from '@/firebase/config'
 import { RootState } from '@/redux/store'
-import { Modal } from '@mantine/core'
+import { LoadingOverlay, Modal } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
-import { ref, uploadString } from 'firebase/storage'
-import React, { FunctionComponent } from 'react'
+import Compressor from 'compressorjs'
+import {
+  getDownloadURL,
+  ref,
+  uploadBytesResumable,
+  uploadString,
+} from 'firebase/storage'
+import React, { FunctionComponent, useState } from 'react'
 import FilerobotImageEditor, { TABS, TOOLS } from 'react-filerobot-image-editor'
 import { useSelector } from 'react-redux'
 import Translation_RU from '../../constants/Translation_RU'
@@ -25,8 +31,35 @@ const ModalImageEdit: FunctionComponent<ModalImageEditProps> = ({
 }) => {
   const user = useSelector((state: RootState) => state.auth.account)
   const isMobile = useMediaQuery('(max-width: 768px)')
+  const [loading, setLoading] = useState(false)
+
+  const compressImage = async (file: File): Promise<string> => {
+    return await new Promise((resolve, reject) => {
+      new Compressor(file, {
+        quality: 0.4,
+        success(result) {
+          const previewBlob = new Blob([result], { type: 'image/jpeg' })
+          const previewStorageRef = ref(
+            imgStorage,
+            `previews/${user?.id}/${file.name}`,
+          )
+          const previewUploadTask = uploadBytesResumable(
+            previewStorageRef,
+            previewBlob,
+          )
+          previewUploadTask
+            .then(async () => {
+              const previewUrl = await getDownloadURL(previewStorageRef)
+              resolve(previewUrl)
+            })
+            .catch(reject)
+        },
+      })
+    })
+  }
 
   const onDownload = async (editedImageObject: any) => {
+    setLoading(true)
     const link = document.createElement('a')
     link.download = name
     link.href = editedImageObject.imageBase64
@@ -35,12 +68,16 @@ const ModalImageEdit: FunctionComponent<ModalImageEditProps> = ({
       link.href,
       'data_url',
     )
-      .then(() => {
-        close()
-      })
-      .then(() => {
-        setKey(k => k + 1)
-      })
+
+    // Преобразование base64-encoded строки в Blob
+    const response = await fetch(editedImageObject.imageBase64)
+    const blob = await response.blob()
+
+    // Создание объекта File из Blob
+    const file = new File([blob], name, { type: blob.type })
+
+    const previewUrl = await compressImage(file)
+    previewUrl && setKey(prev => prev + 1)
   }
 
   return (
@@ -53,6 +90,11 @@ const ModalImageEdit: FunctionComponent<ModalImageEditProps> = ({
         <div className=' text-xl font-semibold'>Редактирование изображения</div>
       }
     >
+      <LoadingOverlay
+        visible={loading}
+        zIndex={1000}
+        overlayProps={{ radius: 'sm', blur: 2 }}
+      />
       <FilerobotImageEditor
         savingPixelRatio={4}
         previewPixelRatio={window.devicePixelRatio}
@@ -65,8 +107,11 @@ const ModalImageEdit: FunctionComponent<ModalImageEditProps> = ({
         translations={Translation_RU}
         defaultSavedImageName={name}
         onSave={(editedImageObject, designState) => {
-          onDownload(editedImageObject)
-          console.log('saved', editedImageObject, designState)
+          onDownload(editedImageObject).then(() => {
+            setLoading(false)
+            close()
+            window.location.reload()
+          })
         }}
         annotationsCommon={{
           fill: '#000',

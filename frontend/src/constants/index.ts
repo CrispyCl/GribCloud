@@ -50,7 +50,7 @@ export const uploadAccept = [
   'image/png',
   'image/jpg',
   'image/jpeg',
-  'image/raw',
+  '.raw',
   'image/bmp',
   'image/gif',
   'image/webp',
