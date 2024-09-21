@@ -1,0 +1,15 @@
+# TODO
+# It's just copy from Dockerfile.dev
+# Make it normal with uvicorn or something else
+
+FROM python:3.12.6
+
+WORKDIR /app .
+
+COPY . .
+
+ENV PYTHONUNBUFFERED=1
+
+RUN pip install --no-cache-dir -r requirements.txt
+CMD [ "python", "server.py"]
+
