@@ -1,0 +1,45 @@
+services:
+  nginx:
+    container_name: nginx
+    build: ./nginx
+    hostname: GribCloud
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - grib-cloud
+      - grib-tags
+    networks:
+      - backbone
+
+  grib-cloud:
+    container_name: grib-cloud
+    hostname: cloud
+    env_file: ./backend/GribCloud/docker.env
+    build:
+      context: ./backend/GribCloud
+    ports:
+      - "8000:8000"
+    networks:
+      - backbone
+    volumes:
+      - ./backend/GribCloud/GriBD.sqlite3:/app/GriBD.sqlite3
+
+  grib-tags:
+    container_name: grib-tags
+    hostname: tags
+    env_file: ./backend/GribTags/docker.env
+    build: ./backend/GribTags
+    ports:
+      - "8080:8080"
+    networks:
+      - backbone
+    # For local development:
+    # comment `pip install` in Dockerfile
+    # pip install -r requiremets.txt --target ./cache_libs
+    # volumes:
+    #   - ./backend/GribTags/cache_libs:/usr/local/lib/python3.12/site-packages
+
+networks:
+  backbone:
+    driver: bridge
